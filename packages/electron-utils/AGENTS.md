@@ -35,7 +35,7 @@ shell과 에디터들의 메인 프로세스(일부는 preload)가 함께 쓰는
 - 저장은 실패보다 완료가 우선이다. `atomicWriteFile`은 같은 폴더의 임시 파일에 쓰고 rename하되, Windows에서 백신·색인기가 대상을 잠깐 잠그면 다시 시도하고, 끝내 안 되면(일부 네트워크 드라이브는 덮어쓰는 rename을 거절한다) 제자리에 쓴다. fsync가 거절돼도 저장을 실패시키지 않는다. 이 대체 경로를 "원자성이 깨진다"는 이유로 지우지 않는다.
 - headless 내보내기의 계약(`--headless-export <입력> --to <형식> --out <경로> [--json]`, 종료 코드 1 인자 오류 / 2 입력 파일 오류 / 3 변환 실패, 한 줄 봉투)은 `packages/cli`와 shell이 함께 읽는다. 바꾸려면 양쪽을 같이 바꾼다.
 - 패키지 루트 진입점은 Electron에 묶여 있다(`renderer-protocol.ts`가 `net`·`protocol`을, `drop-open.ts`가 `ipcRenderer`·`webUtils`를 실행 시점에 import한다). Electron 없이 도는 코드(`packages/cli`의 번들, `packages/ai-search`)는 `package.json`의 `exports`에 있는 하위 경로(`/remote-image`, `/generated-images`, `/safe-remote-url`, `/atomic-write`, `/headless-export` 등)로만 import한다. 그런 코드가 써야 할 모듈을 새로 만들면 하위 경로로도 내보낸다.
-- 내부 식별자는 원본 표기를 유지한다. 렌더러 스킴 `genoffice-app`(`RENDERER_SCHEME`), 임시 폴더 이름 `genoffice-ai-images`, 심볼 키 등은 사용자에게 보이지 않는 이름이라 바꾸지 않는다. 사용자에게 보이는 이름(메뉴의 제품 이름, 기본 저장 폴더 `<문서>/IeumOffice`)은 `@genoffice/i18n`의 `PRODUCT_NAME`·`productName`·`brandText`에서 가져온다.
+- 내부 식별자는 원본 표기를 유지한다. 렌더러 스킴 `genoffice-app`(`RENDERER_SCHEME`), 임시 폴더 이름 `genoffice-ai-images`, 심볼 키 등은 사용자에게 보이지 않는 이름이라 바꾸지 않는다. 사용자에게 보이는 이름(메뉴의 제품 이름, 기본 저장 폴더 `<문서>/AllOffice`)은 `@genoffice/i18n`의 `PRODUCT_NAME`·`productName`·`brandText`에서 가져온다.
 - 저장하지 않은 파일 확인과 생성 넘겨주기의 상태는 `Symbol.for(...)` 키에 둔다. shell이 건 목록과 맡겨 둔 요청을, 번들에 따로 들어간 에디터의 사본이 같은 것으로 읽어야 한다. 열린 문서 목록이 없는 실행(에디터 단독 실행)에서는 아무것도 막지 않는다.
 - 넘겨주기는 실행을 시작하지 않는다. 요청은 맡겨진 webContents와 종류에서만, 한 번만 가져갈 수 있고, 가져가기 전에 탭이 닫히면 버린다. 디스크에 아무것도 쓰지 않는다.
 - 저장소 URL을 문자열로 다시 적지 않는다. `GITHUB_REPO_URL`·`GITHUB_ISSUES_URL`·`GITHUB_LATEST_RELEASE_URL`·`githubReleaseTagUrl`을 쓴다.
@@ -54,7 +54,7 @@ shell과 에디터들의 메인 프로세스(일부는 preload)가 함께 쓰는
 - `registerSchemesAsPrivileged`는 프로세스에서 한 번만 부를 수 있다. 다른 스킴도 등록하는 호스트는 `registerRendererScheme`을 부르지 않고 `RENDERER_SCHEME_PRIVILEGE`를 자기 목록에 펼쳐 넣는다. `resolveRendererFile`은 모르는 호스트와 폴더를 벗어나는 경로에 `null`을 준다.
 - 끌어다 놓기는 preload에서 경로를 풀어 채널 하나(`DROP_OPEN_CHANNEL`)로 보낸다. 받을 수 있는 확장자 `OPENABLE_DOC_RE`는 shell의 라우팅과 홈 화면의 열기 대화 상자 목록과 맞춰야 한다. `.odt`는 워드 탭이 여는 지원 형식이고, "지원하지 않음" 목록 `KNOWN_UNSUPPORTED_DOC_RE`는 shell `launch-paths.ts`의 `UNSUPPORTED_LAUNCH_RE`와 같아야 한다. 자기 영역의 드롭을 직접 처리하는 화면 요소는 이벤트를 취소해 이 다리가 끼어들지 않게 한다.
 - AI가 만든 HTML을 인쇄할 때는 `sanitizePrintableBody`로 허용 태그만 남기고 속성과 URL을 모두 지운 뒤, 임시 파일로 불러온다(`data:` URL은 긴 문서를 잘라 버린다). 창과 임시 폴더는 어떤 결과에서도 치운다.
-- 기본 저장 폴더는 설정된 폴더가 쓸 수 없으면(뽑힌 드라이브, 권한 회수) 대체 폴더로 내려간다. 조용한 저장이 깨지지 않게 하기 위해서다. 대체 폴더는 `<문서>/IeumOffice` → `<홈>/IeumOffice` → `<userData>/IeumOffice` 순서이고, 쓸 수 없던 폴더는 30초 동안 다시 시도하지 않으며 실패 기록은 `Symbol.for` 키에 둔다(결정 0078). 이 함수는 홈 화면·검색 색인·첫 저장이 쉬지 않고 부르므로, 있는 폴더를 다시 만들거나 실패한 폴더를 매번 다시 만드는 코드를 넣지 않는다. 문서 폴더에서 내려갔는지는 `defaultSaveDirFallback()`이 알려 주고, shell이 한 번 알린다.
+- 기본 저장 폴더는 설정된 폴더가 쓸 수 없으면(뽑힌 드라이브, 권한 회수) 대체 폴더로 내려간다. 조용한 저장이 깨지지 않게 하기 위해서다. 대체 폴더는 `<문서>/AllOffice` → `<홈>/AllOffice` → `<userData>/AllOffice` 순서이고, 쓸 수 없던 폴더는 30초 동안 다시 시도하지 않으며 실패 기록은 `Symbol.for` 키에 둔다(결정 0078). 이 함수는 홈 화면·검색 색인·첫 저장이 쉬지 않고 부르므로, 있는 폴더를 다시 만들거나 실패한 폴더를 매번 다시 만드는 코드를 넣지 않는다. 문서 폴더에서 내려갔는지는 `defaultSaveDirFallback()`이 알려 주고, shell이 한 번 알린다.
 - 이 패키지는 `@genoffice/i18n`을 import하지만 `package.json`의 `dependencies`에는 `parse5`만 있다(workspace 호이스팅에 기대는 기존 구조다).
 
 ## 테스트

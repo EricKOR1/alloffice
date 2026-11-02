@@ -63,7 +63,7 @@ export const pt = {
   undoFailed: 'Não foi possível desfazer.',
   removeMemoryAria: 'Apagar esta memória: {text}',
   filesDesc:
-    'Arquivos que a IA pode ver neste projeto. Arquivos ocultos e a pasta .ieumoffice ficam de fora.',
+    'Arquivos que a IA pode ver neste projeto. Arquivos ocultos e a pasta .alloffice ficam de fora.',
   filesEmpty: 'Não há arquivos que a IA possa ver.',
   filesLoadFailed: 'Não foi possível ler a lista de arquivos.',
   filesCount: '{count} arquivos',

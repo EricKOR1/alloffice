@@ -1,6 +1,6 @@
 # Pemasangan GenOffice
 
-Setiap versi diterbitkan pada [halaman Keluaran](https://github.com/pblsketch/openoffice/releases/latest) projek ini di GitHub. Versi ini dikeluarkan untuk Windows.
+Setiap versi diterbitkan pada [halaman Keluaran](https://github.com/EricKOR1/alloffice/releases/latest) projek ini di GitHub. Versi ini dikeluarkan untuk Windows.
 
 ## Memilih fail untuk mesin anda
 
@@ -35,4 +35,4 @@ Oleh sebab pemasang ini tidak ditandatangani, jalankan hanya pemasang yang anda 
 
 ## Baris arahan yang disertakan
 
-Setiap pemasangan meliputi satu perintah `ieumoffice` yang bercakap dengan enjin yang sama seperti yang digunakan oleh tetingkap itu, jadi kedua-duanya tidak pernah berselisih tentang sesuatu fail. `ieumoffice install-cli` meletakkannya pada `PATH` anda. Lihat [Baris arahan dan ejen](help://cli) untuk apa yang boleh ia lakukan.
+Setiap pemasangan meliputi satu perintah `alloffice` yang bercakap dengan enjin yang sama seperti yang digunakan oleh tetingkap itu, jadi kedua-duanya tidak pernah berselisih tentang sesuatu fail. `alloffice install-cli` meletakkannya pada `PATH` anda. Lihat [Baris arahan dan ejen](help://cli) untuk apa yang boleh ia lakukan.

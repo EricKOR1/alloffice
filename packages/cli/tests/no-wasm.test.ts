@@ -51,12 +51,12 @@ describe('document commands instantiate no WebAssembly', () => {
   it('answers --version without loading a parser', async () => {
     const result = await cli(['--version'])
     expect(result.code).toBe(0)
-    expect(result.out.join('\n')).toContain('ieumoffice')
+    expect(result.out.join('\n')).toContain('alloffice')
     expect(calls).toEqual([])
   })
 
   it('creates and reads a Word document without loading a parser', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'ieumoffice-no-wasm-'))
+    const dir = mkdtempSync(join(tmpdir(), 'alloffice-no-wasm-'))
     const md = join(dir, 'note.md')
     writeFileSync(md, '# Hello\n\n- one\n- two\n')
     const docx = join(dir, 'note.docx')

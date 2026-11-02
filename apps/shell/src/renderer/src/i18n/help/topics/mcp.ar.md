@@ -15,27 +15,27 @@
 الشيء نفسه من طرفية — وهذا هو المسار المتقدم، وهو ما تلجأ إليه حين يكون الوكيل في مكان لا تعثر عليه اللوحة:
 
 ```sh
-ieumoffice mcp install all
+alloffice mcp install all
 ```
 
-يجد وكلاء البرمجة الموجودين على هذا الجهاز — Claude Code، وCodex، وCursor، وGemini CLI، وCopilot CLI، وOpenCode، وWindsurf — ويكتب مدخل خادم stdio في إعداد كل واحد منهم، تاركًا بقية ذلك الملف كما وجدها. واسم المدخل `ieumoffice`. وإذا أُجري التسجيل نفسه يدويًا لـ Claude Code فهو `claude mcp add --transport stdio ieumoffice -- ieumoffice mcp`.
+يجد وكلاء البرمجة الموجودين على هذا الجهاز — Claude Code، وCodex، وCursor، وGemini CLI، وCopilot CLI، وOpenCode، وWindsurf — ويكتب مدخل خادم stdio في إعداد كل واحد منهم، تاركًا بقية ذلك الملف كما وجدها. واسم المدخل `alloffice`. وإذا أُجري التسجيل نفسه يدويًا لـ Claude Code فهو `claude mcp add --transport stdio alloffice -- alloffice mcp`.
 
 ```sh
-ieumoffice mcp list             # where each agent stands
-ieumoffice mcp install cursor    # just one
-ieumoffice mcp uninstall cursor  # take it back out
+alloffice mcp list             # where each agent stands
+alloffice mcp install cursor    # just one
+alloffice mcp uninstall cursor  # take it back out
 ```
 
 الوكيل الذي ثبّتّه في مكان غير معتاد يحتاج إلى `--dir <path>`؛ وعلامة `--force` تعيد كتابة مدخل موجود بالفعل.
 
-يعرض `ieumoffice mcp --help` كل ما يقبله الخادم في شاشة واحدة: صيغ التسجيل والإزالة والعرض، والإتاحة عبر HTTP، وعَلَمَي المخططات.
+يعرض `alloffice mcp --help` كل ما يقبله الخادم في شاشة واحدة: صيغ التسجيل والإزالة والعرض، والإتاحة عبر HTTP، وعَلَمَي المخططات.
 
 ## تشغيله من دون مساعد
 
 لعميل على جهاز آخر، قدّمه عبر HTTP بدلًا من ذلك:
 
 ```sh
-ieumoffice mcp --http 8765 --token <secret>
+alloffice mcp --http 8765 --token <secret>
 ```
 
 تغيّر `--host <addr>` موضع الاستماع. ومرّر الرمز نفسه إلى العميل.
@@ -55,7 +55,7 @@ ieumoffice mcp --http 8765 --token <secret>
 
 ## البحث والصور والوسائط: ما يجوز للوكيل استخدامه
 
-الطلب الوارد من الأمر `ieumoffice` أو من عميل MCP لم تكتبه أنت في التطبيق، ولذلك يتعامل معه GenOffice بحذر.
+الطلب الوارد من الأمر `alloffice` أو من عميل MCP لم تكتبه أنت في التطبيق، ولذلك يتعامل معه GenOffice بحذر.
 
 - **البحث** يعمل دائمًا وهو مجاني افتراضيًا. ولا يُستخدم مفتاح مزوّد بحث إلا إذا اخترته.
 - **توليد صورة** يحتاج إلى مفتاح مزوّد صور. في هذا الإصدار لا يولّد الاشتراك صورًا.
@@ -74,16 +74,16 @@ ieumoffice mcp --http 8765 --token <secret>
 
 ## المخططات، وميزانية أصغر
 
-يُعلن `apply` و`create` معاملي `ops` و`cells` و`data` مع مخطط مُنمَّط لكل عملية، مولَّدًا من `ieumoffice guide <domain> --json`. هذا دقيق لكنه ليس صغيرًا. والعميل الذي له نافذة سياق ضيقة يمكنه أن يطلب المصفوفات البسيطة بدلًا من ذلك:
+يُعلن `apply` و`create` معاملي `ops` و`cells` و`data` مع مخطط مُنمَّط لكل عملية، مولَّدًا من `alloffice guide <domain> --json`. هذا دقيق لكنه ليس صغيرًا. والعميل الذي له نافذة سياق ضيقة يمكنه أن يطلب المصفوفات البسيطة بدلًا من ذلك:
 
 ```sh
-ieumoffice mcp --compact-schemas
-GENOFFICE_MCP_COMPACT_SCHEMAS=1 ieumoffice mcp
+alloffice mcp --compact-schemas
+GENOFFICE_MCP_COMPACT_SCHEMAS=1 alloffice mcp
 ```
 
 ## لماذا هذه المهارة
 
-الوكيل الذي لا يعرف مفردات العمليات سيخمّن. وتحمل المهارة المرجع وأدلة التصميم — وهي المادة نفسها التي يطبعها `ieumoffice guide` —، فيكتب المساعد عمليات قد قرأ مواصفاتها حقًا. ثبّتها من اللوحة أعلاه، أو بأمر `ieumoffice skill` من طرفية.
+الوكيل الذي لا يعرف مفردات العمليات سيخمّن. وتحمل المهارة المرجع وأدلة التصميم — وهي المادة نفسها التي يطبعها `alloffice guide` —، فيكتب المساعد عمليات قد قرأ مواصفاتها حقًا. ثبّتها من اللوحة أعلاه، أو بأمر `alloffice skill` من طرفية.
 
 ## ما الذي يصل إليه داخل التطبيق
 

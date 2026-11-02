@@ -30,7 +30,7 @@ Projek ialah satu folder pada PC anda. Pilih projek dalam panel AI dan AI akan b
 ## Fail yang dilihat oleh AI
 
 - Bersama setiap permintaan, AI menerima nama projek, arahan dan ingatannya, serta senarai nama fail dalam folder itu. AI membaca kandungan fail sendiri apabila perlu, dengan cara yang sama seperti lampiran, jadi bahagian yang disembunyikan daripada AI kekal tersembunyi.
-- AI tidak membaca dokumen terbuka yang mempunyai perubahan belum disimpan, fail tersembunyi yang namanya bermula dengan titik, atau folder `.ieumoffice`.
+- AI tidak membaca dokumen terbuka yang mempunyai perubahan belum disimpan, fail tersembunyi yang namanya bermula dengan titik, atau folder `.alloffice`.
 - Untuk menjauhkan sesuatu fail daripada AI, tekan **Sembunyikan daripada AI** di bahagian Fail pada halaman projek. Tindakan ini boleh dibuat asal. Fail itu masih dipaparkan dalam hasil carian Laman Utama.
 - Dalam folder yang disegerakkan oleh OneDrive, Google Drive dan perkhidmatan seumpamanya, fail yang belum dimuat turun ke PC ini dipaparkan sebagai "Tiada pada PC ini". Apabila AI mahu membacanya, anda akan ditanya dahulu sama ada hendak memuat turunnya.
 - Taip `@` dalam kotak input dan "Fail dalam projek ini" dipaparkan selepas dokumen yang dibuka. Memilih salah satu akan melampirkannya. Lihat [Panel pembantu AI](help://ai-panel).
@@ -59,10 +59,10 @@ Projek ialah satu folder pada PC anda. Pilih projek dalam panel AI dan AI akan b
 
 ## Apa yang disimpan dalam folder, dan perkara yang perlu diketahui
 
-- Arahan, ingatan dan perbualan disimpan sebagai fail teks dalam folder `.ieumoffice` di dalam folder projek. Jika folder itu dialihkan atau disalin ke PC lain, semuanya ikut bersama. Pada PC lain, pilih folder itu sekali dengan **Tambah folder** dalam panel AI atau **Guna folder sedia ada** pada skrin Projek di Laman Utama.
-- Folder `.ieumoffice` hanya dicipta apabila ada sesuatu untuk ditulis. Anda boleh membuka dan menyunting failnya dalam Notepad.
+- Arahan, ingatan dan perbualan disimpan sebagai fail teks dalam folder `.alloffice` di dalam folder projek. Jika folder itu dialihkan atau disalin ke PC lain, semuanya ikut bersama. Pada PC lain, pilih folder itu sekali dengan **Tambah folder** dalam panel AI atau **Guna folder sedia ada** pada skrin Projek di Laman Utama.
+- Folder `.alloffice` hanya dicipta apabila ada sesuatu untuk ditulis. Anda boleh membuka dan menyunting failnya dalam Notepad.
 - Apa yang anda taip dalam perbualan boleh masuk ke dalam ingatan. Untuk mengelakkan sesuatu disimpan, padamkannya dengan **Padam** pada baris "Diingati", atau matikan ingatan.
 - Jika anda memilih folder yang disegerakkan sebagai projek, arahan, ingatan dan perbualannya turut dimuat naik ke perkhidmatan itu. Aplikasi memberitahu anda sekali, pada kali pertama anda memilihnya.
 - Dalam folder kongsi yang digunakan oleh beberapa orang, ingatan dan perbualan boleh bercampur.
 - Dalam folder yang tidak boleh ditulis oleh aplikasi, seperti folder baca sahaja, arahan dan pembacaan fail masih berfungsi tetapi perbualan dan ingatan tidak disimpan. Panel AI akan memberitahu anda.
-- Tetingkap ejen belum menggunakan projek. Ejen juga boleh menukar fail dalam `.ieumoffice` sesuatu folder, jadi dalam folder yang mengandungi bahan yang anda tidak kenali, gunakan salah satu cara yang bertanya dahulu. Lihat [Mod ejen](help://agent-mode).
+- Tetingkap ejen belum menggunakan projek. Ejen juga boleh menukar fail dalam `.alloffice` sesuatu folder, jadi dalam folder yang mengandungi bahan yang anda tidak kenali, gunakan salah satu cara yang bertanya dahulu. Lihat [Mod ejen](help://agent-mode).

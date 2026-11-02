@@ -67,14 +67,14 @@ describe('project folders', () => {
       projectFolderProblem(
         project,
         home,
-        agentProtectedPaths(home, join(home, 'AppData', 'IeumOffice')),
+        agentProtectedPaths(home, join(home, 'AppData', 'AllOffice')),
       ),
     ).toBeUndefined()
   })
 
   it('refuses a drive root, the home folder, a parent of a protected folder, and a protected folder', () => {
     const home = temp()
-    const userData = join(home, 'AppData', 'IeumOffice')
+    const userData = join(home, 'AppData', 'AllOffice')
     mkdirSync(join(home, '.codex'), { recursive: true })
     mkdirSync(userData, { recursive: true })
     const guards = agentProtectedPaths(home, userData)
@@ -109,12 +109,12 @@ describe('instructions', () => {
     const claude = await agentInstructions('claude-code', project, 'ko', true)
     expect(claude).toContain('Use formal Korean.')
     expect(claude).toContain('Agents file.')
-    expect(claude).toContain('ieumoffice-editor')
+    expect(claude).toContain('alloffice-editor')
     expect(claude).toContain('"ko"')
     const codex = await agentInstructions('codex', project, 'ko', false)
     expect(codex).toContain('Use formal Korean.')
     expect(codex).not.toContain('Agents file.')
-    expect(codex).not.toContain('ieumoffice-editor')
+    expect(codex).not.toContain('alloffice-editor')
   })
 
   it('points to the two skill tools only when the app tools are there', async () => {
@@ -219,7 +219,7 @@ function manager(
       overrides.statuses ?? { 'claude-code': ready('claude-code'), codex: ready('codex') },
     aiSettings: () => ({ ...normalizeAiSettings({ providers: {} }), ...overrides.settings }),
     openDocuments: overrides.openDocuments ?? (() => [join(project, 'open.docx')]),
-    userData: join(home, 'AppData', 'IeumOffice'),
+    userData: join(home, 'AppData', 'AllOffice'),
     homeDir: home,
     language: () => 'ko',
     startAppMcp,
@@ -263,7 +263,7 @@ describe('starting a session', () => {
       openDocuments: [join(project, 'open.docx')],
     })
     expect(options.protectedPaths).toContain(join(home, '.codex'))
-    expect(options.protectedPaths).toContain(join(home, 'AppData', 'IeumOffice'))
+    expect(options.protectedPaths).toContain(join(home, 'AppData', 'AllOffice'))
   })
 
   it('passes on the model and the effort chosen for that program', async () => {

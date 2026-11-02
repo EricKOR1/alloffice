@@ -7,7 +7,7 @@
 ```
 apps/shell      껍데기 앱. 창, 탭, 홈 화면, 설정, 첫 실행 안내, 자동 업데이트, 파일 색인과 지식 자료 검색,
                 앱 안 MCP 서버, 명령어가 실행 중인 앱에 말을 거는 제어 창구, 만들기 창, AI 없이 바꾸기, 출처 기록,
-                AI 창의 "이음오피스 문서에서 첨부"가 쓰는 문서 고르기 창, 프로젝트 폴더의 길잡이(목록·믿음·폴더 읽고 쓰기)
+                AI 창의 "올오피스 문서에서 첨부"가 쓰는 문서 고르기 창, 프로젝트 폴더의 길잡이(목록·믿음·폴더 읽고 쓰기)
 apps/docs       워드(.docx) 편집기. 뒷단이 공용 AI 창구(`ai:*`)를 등록한다. 설치본에서는 모든 편집기의
                 모델 호출·설정·검색 요청을 이 뒷단이 받는다
 apps/sheets     엑셀(.xlsx) 편집기        ┐ 모델 호출용 뒷단 코드는 편집기를 혼자 띄울 때만 돈다. 설치본에서는
@@ -27,7 +27,7 @@ packages/ai-search     검색·이미지 생성·미디어 분석 도구, 자동
 packages/agent-core    AI 실행 반복(모델 → 도구 → 모델), 화면↔뒷단 전송 통로, 가리기
 packages/ui            편집기들이 함께 쓰는 AI 화면 부품과 그 문구(21개 언어)
 packages/i18n          화면 언어 목록, 제품 이름 한 곳 정의
-packages/cli           터미널 명령어 `ieumoffice`, MCP 도구, 에이전트 스킬 설치
+packages/cli           터미널 명령어 `alloffice`, MCP 도구, 에이전트 스킬 설치
 packages/electron-utils 편집기 뒷단 공용 도구(메뉴, 저장소 주소, 원격 이미지 받기 등), 저장하지 않은 파일 확인,
                        생성 요청을 새 탭에 맡겨 두는 곳(`generate-handoff.ts`)
 packages/odt-engine    ODT 열기(다리 docx로 바꾸기), 고친 부분만 원본 ODT에 되돌려 쓰기, docx → 새 ODT
@@ -116,9 +116,9 @@ EPUB 편집기 화면 ── epub:read-chapter·apply-edits·save 등 ──→ 
 
 **AI 없이 바꾸기.** 자료가 하나이고 종류가 맞으면(지도 → 마크다운, 지도 → PPT 뼈대, 마크다운 → 지도) 3에서 껍데기 앱이 직접 바꾼다(`apps/shell/src/main/generate/convert.ts`). 자료는 `parseFileToText`로만 읽으므로 가린 자리는 이름표로 옮겨진다. 결과는 그 종류의 새 탭 앞으로 맡겨 두고, 새 탭이 한 번 가져가 저장하지 않은 새 문서로 연다. 바꾼 사실은 7의 기록에 같이 쓰인다.
 
-## 이음오피스 문서에서 첨부하는 흐름
+## 올오피스 문서에서 첨부하는 흐름
 
-1. 편집기 AI 창의 "이음오피스 문서에서 첨부" 단추(`packages/ui`의 `DocAttachButton`)를 누르면, 편집기 preload가 내준 다리(`window.aiOfficeDocs`)로 껍데기 앱에 부탁한다. 껍데기 앱이 없으면(편집기를 혼자 띄우면) 다리가 없어 단추가 나오지 않는다.
+1. 편집기 AI 창의 "올오피스 문서에서 첨부" 단추(`packages/ui`의 `DocAttachButton`)를 누르면, 편집기 preload가 내준 다리(`window.aiOfficeDocs`)로 껍데기 앱에 부탁한다. 껍데기 앱이 없으면(편집기를 혼자 띄우면) 다리가 없어 단추가 나오지 않는다.
 2. 껍데기 앱이 문서 고르기 창(별도 창, preload `doc-picker`)을 띄운다. 목록은 묻는 편집기 기준으로 껍데기 앱이 아는 옆 칸 탭, 열린 탭과 떼어 낸 창, 그리고 최근 연 문서에서 만든다(`doc-list.ts`, 묻는 편집기는 `doc-asker.ts`). 지금 문서와 같은 경로는 빠진다. 형식(`file-parse`의 `ATTACHABLE_EXTS`)과 크기 상한 안인 것만 넣고, 저장하지 않은 문서·저장 안 된 변경이 있는 문서·없는 파일도 항목으로 두되 흐리게 표시한다. 같은 경로는 앞 그룹이 이긴다.
 3. 저장된 문서의 식별자는 그 경로다. 사용자가 고르고 "첨부"를 누르면 껍데기 앱이 방금 창에 건넨 목록에서 고를 수 있는 상태인 식별자일 때만 받아들여 그 경로를 편집기로 돌려준다. 창을 닫으면 취소다.
 4. 편집기는 돌려받은 경로를 평소 PC 파일 첨부와 같은 길로 넣는다. 형식과 크기는 이미 걸러졌고, 실제 읽기(가리기 포함)는 그 편집기의 첨부 읽기가 한다.
@@ -150,7 +150,7 @@ EPUB 편집기 화면 ── epub:read-chapter·apply-edits·save 등 ──→ 
 ```
 설정 → 스킬(화면) ─┐                         ┌─ @genoffice/ai-provider user-skills
 편집기 AI 창·홈 AI 질문 ─ aiOfficeUserSkills ─┼→ 껍데기 앱 뒷단 user-skills/ ─┤  출처 읽기·판정, 가져오기·업데이트·내보내기
-에이전트 창(일부) ──────┘   (preload 다리)     │  (쓰기는 ~/.ieumoffice/skills 하나) └─ 깃허브 세 주소
+에이전트 창(일부) ──────┘   (preload 다리)     │  (쓰기는 ~/.alloffice/skills 하나) └─ 깃허브 세 주소
                                               └→ app-settings.json의 skills 값
 ```
 
@@ -170,7 +170,7 @@ AI 창(아홉 편집기, 홈 AI 질문)
  │      ↓
  └→ 껍데기 앱 뒷단 apps/shell/src/main/projects/ (프로젝트 길잡이)
         ├→ app-settings.json의 projects   목록·고정·믿음 기록·문서별 선택·installId
-        ├→ <폴더>/.ieumoffice/            지침·기억·대화(쓰기는 확인 함수 하나를 지난다)
+        ├→ <폴더>/.alloffice/            지침·기억·대화(쓰기는 확인 함수 하나를 지난다)
         ├→ 파일 색인(file-index)          목록·찾기, 클라우드 전용 파일은 이름만
         ├→ parseFileToText               읽기(가리기 적용, 첨부와 같은 길)
         └→ 대화 상자                      믿음 확인, 클라우드 파일 내려받기 확인
@@ -178,8 +178,8 @@ AI 창(아홉 편집기, 홈 AI 질문)
 
 1. **고르기.** 입력 상자 밖 아래 줄의 고르기와 머리의 대화 목록은 `packages/ui`의 부품이다. 창이 처음 열릴 때 무엇이 골라져 있을지는 뒷단이 정한다. 요청을 보낸 창을 알아내 그 창의 문서 경로로 판단하고, 화면이 보낸 경로나 목록을 믿지 않는다.
 2. **맥락.** 공용 프로젝트 스킬(`panelProjectSkill`, `packages/ui`)은 `panelUserSkills` 옆에 있고, 열 곳의 AI 창이 모두 스킬 목록에 펼쳐 넣는다. 프로젝트를 고른 경우에만 스킬 하나를 돌려준다. 보내기 직전에 다리로 맥락(이름·지침·기억·파일 이름 목록·알림)을 한 번 읽어 그 요청 동안 고정한다. 이 내용은 스킬의 지시문(`systemPrompt`) 자리에 들어가, 실행 반복이 `MATERIAL_NOT_INSTRUCTIONS` 뒤에 잇는다. 사용자 메시지에 붙는 매 차례 맥락(`buildContext`)에는 넣지 않는다. 대화 기록에 쌓이지 않게 하고, 주소 판정(`guardOutbound`)에서 사람의 말로 치이지 않게 하려는 것이다. `composeWithDrive`에 넣으면 홈 AI 질문이 빠지므로 그 길은 쓰지 않는다.
-3. **도구.** `project_list_files`·`project_search`·`project_read`·`project_remember`는 다른 앱 도구처럼 화면의 실행 반복에서 불린다. 실행은 다리를 거쳐 뒷단으로 간다. 뒷단은 그 실행의 범위 값을 만들고(결정 0020의 방식에 "프로젝트 폴더" 종류를 더함), 호출마다 경로가 폴더 안이고 숨김·`.ieumoffice/`·`ignore`에 걸리지 않는지 다시 본다. 읽기는 `assertFileSaved` → `parseFileToText`이고, 클라우드 전용 파일이면 먼저 대화 상자로 묻는다. 홈 AI 질문은 같은 범위 값에 별표 범위를 합친다. 구독 프로그램은 여전히 도구가 없다.
-4. **대화.** 프로젝트 대화 훅(`packages/ui`)이 대화 열기·더하기·목록·새 대화를 다리로 부르고, 뒷단이 `.ieumoffice/chats/`에 쓴다. 뒷단은 대화를 연 창들을 대화 id별로 기억해, 한 창에서 메시지가 더해지면 나머지 창에 알린다. 프로젝트를 고르지 않은 창은 예전처럼 `project-store`의 문서별 저장을 쓴다.
+3. **도구.** `project_list_files`·`project_search`·`project_read`·`project_remember`는 다른 앱 도구처럼 화면의 실행 반복에서 불린다. 실행은 다리를 거쳐 뒷단으로 간다. 뒷단은 그 실행의 범위 값을 만들고(결정 0020의 방식에 "프로젝트 폴더" 종류를 더함), 호출마다 경로가 폴더 안이고 숨김·`.alloffice/`·`ignore`에 걸리지 않는지 다시 본다. 읽기는 `assertFileSaved` → `parseFileToText`이고, 클라우드 전용 파일이면 먼저 대화 상자로 묻는다. 홈 AI 질문은 같은 범위 값에 별표 범위를 합친다. 구독 프로그램은 여전히 도구가 없다.
+4. **대화.** 프로젝트 대화 훅(`packages/ui`)이 대화 열기·더하기·목록·새 대화를 다리로 부르고, 뒷단이 `.alloffice/chats/`에 쓴다. 뒷단은 대화를 연 창들을 대화 id별로 기억해, 한 창에서 메시지가 더해지면 나머지 창에 알린다. 프로젝트를 고르지 않은 창은 예전처럼 `project-store`의 문서별 저장을 쓴다.
 5. **기억.** `project_remember`의 쓰기는 뒷단이 쓰기 직전 파일을 다시 읽어 고친다. [정리하기]는 화면이 지금 연결된 제공자로 한 번 실행하고(보내기 전 판단을 지난다), 받은 목록을 다리로 넘기면 뒷단이 백업하고 바꾼다.
 6. **새 문서.** 프로젝트를 고른 실행에서 AI가 만든 새 문서의 저장 폴더는 뒷단이 그 탭의 프로젝트로 정하고, 같은 쓰기 확인을 지난다. 편집기 뒷단은 껍데기를 가져오지 않으므로 `configure<편집기>Runtime(...)`으로 받은 함수만 쓴다.
 
@@ -219,8 +219,8 @@ PC가 꺼질 때(Windows는 창의 `query-session-end`·`session-end`, macOS·Li
 ## 바깥에서 들어오는 길 (자동 호출 경로)
 
 ```
-터미널의 `ieumoffice …`  ──┐
-MCP 클라이언트(`ieumoffice mcp`) ─┴→ packages/cli → 문서 엔진(파일 읽기·만들기·변환, PC 안에서 끝남)
+터미널의 `alloffice …`  ──┐
+MCP 클라이언트(`alloffice mcp`) ─┴→ packages/cli → 문서 엔진(파일 읽기·만들기·변환, PC 안에서 끝남)
                                          ├→ packages/pdf-structure (PDF 변환·그림·보관소, PC 안에서 끝남)
                                          ├→ packages/ai-search (search / image / media / read-url, 밖으로 나감)
                                          ├→ packages/epub-engine (epub translate의 단위·결과 책, PC 안에서 끝남)
@@ -267,7 +267,7 @@ PDF 편집기 화면 ── pdfApi.structure.* ──→ 셸 메인(pdf-structur
 
 - 사용자 PC의 **Claude Code**(2.1.248 이상)와 **Codex** 프로그램. 없으면 구독 연결이 "설치되지 않음"이 되고 나머지 기능은 그대로 동작한다.
 - 무료 검색: Parallel의 무료 검색, 실패하면 DuckDuckGo.
-- GitHub 릴리스(`pblsketch/openoffice`): 자동 업데이트와 설치 파일 배포.
+- GitHub 릴리스(`EricKOR1/alloffice`): 자동 업데이트와 설치 파일 배포.
 - 키 방식 제공자와 키 방식 검색·이미지 서비스, 파일 검색 재정렬 서비스, 마크다운 편집기의 이미지 올리기 대상: 사용자가 설정에 넣은 경우에만.
 - 주소로 문서 읽기(`read_url`·`read-url`): 입력한 주소가 그 사이트로 간다. 비공개 GitHub 파일을 읽을 때의 GitHub 읽기 토큰은 `api.github.com`에만 실린다.
 - 문서가 스스로 부르는 것: HTML 문서는 자기 코드가 가리키는 온라인 자원을 불러오고, 마크다운 내보내기는 주소로 걸린 그림을 받아 온다.

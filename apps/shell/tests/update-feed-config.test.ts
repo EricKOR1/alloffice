@@ -50,7 +50,7 @@ describe('unsigned Windows builds can update', () => {
         configOnDisk: { value: Promise.resolve(appUpdateYml) },
         _verifyUpdateCodeSignature: verify,
       },
-      'C:\\cache\\pending\\IeumOffice-Setup-0.2.0.exe',
+      'C:\\cache\\pending\\AllOffice-Setup-0.2.0.exe',
     )
     return { outcome, verify }
   }
@@ -60,7 +60,7 @@ describe('unsigned Windows builds can update', () => {
       provider: 'github',
       owner: PRODUCT_REPO_OWNER,
       repo: PRODUCT_REPO_NAME,
-      updaterCacheDirName: 'ieumoffice-updater',
+      updaterCacheDirName: 'alloffice-updater',
     })
     // null is "nothing wrong": NsisUpdater goes on to install the download
     await expect(outcome).resolves.toBeNull()

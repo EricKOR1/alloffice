@@ -30,7 +30,7 @@ Một dự án là một thư mục trên máy tính của bạn. Chọn dự á
 ## Các tệp AI nhìn thấy
 
 - Với mỗi yêu cầu, AI nhận được tên dự án, chỉ dẫn và ghi nhớ của dự án, cùng danh sách tên các tệp trong thư mục. Khi cần, AI tự đọc nội dung tệp theo cùng cách như với tệp đính kèm, nên những phần đã ẩn khỏi AI vẫn được giữ kín.
-- AI không đọc các tài liệu đang mở còn thay đổi chưa lưu, các tệp ẩn có tên bắt đầu bằng dấu chấm, hay thư mục `.ieumoffice`.
+- AI không đọc các tài liệu đang mở còn thay đổi chưa lưu, các tệp ẩn có tên bắt đầu bằng dấu chấm, hay thư mục `.alloffice`.
 - Để giữ một tệp khỏi tầm nhìn của AI, nhấn **Ẩn khỏi AI** trong phần Tệp trên trang của dự án. Bạn có thể hoàn tác việc này. Tệp đó vẫn hiện trong kết quả tìm kiếm ở Trang chủ.
 - Trong các thư mục được đồng bộ bởi OneDrive, Google Drive và các dịch vụ tương tự, tệp chưa được tải về máy này sẽ hiện là "Không có trên máy này". Khi AI muốn đọc một tệp như vậy, ứng dụng sẽ hỏi bạn trước có tải về không.
 - Gõ `@` trong ô nhập, mục "Tệp trong dự án này" sẽ hiện sau các tài liệu đang mở. Chọn một tệp là đính kèm tệp đó. Xem [Bảng điều khiển trợ lý AI](help://ai-panel).
@@ -59,10 +59,10 @@ Một dự án là một thư mục trên máy tính của bạn. Chọn dự á
 
 ## Những gì nằm lại trong thư mục, và điều cần biết
 
-- Chỉ dẫn, ghi nhớ và cuộc trò chuyện được lưu dưới dạng tệp văn bản trong thư mục `.ieumoffice` bên trong thư mục dự án. Khi bạn di chuyển thư mục hoặc chép sang máy khác, chúng đi theo. Trên máy khác, chỉ cần chọn thư mục đó một lần bằng **Thêm thư mục** trong bảng AI hoặc **Dùng thư mục có sẵn** trên màn hình Dự án của Trang chủ.
-- Thư mục `.ieumoffice` chỉ được tạo khi có gì đó cần ghi. Bạn có thể mở và sửa các tệp trong đó bằng Notepad.
+- Chỉ dẫn, ghi nhớ và cuộc trò chuyện được lưu dưới dạng tệp văn bản trong thư mục `.alloffice` bên trong thư mục dự án. Khi bạn di chuyển thư mục hoặc chép sang máy khác, chúng đi theo. Trên máy khác, chỉ cần chọn thư mục đó một lần bằng **Thêm thư mục** trong bảng AI hoặc **Dùng thư mục có sẵn** trên màn hình Dự án của Trang chủ.
+- Thư mục `.alloffice` chỉ được tạo khi có gì đó cần ghi. Bạn có thể mở và sửa các tệp trong đó bằng Notepad.
 - Những gì bạn gõ trong cuộc trò chuyện có thể được đưa vào ghi nhớ. Để giữ một điều nào đó lại, hãy xóa nó bằng **Xóa** trên dòng "Đã ghi nhớ", hoặc tắt ghi nhớ.
 - Nếu bạn chọn một thư mục đồng bộ làm dự án, chỉ dẫn, ghi nhớ và cuộc trò chuyện của nó cũng được tải lên dịch vụ đó. Ứng dụng báo cho bạn một lần, vào lần đầu bạn chọn.
 - Trong thư mục dùng chung của nhiều người, ghi nhớ và cuộc trò chuyện có thể bị lẫn vào nhau.
 - Trong thư mục mà ứng dụng không ghi được, chẳng hạn thư mục chỉ đọc, chỉ dẫn và việc đọc tệp vẫn hoạt động nhưng cuộc trò chuyện và ghi nhớ không được lưu. Bảng AI sẽ báo cho bạn biết.
-- Cửa sổ tác tử hiện chưa dùng dự án. Tác tử cũng có thể thay đổi các tệp trong `.ieumoffice` của thư mục, nên với thư mục chứa tài liệu bạn không rõ nguồn gốc, hãy dùng một trong các cách hỏi trước. Xem [Chế độ tác tử](help://agent-mode).
+- Cửa sổ tác tử hiện chưa dùng dự án. Tác tử cũng có thể thay đổi các tệp trong `.alloffice` của thư mục, nên với thư mục chứa tài liệu bạn không rõ nguồn gốc, hãy dùng một trong các cách hỏi trước. Xem [Chế độ tác tử](help://agent-mode).

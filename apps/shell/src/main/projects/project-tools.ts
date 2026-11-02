@@ -344,7 +344,7 @@ export class ProjectFolderTools {
       }
     }
     // judged again by the name on disk: a short name or other spelling may stand for
-    // a hidden, `.ieumoffice/` or ignored entry; every later check uses the real path
+    // a hidden, `.alloffice/` or ignored entry; every later check uses the real path
     const { path, segments } = found
     const judgedReal = this.judge(visibility, segments)
     if (judgedReal) return refused(judgedReal)

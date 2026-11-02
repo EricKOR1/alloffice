@@ -1,5 +1,5 @@
 /**
- * Regenerates every file derived from the IeumOffice brand sources in
+ * Regenerates every file derived from the AllOffice brand sources in
  * apps/shell/build/brand/:
  *
  *   app-icon.svg        -> app / installer icons (png, ico, icns, Linux size

@@ -122,7 +122,7 @@ function fakeBridge(
   const bridge = {
     listProjects: vi.fn(async () => PROJECTS),
     addFolder: vi.fn(async () => ({ status: 'cancelled', stage: 'dialog' })),
-    getDefaultParentFolder: vi.fn(async () => 'C:\\Users\\me\\Documents\\IeumOffice'),
+    getDefaultParentFolder: vi.fn(async () => 'C:\\Users\\me\\Documents\\AllOffice'),
     createProject: vi.fn(async ({ name }: { name: string }) => ({
       status: 'created',
       project: item({ id: 'made', name }),
@@ -314,7 +314,7 @@ describe('project list', () => {
     const input = host.querySelector<HTMLInputElement>('.projects-create input')!
     await type(input, '  Thesis  ')
     expect(host.querySelector('.projects-location')?.textContent).toContain(
-      'C:\\Users\\me\\Documents\\IeumOffice\\Thesis',
+      'C:\\Users\\me\\Documents\\AllOffice\\Thesis',
     )
     await click(buttonNamed('Create somewhere else…'))
     expect(bridge.createProject).toHaveBeenLastCalledWith({ name: 'Thesis', otherPlace: true })

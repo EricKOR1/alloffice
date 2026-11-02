@@ -54,7 +54,7 @@ export const zh = {
   consolidateUndone: '已恢复到整理之前。',
   undoFailed: '未能撤销。',
   removeMemoryAria: '删除此记忆：{text}',
-  filesDesc: 'AI 在此项目中能看到的文件。隐藏文件和 .ieumoffice 文件夹不包括在内。',
+  filesDesc: 'AI 在此项目中能看到的文件。隐藏文件和 .alloffice 文件夹不包括在内。',
   filesEmpty: '没有 AI 能看到的文件。',
   filesLoadFailed: '无法读取文件列表。',
   filesCount: '{count} 个文件',

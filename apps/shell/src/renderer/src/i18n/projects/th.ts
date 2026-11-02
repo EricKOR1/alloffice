@@ -57,7 +57,7 @@ export const th = {
   consolidateUndone: 'กลับไปเป็นแบบก่อนจัดระเบียบแล้ว',
   undoFailed: 'เลิกทำไม่สำเร็จ',
   removeMemoryAria: 'ลบความจำนี้: {text}',
-  filesDesc: 'ไฟล์ที่ AI มองเห็นในโปรเจกต์นี้ ไม่รวมไฟล์ที่ซ่อนอยู่และโฟลเดอร์ .ieumoffice',
+  filesDesc: 'ไฟล์ที่ AI มองเห็นในโปรเจกต์นี้ ไม่รวมไฟล์ที่ซ่อนอยู่และโฟลเดอร์ .alloffice',
   filesEmpty: 'ไม่มีไฟล์ที่ AI มองเห็น',
   filesLoadFailed: 'อ่านรายการไฟล์ไม่ได้',
   filesCount: '{count} ไฟล์',

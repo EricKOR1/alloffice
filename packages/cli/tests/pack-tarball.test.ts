@@ -9,13 +9,13 @@ const SCRIPT = resolve(__dirname, '../pack-tarball.mjs')
 
 /** The app's resources layout, with placeholder bytes: the packer only checks presence. */
 function resources(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'ieumoffice-pack-'))
+  const dir = mkdtempSync(join(tmpdir(), 'alloffice-pack-'))
   const files = [
-    'cli/ieumoffice',
+    'cli/alloffice',
     'cli/genoffice.cjs',
     'cli/package.json',
     'cli/node_modules/jsdom/package.json',
-    'cli/skills/ieumoffice/SKILL.md',
+    'cli/skills/alloffice/SKILL.md',
     'wasm/pdfium.wasm',
     'wasm/rhwp_bg.wasm',
     'wasm/hb-subset.wasm',
@@ -23,13 +23,13 @@ function resources(): string {
   ]
   for (const file of files) {
     mkdirSync(dirname(join(dir, file)), { recursive: true })
-    writeFileSync(join(dir, file), file.endsWith('ieumoffice') ? '#!/bin/sh\n' : 'placeholder')
+    writeFileSync(join(dir, file), file.endsWith('alloffice') ? '#!/bin/sh\n' : 'placeholder')
   }
   return dir
 }
 
 function notices(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'ieumoffice-notices-'))
+  const dir = mkdtempSync(join(tmpdir(), 'alloffice-notices-'))
   for (const name of ['LICENSE', 'NOTICE', 'THIRD-PARTY-NOTICES.txt']) {
     writeFileSync(join(dir, name), `${name}\n`)
   }
@@ -59,45 +59,45 @@ function pack(from: string, out: string, extra: string[] = []): void {
 
 describe('pack-tarball', () => {
   it('lays out the same resources the installed app ships, plus the notices', () => {
-    const out = mkdtempSync(join(tmpdir(), 'ieumoffice-dist-'))
+    const out = mkdtempSync(join(tmpdir(), 'alloffice-dist-'))
     pack(resources(), out)
-    const archive = join(out, 'ieumoffice-cli_9.9.9_linux-x64.tar.gz')
+    const archive = join(out, 'alloffice-cli_9.9.9_linux-x64.tar.gz')
 
     const entries = execFileSync('tar', ['-tzf', archive], { encoding: 'utf8' })
       .replace(/\r/g, '')
       .trim()
       .split('\n')
     for (const entry of [
-      'ieumoffice-cli/cli/ieumoffice',
-      'ieumoffice-cli/cli/genoffice.cjs',
-      'ieumoffice-cli/cli/node_modules/jsdom/package.json',
-      'ieumoffice-cli/cli/skills/ieumoffice/SKILL.md',
-      'ieumoffice-cli/wasm/pdfium.wasm',
-      'ieumoffice-cli/wasm/rhwp_bg.wasm',
-      'ieumoffice-cli/wasm/hb-subset.wasm',
-      'ieumoffice-cli/native/xlsx-sidecar',
-      'ieumoffice-cli/LICENSE',
-      'ieumoffice-cli/NOTICE',
-      'ieumoffice-cli/THIRD-PARTY-NOTICES.txt',
+      'alloffice-cli/cli/alloffice',
+      'alloffice-cli/cli/genoffice.cjs',
+      'alloffice-cli/cli/node_modules/jsdom/package.json',
+      'alloffice-cli/cli/skills/alloffice/SKILL.md',
+      'alloffice-cli/wasm/pdfium.wasm',
+      'alloffice-cli/wasm/rhwp_bg.wasm',
+      'alloffice-cli/wasm/hb-subset.wasm',
+      'alloffice-cli/native/xlsx-sidecar',
+      'alloffice-cli/LICENSE',
+      'alloffice-cli/NOTICE',
+      'alloffice-cli/THIRD-PARTY-NOTICES.txt',
     ]) {
       expect(entries).toContain(entry)
     }
   })
 
   it('writes the checksum beside the archive', () => {
-    const out = mkdtempSync(join(tmpdir(), 'ieumoffice-dist-'))
+    const out = mkdtempSync(join(tmpdir(), 'alloffice-dist-'))
     pack(resources(), out)
-    const archive = join(out, 'ieumoffice-cli_9.9.9_linux-x64.tar.gz')
+    const archive = join(out, 'alloffice-cli_9.9.9_linux-x64.tar.gz')
     const digest = createHash('sha256').update(readFileSync(archive)).digest('hex')
     expect(readFileSync(`${archive}.sha256`, 'utf8')).toBe(
-      `${digest}  ieumoffice-cli_9.9.9_linux-x64.tar.gz\n`,
+      `${digest}  alloffice-cli_9.9.9_linux-x64.tar.gz\n`,
     )
   })
 
   it('refuses to pack a half-built app', () => {
     const from = resources()
     rmSync(join(from, 'wasm/hb-subset.wasm'))
-    const out = mkdtempSync(join(tmpdir(), 'ieumoffice-dist-'))
+    const out = mkdtempSync(join(tmpdir(), 'alloffice-dist-'))
     const run = spawnSync(
       process.execPath,
       [SCRIPT, '--from', from, '--out', out, '--notices', notices()],

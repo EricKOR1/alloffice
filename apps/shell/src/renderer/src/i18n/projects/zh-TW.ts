@@ -56,7 +56,7 @@ export const zhTW = {
   consolidateUndone: '已還原到整理之前。',
   undoFailed: '未能復原。',
   removeMemoryAria: '刪除此記憶：{text}',
-  filesDesc: 'AI 在此專案中能看到的檔案。隱藏檔案和 .ieumoffice 資料夾不包括在內。',
+  filesDesc: 'AI 在此專案中能看到的檔案。隱藏檔案和 .alloffice 資料夾不包括在內。',
   filesEmpty: '沒有 AI 能看到的檔案。',
   filesLoadFailed: '無法讀取檔案清單。',
   filesCount: '{count} 個檔案',

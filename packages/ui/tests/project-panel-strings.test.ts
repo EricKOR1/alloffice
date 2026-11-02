@@ -55,7 +55,7 @@ describe('PROJECT_PANEL_STRINGS', () => {
     for (const lang of LANGS) {
       for (const key of KEYS) {
         expect(PROJECT_PANEL_STRINGS[lang][key], `${lang}.${key}`).not.toMatch(
-          /OneDrive|Google|Microsoft|Windows|Apple|Finder|Explorer|Claude|Codex|ChatGPT|OpenAI|Hancom|GenOffice|IeumOffice|이음오피스/i,
+          /OneDrive|Google|Microsoft|Windows|Apple|Finder|Explorer|Claude|Codex|ChatGPT|OpenAI|Hancom|GenOffice|AllOffice|올오피스/i,
         )
       }
     }
@@ -72,8 +72,8 @@ describe('PROJECT_PANEL_STRINGS', () => {
       '‘현장학습’ 새 프로젝트 만들기',
     )
     expect(
-      projectPanelText('ko', 'createLocation', { path: 'D:\\문서\\IeumOffice\\현장학습' }),
-    ).toBe('만들 곳: D:\\문서\\IeumOffice\\현장학습')
+      projectPanelText('ko', 'createLocation', { path: 'D:\\문서\\AllOffice\\현장학습' }),
+    ).toBe('만들 곳: D:\\문서\\AllOffice\\현장학습')
     expect(projectPanelText('ko', 'createElsewhere')).toBe('다른 곳에 만들기…')
     expect(projectPanelText('ko', 'newProjectNameHint')).toBe('새 프로젝트 이름을 입력하세요')
     expect(projectPanelText('ko', 'removeFromList')).toBe('목록에서 빼기')

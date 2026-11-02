@@ -162,7 +162,7 @@ export interface ProjectChatState {
   chats: ProjectChatListItem[]
   /** "earlier chats of this document" */
   legacy: LegacyDocumentChat | null
-  /** `.ieumoffice/` cannot be written: chats and memory are not saved (spec 5.7) */
+  /** `.alloffice/` cannot be written: chats and memory are not saved (spec 5.7) */
   unwritable: boolean
   /**
    * The chosen project's memory entries as last read, kept current as the app

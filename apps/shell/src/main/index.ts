@@ -707,7 +707,7 @@ function bundledCliRunner(): ReturnType<typeof createCliRunner> {
  * project folder only through its write guard, after the conversion succeeded.
  */
 async function markdownDocxBytes(markdown: string): Promise<Uint8Array> {
-  const dir = mkdtempSync(join(tmpdir(), 'ieumoffice-kb-docx-'))
+  const dir = mkdtempSync(join(tmpdir(), 'alloffice-kb-docx-'))
   try {
     const out = join(dir, 'document.docx')
     await createFileViaCli(bundledCliRunner(), {
@@ -8870,8 +8870,8 @@ registerIntegrationsIpc({
     ? join(process.resourcesPath, 'cli')
     : join(APPS_ROOT, '..', 'packages', 'cli', 'bin'),
   skillPath: app.isPackaged
-    ? join(process.resourcesPath, 'cli', 'skills', 'ieumoffice', 'SKILL.md')
-    : join(APPS_ROOT, '..', 'skills', 'ieumoffice', 'SKILL.md'),
+    ? join(process.resourcesPath, 'cli', 'skills', 'alloffice', 'SKILL.md')
+    : join(APPS_ROOT, '..', 'skills', 'alloffice', 'SKILL.md'),
   cliPackageJson: app.isPackaged
     ? join(process.resourcesPath, 'cli', 'package.json')
     : join(APPS_ROOT, '..', 'packages', 'cli', 'package.json'),
@@ -8895,7 +8895,7 @@ registerPdfConvertUiIpc({
 
 // The person's skills (settings → skills, the AI windows' `/` list and skill
 // reads, skill cards, the agent session's skills). Writes go only to
-// ~/.ieumoffice/skills; removing is the OS trash; GitHub only on request.
+// ~/.alloffice/skills; removing is the OS trash; GitHub only on request.
 const builtinSkillsDir = (): string =>
   builtinSkillsDirFor({
     isPackaged: app.isPackaged,
@@ -8906,7 +8906,7 @@ const userSkills = createUserSkillsService({
   homeDir: () => homedir(),
   builtinDir: builtinSkillsDir,
   settingsPath: APP_SETTINGS_PATH,
-  tempDir: () => join(tmpdir(), 'ieumoffice-skills'),
+  tempDir: () => join(tmpdir(), 'alloffice-skills'),
   trash: (path) => shell.trashItem(path),
   // Node's fetch: no browser cookies; the core sets no-redirect and no-credentials per request
   fetch: (url, init) => fetch(url, init),
@@ -8938,7 +8938,7 @@ registerUserSkillsIpc({
 // through its own send gate. The skill folder is only read here.
 const templateTabs = createTemplateTabs({
   makeCopyDir: async () => {
-    const dir = join(app.getPath('temp'), 'ieumoffice-template-copies', randomUUID())
+    const dir = join(app.getPath('temp'), 'alloffice-template-copies', randomUUID())
     mkdirSync(dir, { recursive: true })
     return dir
   },
@@ -9478,7 +9478,7 @@ app.whenReady().then(async () => {
         withProject ? enabled : enabled.filter((skill) => skill.source !== 'project'),
         // not under userData: that folder is protected from sessions, and the
         // copied skills' scripts must be readable to run
-        join(process.env.LOCALAPPDATA ?? tmpdir(), 'IeumOffice', 'agent-skills'),
+        join(process.env.LOCALAPPDATA ?? tmpdir(), 'AllOffice', 'agent-skills'),
       )
     },
     projectSkills: {

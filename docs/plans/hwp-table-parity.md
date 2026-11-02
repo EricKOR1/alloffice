@@ -6,7 +6,7 @@
 
 ## 0. 왜 이 작업을 하는가
 
-이음오피스의 한글(HWP) 탭은 rhwp-studio v0.8.7을 편집 화면으로 쓰고, 그 위에 한컴 키 레이어(`apps/hwp/studio-plugin/hancom-keys.mjs`)와 AI 표 도구(`apps/hwp/studio-plugin/agent-plugin.mjs`)를 얹었다.
+올오피스의 한글(HWP) 탭은 rhwp-studio v0.8.7을 편집 화면으로 쓰고, 그 위에 한컴 키 레이어(`apps/hwp/studio-plugin/hancom-keys.mjs`)와 AI 표 도구(`apps/hwp/studio-plugin/agent-plugin.mjs`)를 얹었다.
 
 2026-10-25에 v0.12.4 릴리스 빌드로 실제 Electron 앱을 띄워 표를 만들고 편집해 본 결과:
 
@@ -206,7 +206,7 @@ npx playwright test --config e2e/playwright.config.ts hwp-table.spec.ts --report
 
 ---
 
-당신은 이음오피스의 HWP(한글) 표 편집을 한컴 한글 2024에 더 가깝게 만드는 작업을 맡는다. 작업 디렉터리는 `E:\github\openoffice\.dryforge\worktrees\hwp-table-parity`, 브랜치는 `feat/hwp-table-parity`이고 기준은 `origin/main`의 `cb1af81c`다. 먼저 `docs/plans/hwp-table-parity.md`를 끝까지 읽어라.
+당신은 올오피스의 HWP(한글) 표 편집을 한컴 한글 2024에 더 가깝게 만드는 작업을 맡는다. 작업 디렉터리는 `E:\github\openoffice\.dryforge\worktrees\hwp-table-parity`, 브랜치는 `feat/hwp-table-parity`이고 기준은 `origin/main`의 `cb1af81c`다. 먼저 `docs/plans/hwp-table-parity.md`를 끝까지 읽어라.
 
 ### 배경
 

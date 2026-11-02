@@ -30,7 +30,7 @@ Projekt to jeden folder na twoim komputerze. Gdy wybierzesz projekt w panelu AI,
 ## Pliki, które widzi AI
 
 - Przy każdym zapytaniu AI dostaje nazwę projektu, jego instrukcje i pamięć oraz listę nazw plików w folderze. Treść pliku czyta samo, gdy jej potrzebuje, tak samo jak załącznik, więc fragmenty ukryte przed AI pozostają ukryte.
-- AI nie czyta otwartych dokumentów z niezapisanymi zmianami, ukrytych plików, których nazwa zaczyna się od kropki, ani folderu `.ieumoffice`.
+- AI nie czyta otwartych dokumentów z niezapisanymi zmianami, ukrytych plików, których nazwa zaczyna się od kropki, ani folderu `.alloffice`.
 - Aby ukryć plik przed AI, naciśnij **Ukryj przed AI** w części Pliki na stronie projektu. Można to cofnąć. Plik nadal pojawia się w wynikach wyszukiwania na stronie głównej.
 - W folderach synchronizowanych przez OneDrive, Google Drive i podobne usługi pliki niepobrane na ten komputer są oznaczone jako „Nie na tym komputerze”. Gdy AI chce przeczytać taki plik, najpierw padnie pytanie, czy go pobrać.
 - Wpisz `@` w polu wpisywania, a po otwartych dokumentach pojawi się „Pliki w tym projekcie”. Wybranie pliku go załącza. Zobacz [Panel asystenta AI](help://ai-panel).
@@ -59,10 +59,10 @@ Projekt to jeden folder na twoim komputerze. Gdy wybierzesz projekt w panelu AI,
 
 ## Co zostaje w folderze i o czym warto wiedzieć
 
-- Instrukcje, pamięć i rozmowy są przechowywane jako pliki tekstowe w folderze `.ieumoffice` wewnątrz folderu projektu. Gdy przeniesiesz folder lub skopiujesz go na inny komputer, wędrują razem z nim. Na innym komputerze wybierz go raz przez **Dodaj folder** w panelu AI albo **Użyj istniejącego folderu** na ekranie Projekty strony głównej.
-- Folder `.ieumoffice` powstaje dopiero wtedy, gdy jest coś do zapisania. Jego pliki możesz otworzyć i edytować w Notatniku.
+- Instrukcje, pamięć i rozmowy są przechowywane jako pliki tekstowe w folderze `.alloffice` wewnątrz folderu projektu. Gdy przeniesiesz folder lub skopiujesz go na inny komputer, wędrują razem z nim. Na innym komputerze wybierz go raz przez **Dodaj folder** w panelu AI albo **Użyj istniejącego folderu** na ekranie Projekty strony głównej.
+- Folder `.alloffice` powstaje dopiero wtedy, gdy jest coś do zapisania. Jego pliki możesz otworzyć i edytować w Notatniku.
 - To, co wpisujesz w rozmowie, może trafić do pamięci. Aby czegoś tam nie zostawić, usuń to przyciskiem **Usuń** w wierszu „Zapamiętano” albo wyłącz pamięć.
 - Jeśli wybierzesz jako projekt folder synchronizowany, jego instrukcje, pamięć i rozmowy też trafią do tej usługi. Aplikacja informuje o tym raz, przy pierwszym wyborze.
 - W folderze udostępnionym, z którego korzysta kilka osób, pamięć i rozmowy mogą się wymieszać.
 - W folderze, do którego aplikacja nie może zapisywać, na przykład tylko do odczytu, instrukcje i czytanie plików działają, ale rozmowy i pamięć nie są zapisywane. Panel AI o tym informuje.
-- Okno agenta nie korzysta jeszcze z projektów. Agent może zmieniać także pliki w folderze `.ieumoffice`, więc w folderze z materiałami, których nie znasz, używaj jednego ze sposobów, które najpierw pytają. Zobacz [Tryb agenta](help://agent-mode).
+- Okno agenta nie korzysta jeszcze z projektów. Agent może zmieniać także pliki w folderze `.alloffice`, więc w folderze z materiałami, których nie znasz, używaj jednego ze sposobów, które najpierw pytają. Zobacz [Tryb agenta](help://agent-mode).

@@ -57,7 +57,7 @@ export const he = {
   consolidateUndone: 'הוחזר למצב שלפני הסידור.',
   undoFailed: 'לא ניתן היה לבטל.',
   removeMemoryAria: 'מחיקת הזיכרון הזה: {text}',
-  filesDesc: 'הקבצים שה-AI רואה בפרויקט. קבצים מוסתרים והתיקייה .ieumoffice לא נכללים.',
+  filesDesc: 'הקבצים שה-AI רואה בפרויקט. קבצים מוסתרים והתיקייה .alloffice לא נכללים.',
   filesEmpty: 'אין קבצים שה-AI רואה.',
   filesLoadFailed: 'לא ניתן היה לקרוא את רשימת הקבצים.',
   filesCount: '{count} קבצים',

@@ -64,7 +64,7 @@ export const ms = {
   undoFailed: 'Tidak dapat membuat asal.',
   removeMemoryAria: 'Padam memori ini: {text}',
   filesDesc:
-    'Fail yang boleh dilihat AI dalam projek ini. Fail tersembunyi dan folder .ieumoffice tidak disertakan.',
+    'Fail yang boleh dilihat AI dalam projek ini. Fail tersembunyi dan folder .alloffice tidak disertakan.',
   filesEmpty: 'Tiada fail yang boleh dilihat AI.',
   filesLoadFailed: 'Senarai fail tidak dapat dibaca.',
   filesCount: '{count} fail',

@@ -252,7 +252,7 @@ function releasesAtom(tags: string[], notes: Record<string, string> = {}): strin
 }
 
 function feedFile(version: string): string {
-  const installer = `IeumOffice-Setup-${version}.exe`
+  const installer = `AllOffice-Setup-${version}.exe`
   return [
     `version: ${version}`,
     'files:',
@@ -529,7 +529,7 @@ describe('initAutoUpdater', () => {
 
   it('keeps the installer silent where no installer window exists (Linux AppImage)', async () => {
     setPlatform('linux')
-    process.env.APPIMAGE = '/tmp/IeumOffice.AppImage'
+    process.env.APPIMAGE = '/tmp/AllOffice.AppImage'
     try {
       const { initAutoUpdater } = await loadUpdater()
       initAutoUpdater(() => null)
@@ -973,17 +973,15 @@ describe('manual download fallback', () => {
     actions.onOpenDownload()
     expect(openExternal).toHaveBeenCalledTimes(1)
     expect(openExternal).toHaveBeenCalledWith(GITHUB_LATEST_RELEASE_URL)
-    expect(GITHUB_LATEST_RELEASE_URL).toBe(
-      'https://github.com/EricKOR1/alloffice/releases/latest',
-    )
+    expect(GITHUB_LATEST_RELEASE_URL).toBe('https://github.com/EricKOR1/alloffice/releases/latest')
   })
 
   it('never follows a download URL supplied by the update metadata', async () => {
     const actions = await failTwiceIntoManual({
       version: '0.2.0',
       files: [
-        { url: 'https://attacker.example/IeumOffice-Setup-0.2.0.exe' },
-        { url: 'IeumOffice-Setup-0.2.0.exe' },
+        { url: 'https://attacker.example/AllOffice-Setup-0.2.0.exe' },
+        { url: 'AllOffice-Setup-0.2.0.exe' },
       ],
     })
     actions.onOpenDownload()

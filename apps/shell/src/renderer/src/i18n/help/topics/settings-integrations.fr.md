@@ -55,8 +55,8 @@ Sous **Serveur HTTP local**, l’application peut aussi lancer le serveur elle-m
 
 ## Aide-mémoire de la ligne de commande
 
-| Commande            | Ce qu’elle fait                 |
-| ------------------- | ------------------------------- |
-| `ieumoffice <file>` | ouvrir un fichier               |
-| `ieumoffice mcp`    | démarrer le serveur MCP local   |
-| `ieumoffice --help` | toutes les commandes et options |
+| Commande           | Ce qu’elle fait                 |
+| ------------------ | ------------------------------- |
+| `alloffice <file>` | ouvrir un fichier               |
+| `alloffice mcp`    | démarrer le serveur MCP local   |
+| `alloffice --help` | toutes les commandes et options |

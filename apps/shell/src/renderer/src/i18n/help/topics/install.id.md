@@ -1,6 +1,6 @@
 # Memasang GenOffice
 
-Setiap versi dipublikasikan di [halaman Rilis](https://github.com/pblsketch/openoffice/releases/latest) proyek ini di GitHub. Versi ini dirilis untuk Windows.
+Setiap versi dipublikasikan di [halaman Rilis](https://github.com/EricKOR1/alloffice/releases/latest) proyek ini di GitHub. Versi ini dirilis untuk Windows.
 
 ## Pilih berkas untuk komputer Anda
 
@@ -35,4 +35,4 @@ Karena installer tidak ditandatangani, jalankan hanya installer yang Anda unduh 
 
 ## Baris perintahnya sudah ikut
 
-Setiap pemasangan membawa perintah `ieumoffice` yang berbicara dengan mesin yang sama dengan jendela, sehingga keduanya tidak pernah berbeda pendapat tentang sebuah berkas. `ieumoffice install-cli` menaruhnya di `PATH` Anda. Lihat [Baris perintah dan agen](help://cli) untuk mengetahui apa saja yang dapat dilakukannya.
+Setiap pemasangan membawa perintah `alloffice` yang berbicara dengan mesin yang sama dengan jendela, sehingga keduanya tidak pernah berbeda pendapat tentang sebuah berkas. `alloffice install-cli` menaruhnya di `PATH` Anda. Lihat [Baris perintah dan agen](help://cli) untuk mengetahui apa saja yang dapat dilakukannya.

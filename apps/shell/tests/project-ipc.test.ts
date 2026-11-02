@@ -92,7 +92,7 @@ function setup(extra: Partial<ProjectIpcDeps> = {}) {
       identity: 'moved' as const,
       notices: [],
     })),
-    getDefaultParentFolder: vi.fn(() => join(process.cwd(), 'Documents', 'IeumOffice')),
+    getDefaultParentFolder: vi.fn(() => join(process.cwd(), 'Documents', 'AllOffice')),
     createProject: vi.fn(
       async (args: { name: string; parentDir?: string; useExisting?: boolean }) =>
         args.useExisting
@@ -554,11 +554,11 @@ describe('dialogs', () => {
       t.dialogs.askTrust.mockResolvedValueOnce('view').mockResolvedValueOnce('without')
       const result = await t.call('addFolder', DOCS)
       expect(t.openDocument.mock.calls.map(([path]) => path)).toEqual([
-        join(ROOT, '.ieumoffice', 'instructions.md'),
+        join(ROOT, '.alloffice', 'instructions.md'),
         join(ROOT, 'AGENTS.md'),
         join(ROOT, 'CLAUDE.md'),
       ])
-      expect(t.openFolder).toHaveBeenCalledWith(join(ROOT, '.ieumoffice', 'chats'))
+      expect(t.openFolder).toHaveBeenCalledWith(join(ROOT, '.alloffice', 'chats'))
       expect(t.dialogs.waitForReturn).toHaveBeenCalledWith(DOCS)
       expect(t.dialogs.askTrust).toHaveBeenCalledTimes(2)
       expect(t.dialogs.askTrust).toHaveBeenLastCalledWith(DOCS, quoted)
@@ -604,7 +604,7 @@ describe('dialogs', () => {
       const ask = t.guide.decideTrust.mock.calls[0]?.[2] as (p: ProjectTrustPrompt) => unknown
       t.dialogs.askTrust.mockResolvedValueOnce('view').mockResolvedValueOnce('use')
       expect(await ask(trustPrompt)).toBe('use')
-      expect(t.openDocument).toHaveBeenCalledWith(join(ROOT, '.ieumoffice', 'instructions.md'))
+      expect(t.openDocument).toHaveBeenCalledWith(join(ROOT, '.alloffice', 'instructions.md'))
       expect(t.dialogs.waitForReturn).toHaveBeenCalledWith(SHEETS)
     })
   })

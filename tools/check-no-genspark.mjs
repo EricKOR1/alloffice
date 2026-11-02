@@ -88,6 +88,10 @@ const ALLOW = [
     reason: 'the acknowledgement and trademark paragraphs',
   },
   {
+    path: /^docs\/upstream-README\.(?:ko|en)\.md$/,
+    reason: 'the upstream IeumOffice README, kept as is for reference',
+  },
+  {
     path: 'packages/agent-core/src/redact-range.ts',
     span: /https:\/\/genspark\.ai\/genoffice\/redaction\/2026/g,
     reason:

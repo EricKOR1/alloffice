@@ -109,13 +109,13 @@ describe('projectPickerItems', () => {
 
 describe('projectCreateLocation', () => {
   it('writes the default save folder and the name with that folder’s separator', () => {
-    expect(projectCreateLocation('C:\\Users\\me\\Documents\\IeumOffice', ' 현장학습 ')).toBe(
-      'C:\\Users\\me\\Documents\\IeumOffice\\현장학습',
+    expect(projectCreateLocation('C:\\Users\\me\\Documents\\AllOffice', ' 현장학습 ')).toBe(
+      'C:\\Users\\me\\Documents\\AllOffice\\현장학습',
     )
     expect(projectCreateLocation('C:\\Work\\', 'Trip')).toBe('C:\\Work\\Trip')
     expect(projectCreateLocation('D:\\', 'Trip')).toBe('D:\\Trip')
-    expect(projectCreateLocation('/Users/me/Documents/IeumOffice', 'Trip')).toBe(
-      '/Users/me/Documents/IeumOffice/Trip',
+    expect(projectCreateLocation('/Users/me/Documents/AllOffice', 'Trip')).toBe(
+      '/Users/me/Documents/AllOffice/Trip',
     )
     expect(projectCreateLocation('/home/me/', 'Trip')).toBe('/home/me/Trip')
   })

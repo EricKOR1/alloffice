@@ -139,7 +139,7 @@ async function describePptx(path: string): Promise<Description> {
 
 async function describeWorkbook(path: string): Promise<Description> {
   if (['xls', 'xlsb', 'ods'].includes(extension(path))) {
-    const directory = await mkdtemp(join(tmpdir(), 'ieumoffice-workbook-info-'))
+    const directory = await mkdtemp(join(tmpdir(), 'alloffice-workbook-info-'))
     try {
       const converted = join(directory, 'workbook.xlsx')
       await convertLegacyWorkbook(path, converted)

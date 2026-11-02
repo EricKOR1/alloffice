@@ -169,7 +169,7 @@ beforeEach(() => {
   const fake: Partial<Record<keyof ProjectFolderApi, (...args: never[]) => unknown>> = {
     listProjects: async () => [PROJECT],
     addFolder: async () => ({ status: 'refused', reason: 'protected' }),
-    getDefaultParentFolder: async () => '/docs/IeumOffice',
+    getDefaultParentFolder: async () => '/docs/AllOffice',
     getSelection: async () => selection,
     setSelection: async (args: { projectId: string | null }) => {
       selection = { projectId: args.projectId, initialChatId: null }

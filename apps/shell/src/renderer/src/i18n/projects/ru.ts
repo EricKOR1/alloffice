@@ -60,7 +60,7 @@ export const ru = {
   consolidateUndone: 'Возвращено состояние до упорядочивания.',
   undoFailed: 'Не удалось отменить.',
   removeMemoryAria: 'Удалить эту запись памяти: {text}',
-  filesDesc: 'Файлы, которые ИИ видит в этом проекте. Скрытые файлы и папка .ieumoffice не входят.',
+  filesDesc: 'Файлы, которые ИИ видит в этом проекте. Скрытые файлы и папка .alloffice не входят.',
   filesEmpty: 'Нет файлов, которые видит ИИ.',
   filesLoadFailed: 'Не удалось прочитать список файлов.',
   filesCount: 'Файлов: {count}',

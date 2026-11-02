@@ -44,7 +44,7 @@ const SUBCOMMANDS = ['list', 'install', 'remove', 'path']
 export const skillCommand: CommandDef = {
   name: 'skill',
   summary:
-    'List the coding agents found on this machine and install, update or remove the bundled ieumoffice skill for them.',
+    'List the coding agents found on this machine and install, update or remove the bundled alloffice skill for them.',
   usage:
     'skill list | skill install <agent|all> [--dir <path>] [--force] | skill remove <agent> [--dir <path>] | skill path',
   options: [
@@ -348,7 +348,7 @@ function remove(name: string | undefined, dir: string | undefined, ctx: CommandC
 }
 
 function refusal(state: SkillInstallState, force: boolean): string | null {
-  if (state.status === 'occupied') return 'the ieumoffice folder there holds something else'
+  if (state.status === 'occupied') return 'the alloffice folder there holds something else'
   if (force) return null
   if (state.status === 'newer')
     return `a newer skill ${state.installedVersion} is installed; not downgrading`
@@ -366,7 +366,7 @@ function row(target: AgentTarget | null, detected: boolean, state: SkillInstallS
     agent: target?.id ?? null,
     label: target?.label ?? state.path,
     detected,
-    skills_dir: target?.skillsDir ?? state.path.replace(/[\\/]ieumoffice[\\/]SKILL\.md$/, ''),
+    skills_dir: target?.skillsDir ?? state.path.replace(/[\\/]alloffice[\\/]SKILL\.md$/, ''),
     status: state.status,
     installed_version: state.installedVersion ?? null,
     up_to_date: state.status === 'installed' || state.status === 'newer',
@@ -382,7 +382,7 @@ function home(env: NodeJS.ProcessEnv): string {
 function skillFile(): string {
   const path = bundledSkillPath()
   if (!path)
-    throw new CliError(EXIT.app, 'the bundled skill (skills/ieumoffice/SKILL.md) was not found')
+    throw new CliError(EXIT.app, 'the bundled skill (skills/alloffice/SKILL.md) was not found')
   return path
 }
 

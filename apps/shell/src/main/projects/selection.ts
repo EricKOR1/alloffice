@@ -147,7 +147,7 @@ export function dropFromList(settings: StoredProjectsSettings, id: ProjectId): v
 }
 
 /**
- * The nearest unregistered folder above a document holding `.ieumoffice/project.json`
+ * The nearest unregistered folder above a document holding `.alloffice/project.json`
  * (spec 5.2), stopping at the registered project folder holding the document.
  * Folders that could never be a project (drive, home, protected) are skipped.
  */

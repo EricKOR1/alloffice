@@ -131,13 +131,13 @@ describe('the sign-in page address', () => {
         state: 's',
         nonce: 'n',
         hostId: 'urn:uuid:00000000-0000-4000-8000-000000000000',
-        agentName: 'IeumOffice',
+        agentName: 'AllOffice',
       }),
     )
     expect(`${url.origin}${url.pathname}`).toBe(`${CHATGPT_ISSUER}/api/accounts/authorize`)
     const p = url.searchParams
     expect(p.get('client_id')).toBe(CHATGPT_DYNAMIC_CLIENT_ID)
-    expect(p.get('agent_name_hint')).toBe('IeumOffice')
+    expect(p.get('agent_name_hint')).toBe('AllOffice')
     expect(p.get('redirect_uri')).toBe('http://127.0.0.1:4321/callback')
     expect(p.get('scope')?.split(' ')).toContain(CHATGPT_PLAN_SCOPE)
     expect(p.get('resource')).toBe(CHATGPT_RESOURCE)
@@ -156,7 +156,7 @@ describe('the sign-in page address', () => {
         nonce: 'n',
         hostId: 'urn:uuid:00000000-0000-4000-8000-000000000000',
         clientId: 'oaiapp_1',
-        agentName: 'IeumOffice',
+        agentName: 'AllOffice',
       }),
     )
     expect(url.searchParams.get('client_id')).toBe('oaiapp_1')
@@ -300,7 +300,7 @@ describe('the connection', { timeout: 20_000 }, () => {
     })
     const connection = createChatGptConnection({
       store,
-      agentName: 'IeumOffice',
+      agentName: 'AllOffice',
       fetch: openai.fetch,
       now: () => NOW,
     })

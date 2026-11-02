@@ -7,7 +7,7 @@ import { run } from './helpers'
 
 const dirs: string[] = []
 function empty(ext: string): string {
-  const dir = mkdtempSync(join(tmpdir(), 'ieumoffice-empty-package-'))
+  const dir = mkdtempSync(join(tmpdir(), 'alloffice-empty-package-'))
   dirs.push(dir)
   const path = join(dir, `empty.${ext}`)
   writeFileSync(path, '')

@@ -55,8 +55,8 @@ Sotto **Server HTTP locale** l'app può anche eseguire il server per conto propr
 
 ## Riepilogo rapido dei comandi
 
-| Comando             | Cosa fa                      |
-| ------------------- | ---------------------------- |
-| `ieumoffice <file>` | apre un file                 |
-| `ieumoffice mcp`    | avvia il server MCP locale   |
-| `ieumoffice --help` | tutti i comandi e le opzioni |
+| Comando            | Cosa fa                      |
+| ------------------ | ---------------------------- |
+| `alloffice <file>` | apre un file                 |
+| `alloffice mcp`    | avvia il server MCP locale   |
+| `alloffice --help` | tutti i comandi e le opzioni |

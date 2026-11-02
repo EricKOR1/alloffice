@@ -73,7 +73,7 @@ export const epubCommand: CommandDef = {
         { verbs: [...VERBS] },
         {
           reason: verb === undefined ? 'missing_argument' : 'invalid_argument',
-          suggestion: 'run `ieumoffice help epub`',
+          suggestion: 'run `alloffice help epub`',
         },
       )
     }
@@ -86,7 +86,7 @@ export const epubCommand: CommandDef = {
         EXIT.usage,
         `epub ${v} does not take ${extra.map((f) => `--${f}`).join(', ')}`,
         { options: VERB_OPTIONS[v].map((o) => `--${o}`) },
-        { reason: 'unknown_option', suggestion: 'run `ieumoffice help epub`' },
+        { reason: 'unknown_option', suggestion: 'run `alloffice help epub`' },
       )
     }
     const path = epubInput(file, ctx)
@@ -108,7 +108,7 @@ function epubInput(file: string | undefined, ctx: CommandContext): string {
       { reason: 'not-epub' },
       {
         reason: 'unsupported',
-        suggestion: 'pass a .epub book; `ieumoffice pdf translate` translates PDFs',
+        suggestion: 'pass a .epub book; `alloffice pdf translate` translates PDFs',
       },
     )
   }

@@ -10,7 +10,7 @@ import {
 } from '../src/main/projects/ignore'
 import { isAiVisiblePath } from '../src/main/projects/visibility'
 
-/** `.ieumoffice/ignore` syntax (spec 3) and "is this file visible to AI" */
+/** `.alloffice/ignore` syntax (spec 3) and "is this file visible to AI" */
 
 describe('compileIgnore', () => {
   const sensitive = (text: string) => compileIgnore(text, { caseInsensitive: false })
@@ -135,14 +135,14 @@ describe('isAiVisiblePath', () => {
     expect(isAiVisiblePath(root, 'a/b.docx', none)).toBe(true)
   })
 
-  it('hides dot entries, Office lock files, OS junk and .ieumoffice', () => {
+  it('hides dot entries, Office lock files, OS junk and .alloffice', () => {
     expect(isAiVisiblePath(root, '.hidden.docx', none)).toBe(false)
     expect(isAiVisiblePath(root, '.git/config', none)).toBe(false)
     expect(isAiVisiblePath(root, '~$report.docx', none)).toBe(false)
     expect(isAiVisiblePath(root, 'Thumbs.db', none)).toBe(false)
     expect(isAiVisiblePath(root, 'node_modules/x.md', none)).toBe(false)
-    expect(isAiVisiblePath(root, '.ieumoffice/memory.md', none)).toBe(false)
-    expect(isAiVisiblePath(root, '.ieumoffice', none, true)).toBe(false)
+    expect(isAiVisiblePath(root, '.alloffice/memory.md', none)).toBe(false)
+    expect(isAiVisiblePath(root, '.alloffice', none, true)).toBe(false)
   })
 
   it('hides the Markdown app-owned assets folder', () => {

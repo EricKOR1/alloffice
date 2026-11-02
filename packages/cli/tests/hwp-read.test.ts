@@ -37,7 +37,7 @@ function write(name: string, bytes: Uint8Array): string {
   return path
 }
 
-describe('ieumoffice hwp read', () => {
+describe('alloffice hwp read', () => {
   it('returns the text of a .hwp document, tables as rows', async () => {
     const r = await run(['hwp', 'read', write('report.hwp', report().exportHwp()), '--json'])
     expect(r.code).toBe(0)
@@ -154,7 +154,7 @@ describe('ieumoffice hwp read', () => {
   })
 })
 
-describe('ieumoffice info on an HWP document', () => {
+describe('alloffice info on an HWP document', () => {
   it('says how much text there is and which command reads it', async () => {
     const r = await run(['info', write('report.hwpx', report().exportHwpx()), '--json'])
     expect(r.code).toBe(0)

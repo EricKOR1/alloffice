@@ -1,13 +1,13 @@
 {
   "name": "@genoffice/shell",
-  "productName": "IeumOffice",
-  "version": "0.12.10",
+  "productName": "AllOffice",
+  "version": "1.0.0",
   "license": "Apache-2.0",
   "homepage": "https://github.com/EricKOR1/alloffice",
   "private": true,
-  "description": "IeumOffice",
+  "description": "AllOffice",
   "main": "out/main/index.js",
-  "desktopName": "ieumoffice.desktop",
+  "desktopName": "alloffice.desktop",
   "scripts": {
     "dev": "electron-vite dev --watch",
     "build": "electron-vite build",
@@ -52,5 +52,5 @@
     "vite": "^7.3.1",
     "vitest": "^4.1.11"
   },
-  "author": "pblsketch <pblsketch@users.noreply.github.com>"
+  "author": "EricKOR1 <EricKOR1@users.noreply.github.com>"
 }

@@ -1,6 +1,6 @@
 # GenOffice のインストール
 
-すべてのバージョンは、GitHub にあるプロジェクトの [Releases ページ](https://github.com/pblsketch/openoffice/releases/latest) で公開されています。このバージョンは Windows 向けにリリースされています。
+すべてのバージョンは、GitHub にあるプロジェクトの [Releases ページ](https://github.com/EricKOR1/alloffice/releases/latest) で公開されています。このバージョンは Windows 向けにリリースされています。
 
 ## 自分のマシンに合わせてファイルを選ぶ
 
@@ -35,4 +35,4 @@ GenOffice がスタートメニューに追加され、`.docx`、`.xlsx`、`.ppt
 
 ## コマンドラインも同梱されています
 
-どのインストールにも `ieumoffice` コマンドが含まれ、ウィンドウと同じエンジンを動かします。そのため、同じファイルについて両者の結果が食い違うことはありません。`ieumoffice install-cli` で `PATH` に追加できます。何ができるかは [コマンドラインとエージェント](help://cli) を参照してください。
+どのインストールにも `alloffice` コマンドが含まれ、ウィンドウと同じエンジンを動かします。そのため、同じファイルについて両者の結果が食い違うことはありません。`alloffice install-cli` で `PATH` に追加できます。何ができるかは [コマンドラインとエージェント](help://cli) を参照してください。

@@ -30,7 +30,7 @@ Ein Projekt ist ein Ordner auf Ihrem PC. Wählen Sie in einem KI-Bereich ein Pro
 ## Welche Dateien die KI sieht
 
 - Mit jeder Anfrage erhält die KI den Namen des Projekts, seine Anweisungen und Erinnerungen sowie eine Liste der Dateinamen im Ordner. Den Inhalt einer Datei liest sie selbst, wenn sie ihn braucht, auf dieselbe Weise wie einen Anhang; vor der KI verborgene Teile bleiben also verborgen.
-- Nicht gelesen werden geöffnete Dokumente mit ungespeicherten Änderungen, versteckte Dateien, deren Name mit einem Punkt beginnt, und der Ordner `.ieumoffice`.
+- Nicht gelesen werden geöffnete Dokumente mit ungespeicherten Änderungen, versteckte Dateien, deren Name mit einem Punkt beginnt, und der Ordner `.alloffice`.
 - Soll die KI eine Datei nicht sehen, klicken Sie im Bereich Dateien der Projektseite auf **Vor der KI verbergen**. Das lässt sich rückgängig machen. In den Suchergebnissen der Startseite erscheint die Datei weiterhin.
 - In Ordnern, die OneDrive, Google Drive oder ähnliche Dienste synchronisieren, erscheinen nicht auf diesen PC heruntergeladene Dateien als „Nicht auf diesem PC“. Will die KI eine davon lesen, werden Sie zuerst gefragt, ob sie heruntergeladen werden soll.
 - Tippen Sie `@` ins Eingabefeld, erscheint nach den geöffneten Dokumenten „Dateien in diesem Projekt“. Wählen Sie eine aus, wird sie angehängt. Siehe [Der KI-Bereich](help://ai-panel).
@@ -59,10 +59,10 @@ Unter **Projekte** in der Seitenleiste der Startseite legen Sie ein **Neues Proj
 
 ## Was im Ordner bleibt, und was Sie wissen sollten
 
-- Anweisungen, Erinnerungen und Unterhaltungen liegen als Textdateien in einem Ordner `.ieumoffice` innerhalb des Projektordners. Verschieben Sie den Ordner oder kopieren Sie ihn auf einen anderen PC, wandern sie mit. Auf dem anderen PC wählen Sie ihn einmal mit **Ordner hinzufügen** in einem KI-Bereich oder mit **Vorhandenen Ordner verwenden** unter **Projekte** auf der Startseite.
-- Der Ordner `.ieumoffice` entsteht erst, wenn es etwas zu schreiben gibt. Seine Dateien können Sie im Editor von Windows öffnen und bearbeiten.
+- Anweisungen, Erinnerungen und Unterhaltungen liegen als Textdateien in einem Ordner `.alloffice` innerhalb des Projektordners. Verschieben Sie den Ordner oder kopieren Sie ihn auf einen anderen PC, wandern sie mit. Auf dem anderen PC wählen Sie ihn einmal mit **Ordner hinzufügen** in einem KI-Bereich oder mit **Vorhandenen Ordner verwenden** unter **Projekte** auf der Startseite.
+- Der Ordner `.alloffice` entsteht erst, wenn es etwas zu schreiben gibt. Seine Dateien können Sie im Editor von Windows öffnen und bearbeiten.
 - Was Sie in einer Unterhaltung eingeben, kann in den Erinnerungen landen. Um etwas herauszuhalten, löschen Sie es mit **Löschen** in der Zeile „Gemerkt“, oder schalten Sie die Erinnerungen ab.
 - Wählen Sie einen synchronisierten Ordner als Projekt, werden dessen Anweisungen, Erinnerungen und Unterhaltungen ebenfalls zu diesem Dienst hochgeladen. Die App weist Sie einmal darauf hin, wenn Sie ihn zum ersten Mal wählen.
 - In einem freigegebenen Ordner, den mehrere Personen nutzen, können sich Erinnerungen und Unterhaltungen vermischen.
 - In einem Ordner, in den die App nicht schreiben kann, etwa einem schreibgeschützten, funktionieren Anweisungen und das Lesen von Dateien weiterhin, Unterhaltungen und Erinnerungen werden aber nicht gespeichert. Der KI-Bereich weist Sie darauf hin.
-- Das Agentenfenster nutzt noch keine Projekte. Ein Agent kann auch die Dateien im `.ieumoffice` eines Ordners ändern; verwenden Sie daher in einem Ordner mit Material, das Sie nicht kennen, eine der Arbeitsweisen, die vorher fragen. Siehe [Agentenmodus](help://agent-mode).
+- Das Agentenfenster nutzt noch keine Projekte. Ein Agent kann auch die Dateien im `.alloffice` eines Ordners ändern; verwenden Sie daher in einem Ordner mit Material, das Sie nicht kennen, eine der Arbeitsweisen, die vorher fragen. Siehe [Agentenmodus](help://agent-mode).

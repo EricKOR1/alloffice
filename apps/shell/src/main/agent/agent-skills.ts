@@ -431,7 +431,7 @@ async function isProtectedPath(path: string, guard: TemplateReadGuard): Promise<
 /**
  * A candidate's file, read whole in the main process; refused when it is gone,
  * larger than a skill may be, or (as written or where it really is) inside a
- * protected folder: `~/.claude`, `~/.codex`, `~/.genoffice`, `~/.ieumoffice`,
+ * protected folder: `~/.claude`, `~/.codex`, `~/.genoffice`, `~/.alloffice`,
  * the app's data.
  */
 export async function readTemplateCandidate(

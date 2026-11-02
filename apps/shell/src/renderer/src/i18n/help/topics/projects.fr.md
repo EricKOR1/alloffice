@@ -30,7 +30,7 @@ Un projet, c’est un dossier de votre PC. Choisissez un projet dans un panneau 
 ## Les fichiers que voit l’IA
 
 - À chaque requête, l’IA reçoit le nom du projet, ses consignes et sa mémoire, ainsi que la liste des noms des fichiers du dossier. Elle lit elle-même le contenu d’un fichier quand elle en a besoin, de la même manière qu’une pièce jointe : les parties masquées à l’IA le restent.
-- Elle ne lit pas les documents ouverts qui ont des modifications non enregistrées, les fichiers cachés dont le nom commence par un point, ni le dossier `.ieumoffice`.
+- Elle ne lit pas les documents ouverts qui ont des modifications non enregistrées, les fichiers cachés dont le nom commence par un point, ni le dossier `.alloffice`.
 - Pour tenir un fichier à l’écart de l’IA, appuyez sur **Masquer à l’IA** dans la partie Fichiers de la page du projet. C’est réversible. Le fichier apparaît toujours dans les résultats de recherche de l’Accueil.
 - Dans les dossiers synchronisés par OneDrive, Google Drive et services semblables, les fichiers qui ne sont pas téléchargés sur ce PC apparaissent comme « Pas sur ce PC ». Quand l’IA veut en lire un, on vous demande d’abord s’il faut le télécharger.
 - Tapez `@` dans la zone de saisie : « Fichiers de ce projet » apparaît après les documents ouverts. En choisir un le joint. Voir [Le panneau d’assistant IA](help://ai-panel).
@@ -59,10 +59,10 @@ Un projet, c’est un dossier de votre PC. Choisissez un projet dans un panneau 
 
 ## Ce qui reste dans le dossier, et ce qu’il faut savoir
 
-- Les consignes, la mémoire et les conversations sont conservées sous forme de fichiers texte dans un dossier `.ieumoffice`, à l’intérieur du dossier de projet. Déplacez le dossier ou copiez-le sur un autre PC, et elles suivent. Sur l’autre PC, choisissez-le une fois avec **Ajouter un dossier** dans un panneau IA, ou **Utiliser un dossier existant** sur l’écran Projets de l’Accueil.
-- Le dossier `.ieumoffice` n’est créé que lorsqu’il y a quelque chose à écrire. Vous pouvez ouvrir et modifier ses fichiers dans le Bloc-notes.
+- Les consignes, la mémoire et les conversations sont conservées sous forme de fichiers texte dans un dossier `.alloffice`, à l’intérieur du dossier de projet. Déplacez le dossier ou copiez-le sur un autre PC, et elles suivent. Sur l’autre PC, choisissez-le une fois avec **Ajouter un dossier** dans un panneau IA, ou **Utiliser un dossier existant** sur l’écran Projets de l’Accueil.
+- Le dossier `.alloffice` n’est créé que lorsqu’il y a quelque chose à écrire. Vous pouvez ouvrir et modifier ses fichiers dans le Bloc-notes.
 - Ce que vous tapez dans une conversation peut se retrouver dans la mémoire. Pour écarter quelque chose, supprimez-le avec **Supprimer** sur la ligne « Mémorisé », ou désactivez la mémoire.
 - Si vous choisissez un dossier synchronisé comme projet, ses consignes, sa mémoire et ses conversations sont aussi envoyées vers ce service. L’application vous le dit une fois, la première fois que vous le choisissez.
 - Dans un dossier partagé utilisé par plusieurs personnes, la mémoire et les conversations peuvent se mélanger.
 - Dans un dossier où l’application ne peut pas écrire, par exemple en lecture seule, les consignes et la lecture des fichiers fonctionnent toujours, mais les conversations et la mémoire ne sont pas enregistrées. Le panneau IA vous le signale.
-- La fenêtre de l’agent n’utilise pas encore les projets. Un agent peut aussi modifier les fichiers du dossier `.ieumoffice` d’un dossier ; dans un dossier dont vous ne connaissez pas le contenu, utilisez donc l’un des modes qui demandent d’abord. Voir [Mode agent](help://agent-mode).
+- La fenêtre de l’agent n’utilise pas encore les projets. Un agent peut aussi modifier les fichiers du dossier `.alloffice` d’un dossier ; dans un dossier dont vous ne connaissez pas le contenu, utilisez donc l’un des modes qui demandent d’abord. Voir [Mode agent](help://agent-mode).

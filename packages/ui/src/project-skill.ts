@@ -96,7 +96,7 @@ export interface ProjectRun {
   readonly bridge: ProjectSkillBridge
   /** the snapshot of the request in flight; null outside prepare → finish */
   readonly snapshot: ProjectRunSnapshot | null
-  /** `.ieumoffice/` of the chosen project could not be written during this window's life */
+  /** `.alloffice/` of the chosen project could not be written during this window's life */
   readonly unwritable: boolean
   /** read the context and open a run scope for the request about to be sent */
   prepare(): Promise<ProjectRunPrepared>
@@ -316,7 +316,7 @@ function fileLine(file: ProjectFileEntry, withSize = false): string {
 }
 
 const SOURCE_NAMES = {
-  instructions: '.ieumoffice/instructions.md',
+  instructions: '.alloffice/instructions.md',
   agents: 'AGENTS.md',
   claude: 'CLAUDE.md',
 } as const

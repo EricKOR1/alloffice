@@ -30,7 +30,7 @@ Projekt je jedna složka ve vašem počítači. Když v panelu AI vyberete proje
 ## Soubory, které AI vidí
 
 - S každým požadavkem dostane AI název projektu, jeho pokyny a paměť a seznam názvů souborů ve složce. Obsah souboru si AI přečte sama, když ho potřebuje, stejným způsobem jako přílohu, takže části skryté před AI zůstanou skryté.
-- Nečtou se otevřené dokumenty s neuloženými změnami, skryté soubory, jejichž název začíná tečkou, ani složka `.ieumoffice`.
+- Nečtou se otevřené dokumenty s neuloženými změnami, skryté soubory, jejichž název začíná tečkou, ani složka `.alloffice`.
 - Pokud nechcete, aby AI nějaký soubor viděla, stiskněte **Skrýt před AI** v části Soubory na stránce projektu. Dá se to vrátit. Ve výsledcích hledání na Domů se soubor zobrazuje dál.
 - Ve složkách synchronizovaných přes OneDrive, Disk Google a podobné služby se soubory, které nejsou stažené do tohoto počítače, zobrazují jako „Není v tomto počítači“. Když je AI chce číst, aplikace se nejprve zeptá, zda je stáhnout.
 - Napište do vstupního pole `@` a za otevřenými dokumenty se objeví „Soubory v tomto projektu“. Vybraný soubor se připojí. Viz [Panel AI asistenta](help://ai-panel).
@@ -59,10 +59,10 @@ V položce **Projekty** v postranním panelu Domů vytváříte **Nový projekt*
 
 ## Co zůstává ve složce a co je dobré vědět
 
-- Pokyny, paměť a konverzace se ukládají jako textové soubory ve složce `.ieumoffice` uvnitř složky projektu. Když složku přesunete nebo zkopírujete na jiný počítač, putují s ní. Na jiném počítači ji stačí jednou vybrat přes **Přidat složku** v panelu AI nebo **Použít existující složku** na obrazovce Projekty na stránce Domů.
-- Složka `.ieumoffice` vznikne, až když je do ní co zapsat. Její soubory můžete otevřít a upravit v Poznámkovém bloku.
+- Pokyny, paměť a konverzace se ukládají jako textové soubory ve složce `.alloffice` uvnitř složky projektu. Když složku přesunete nebo zkopírujete na jiný počítač, putují s ní. Na jiném počítači ji stačí jednou vybrat přes **Přidat složku** v panelu AI nebo **Použít existující složku** na obrazovce Projekty na stránce Domů.
+- Složka `.alloffice` vznikne, až když je do ní co zapsat. Její soubory můžete otevřít a upravit v Poznámkovém bloku.
 - To, co napíšete do konverzace, se může dostat do paměti. Chcete-li něco vynechat, smažte to tlačítkem **Smazat** na řádku „Zapamatováno“, nebo paměť vypněte.
 - Pokud jako projekt vyberete synchronizovanou složku, nahrají se do dané služby i její pokyny, paměť a konverzace. Aplikace na to upozorní jednou, když ji vyberete poprvé.
 - Ve sdílené složce, kterou používá více lidí, se paměť a konverzace mohou promíchat.
 - Ve složce, do které aplikace nemůže zapisovat, například jen pro čtení, fungují pokyny i čtení souborů, ale konverzace a paměť se neukládají. Panel AI vás na to upozorní.
-- Okno agenta zatím projekty nepoužívá. Agent může měnit i soubory ve složce `.ieumoffice`, proto ve složce s neznámým obsahem použijte některý ze způsobů, kdy se nejdřív ptá. Viz [Režim agenta](help://agent-mode).
+- Okno agenta zatím projekty nepoužívá. Agent může měnit i soubory ve složce `.alloffice`, proto ve složce s neznámým obsahem použijte některý ze způsobů, kdy se nejdřív ptá. Viz [Režim agenta](help://agent-mode).

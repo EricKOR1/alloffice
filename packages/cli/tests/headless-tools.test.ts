@@ -582,7 +582,7 @@ describe('no trace of the removed login', () => {
   ])('%s does not look for the removed login or its command line', (file) => {
     const source = readFileSync(join(__dirname, '..', 'src', file), 'utf8')
     expect(source).not.toMatch(
-      /cloudToolsEnabled|auth\.json|GENOFFICE_AUTH_DIR|~\/\.(genoffice|ieumoffice)/,
+      /cloudToolsEnabled|auth\.json|GENOFFICE_AUTH_DIR|~\/\.(genoffice|alloffice)/,
     )
   })
 })

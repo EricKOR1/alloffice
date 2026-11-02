@@ -55,7 +55,7 @@ export function installProjectFolderBridge(
       },
     ]),
     addFolder: vi.fn(async () => ({ status: 'cancelled' as const, stage: 'dialog' as const })),
-    getDefaultParentFolder: vi.fn(async () => 'C:/Users/me/Documents/IeumOffice'),
+    getDefaultParentFolder: vi.fn(async () => 'C:/Users/me/Documents/AllOffice'),
     createProject: vi.fn(async () => ({ status: 'invalid-name' as const })),
     removeFromList: vi.fn(async () => undefined),
     setPinned: vi.fn(async () => undefined),

@@ -65,7 +65,7 @@ export const fr = {
   undoFailed: 'Impossible d’annuler.',
   removeMemoryAria: 'Supprimer cette mémoire : {text}',
   filesDesc:
-    'Les fichiers que l’IA peut voir dans ce projet. Les fichiers cachés et le dossier .ieumoffice sont exclus.',
+    'Les fichiers que l’IA peut voir dans ce projet. Les fichiers cachés et le dossier .alloffice sont exclus.',
   filesEmpty: 'Aucun fichier visible par l’IA.',
   filesLoadFailed: 'Impossible de lire la liste des fichiers.',
   filesCount: '{count} fichiers',

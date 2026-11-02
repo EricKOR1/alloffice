@@ -30,7 +30,7 @@ Um projeto é uma pasta do seu PC. Escolha um projeto em um painel de IA e a IA 
 ## Arquivos que a IA vê
 
 - A cada pedido, a IA recebe o nome do projeto, as instruções, a memória e uma lista com os nomes dos arquivos da pasta. Quando precisa do conteúdo de um arquivo, ela mesma o lê, do mesmo jeito que um anexo, por isso as partes ocultas da IA continuam ocultas.
-- Ela não lê documentos abertos com alterações não salvas, arquivos ocultos cujo nome começa com um ponto nem a pasta `.ieumoffice`.
+- Ela não lê documentos abertos com alterações não salvas, arquivos ocultos cujo nome começa com um ponto nem a pasta `.alloffice`.
 - Para manter um arquivo longe da IA, clique em **Ocultar da IA** na seção Arquivos da página do projeto. Dá para desfazer. O arquivo continua aparecendo nos resultados de pesquisa do Início.
 - Em pastas sincronizadas pelo OneDrive, pelo Google Drive e serviços parecidos, os arquivos que não foram baixados para este PC aparecem como "Não está neste PC". Quando a IA quer ler um deles, o app pergunta antes se deve baixá-lo.
 - Digite `@` no campo de entrada e "Arquivos deste projeto" aparece depois dos documentos abertos. Escolher um deles o anexa. Veja [O painel do assistente de IA](help://ai-panel).
@@ -59,10 +59,10 @@ Um projeto é uma pasta do seu PC. Escolha um projeto em um painel de IA e a IA 
 
 ## O que fica na pasta e o que é bom saber
 
-- As instruções, a memória e as conversas ficam guardadas como arquivos de texto em uma pasta `.ieumoffice` dentro da pasta do projeto. Se você mover a pasta ou copiá-la para outro PC, elas vão junto. No outro PC, escolha a pasta uma vez com **Adicionar pasta** em um painel de IA ou com **Usar uma pasta existente** na tela Projetos do Início.
-- A pasta `.ieumoffice` só é criada quando há algo para gravar. Você pode abrir e editar os arquivos dela no Bloco de Notas.
+- As instruções, a memória e as conversas ficam guardadas como arquivos de texto em uma pasta `.alloffice` dentro da pasta do projeto. Se você mover a pasta ou copiá-la para outro PC, elas vão junto. No outro PC, escolha a pasta uma vez com **Adicionar pasta** em um painel de IA ou com **Usar uma pasta existente** na tela Projetos do Início.
+- A pasta `.alloffice` só é criada quando há algo para gravar. Você pode abrir e editar os arquivos dela no Bloco de Notas.
 - O que você digita em uma conversa pode ir parar na memória. Para deixar algo de fora, apague com **Excluir** na linha "Memorizado" ou desative a memória.
 - Se você escolher uma pasta sincronizada como projeto, as instruções, a memória e as conversas também são enviadas para esse serviço. O app avisa uma vez, na primeira vez que você a escolhe.
 - Em uma pasta compartilhada usada por várias pessoas, a memória e as conversas podem se misturar.
 - Em uma pasta onde o app não consegue gravar, como uma pasta somente leitura, as instruções e a leitura de arquivos continuam funcionando, mas as conversas e a memória não são salvas. O painel de IA avisa.
-- A janela do agente ainda não usa projetos. Um agente também pode alterar os arquivos da pasta `.ieumoffice`, então, em uma pasta com material que você não conhece, use um dos modos que perguntam antes. Veja [Modo agente](help://agent-mode).
+- A janela do agente ainda não usa projetos. Um agente também pode alterar os arquivos da pasta `.alloffice`, então, em uma pasta com material que você não conhece, use um dos modos que perguntam antes. Veja [Modo agente](help://agent-mode).

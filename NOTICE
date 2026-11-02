@@ -35,24 +35,26 @@ distributed in the python-docx repository (ref/xsd), with one marked local
 amendment (see tools/ooxml-validate/README.md). They are used only by tests
 and development tooling and are not shipped in the application.
 
-IeumOffice brand artwork
+AllOffice
 
-The IeumOffice app icon, logo lockup and AI button mark are original
-compositions for this project: the sources in apps/shell/build/brand, the icon
-and logo files tools/gen-brand-assets.mjs derives from them, and
-packages/ui/src/AiMark.tsx. Their geometry is adapted from the Lucide icon set
-(https://lucide.dev), icons `circle`, `square`, `link` and `message-square`.
+AllOffice is a modified version of IeumOffice
+(https://github.com/pblsketch/openoffice, Apache License 2.0), which is itself
+a modified version of GenOffice (https://github.com/genspark-ai/genoffice,
+Apache License 2.0, Copyright 2026 Mainfunc, Inc.). AllOffice changes the
+product name, brand artwork and the release repository
+(https://github.com/EricKOR1/alloffice); the other changes are recorded in the
+git history. The upstream copyright notices are kept as they were.
 
-Lucide is distributed under the ISC License, Copyright (c) Lucide Icons and
-Contributors. The `circle`, `square` and `link` icons are derived from the
-Feather project and are distributed under the MIT License, Copyright (c)
-2013-present Cole Bemis. Both licenses permit use, modification and
-redistribution provided their copyright and permission notices are kept; the
+AllOffice brand artwork
+
+The AllOffice app icon and logo lockup (the sources in apps/shell/build/brand
+and the icon and logo files tools/gen-brand-assets.mjs derives from them) are
+original drawings for AllOffice. The AI button mark (ai-mark.svg,
+packages/ui/src/AiMark.tsx) comes from IeumOffice; its geometry is adapted
+from the Lucide icon set (https://lucide.dev), distributed under the ISC
+License, Copyright (c) Lucide Icons and Contributors, with parts derived from
+the Feather project (MIT License, Copyright (c) 2013-present Cole Bemis); the
 full texts are at https://github.com/lucide-icons/lucide/blob/main/LICENSE.
-
-The wordmark in the logo lockup is set in Roboto Bold 2.137, Copyright 2011
-Google Inc., licensed under the Apache License, Version 2.0, and converted to
-outlines.
 
 Slide design templates
 
@@ -163,7 +165,8 @@ and removed by the IeumOffice contributors; the repository history records
 each change. The modifications are licensed under the Apache License, Version
 2.0, like the original work.
 
-IeumOffice is not affiliated with, sponsored by or endorsed by Mainfunc, Inc.
+AllOffice is not affiliated with Genspark / Mainfunc, Inc. or the IeumOffice
+project, and not with, sponsored by or endorsed by Mainfunc, Inc.
 The names GenOffice and Genspark and their logos belong to their owners and
 are used here only to identify the original work.
 
@@ -214,20 +217,22 @@ POSSIBILITY OF SUCH DAMAGE.
 
 Trademarks
 
-IeumOffice is not affiliated with, sponsored by or endorsed by Microsoft
-Corporation, Hancom Inc., Adobe Inc., XMind Ltd., Google LLC, Anthropic or
+AllOffice is not affiliated with, sponsored by or endorsed by Genspark /
+Mainfunc, Inc., the IeumOffice project, Microsoft Corporation, Hancom Inc., Adobe Inc., XMind Ltd., Google LLC, Anthropic or
 OpenAI. "Microsoft", "Windows", "Word", "Excel" and "PowerPoint" are
 trademarks of Microsoft Corporation. "한글" (Hangul), "한컴" (Hancom), "HWP"
 and "HWPX" are registered trademarks of Hancom Inc. "XMind" is a trademark of
 XMind Ltd. "Google Drive" is a trademark of Google LLC. "Claude" is a
 trademark of Anthropic; "Codex" and "ChatGPT" are trademarks of OpenAI. These
-and other product names are used only to say which files IeumOffice opens and
+and other product names are used only to say which files AllOffice opens and
 what it works with. The file-type icons and the AI provider marks in the app
 are original drawings, not those companies' logos.
 
 The Apache License 2.0 grants no rights to the names or logos "IeumOffice",
-"이음오피스" or "GenOffice" (section 6).
+"이음오피스" or "GenOffice" (section 6); AllOffice does not use them as its
+own name or logo.
 
 Contact
 
-Trademark and copyright reports and licensing questions: pblsketch@gmail.com
+Questions about AllOffice: https://github.com/EricKOR1/alloffice/issues
+Questions about upstream IeumOffice: pblsketch@gmail.com

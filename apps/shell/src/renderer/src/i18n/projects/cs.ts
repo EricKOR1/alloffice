@@ -60,7 +60,7 @@ export const cs = {
   undoFailed: 'Vrátit se nepodařilo.',
   removeMemoryAria: 'Smazat tuto paměť: {text}',
   filesDesc:
-    'Soubory, které AI v tomto projektu vidí. Skryté soubory a složka .ieumoffice jsou vynechány.',
+    'Soubory, které AI v tomto projektu vidí. Skryté soubory a složka .alloffice jsou vynechány.',
   filesEmpty: 'Nejsou žádné soubory, které by AI viděla.',
   filesLoadFailed: 'Seznam souborů se nepodařilo přečíst.',
   filesCount: 'Souborů: {count}',

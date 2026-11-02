@@ -389,7 +389,7 @@ export function registerDriveIpc(deps: DriveIpcDeps): DriveService {
     const got = await downloadPicks(
       connection.api,
       result.picked,
-      join(app.getPath('temp'), 'ieumoffice-drive-attach'),
+      join(app.getPath('temp'), 'alloffice-drive-attach'),
     )
     return { ok: true, ...got }
   })

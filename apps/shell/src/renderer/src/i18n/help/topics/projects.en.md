@@ -30,7 +30,7 @@ A project is one folder on your PC. Pick a project in an AI panel and the AI wor
 ## Files the AI sees
 
 - With every request the AI gets the project's name, its instructions and memory, and a list of the names of the files in the folder. It reads a file's contents itself when it needs them, the same way as an attachment, so parts hidden from AI stay hidden.
-- It does not read open documents with unsaved changes, hidden files whose names start with a dot, or the `.ieumoffice` folder.
+- It does not read open documents with unsaved changes, hidden files whose names start with a dot, or the `.alloffice` folder.
 - To keep a file away from the AI, press **Hide from AI** in the Files part of the project's page. You can undo it. The file still shows in Home search results.
 - In folders synced by OneDrive, Google Drive and the like, files that are not downloaded to this PC show as "Not on this PC". When the AI wants to read one, you are asked first whether to download it.
 - Type `@` in the input and "Files in this project" appears after the open documents. Picking one attaches it. See [The AI assistant panel](help://ai-panel).
@@ -59,10 +59,10 @@ A project is one folder on your PC. Pick a project in an AI panel and the AI wor
 
 ## What stays in the folder, and things to know
 
-- Instructions, memory and chats are kept as text files in a `.ieumoffice` folder inside the project folder. Move the folder or copy it to another PC and they go along. On another PC, pick it once with **Add folder** in an AI panel or **Use an existing folder** on Home's Projects screen.
-- The `.ieumoffice` folder is made only when there is something to write. You can open and edit its files in Notepad.
+- Instructions, memory and chats are kept as text files in a `.alloffice` folder inside the project folder. Move the folder or copy it to another PC and they go along. On another PC, pick it once with **Add folder** in an AI panel or **Use an existing folder** on Home's Projects screen.
+- The `.alloffice` folder is made only when there is something to write. You can open and edit its files in Notepad.
 - What you type in a chat can end up in the memory. To keep something out, delete it with **Delete** on the "Remembered" line, or turn memory off.
 - If you pick a synced folder as a project, its instructions, memory and chats are uploaded to that service too. The app tells you once, the first time you pick it.
 - In a shared folder used by several people, memory and chats can get mixed.
 - In a folder the app cannot write to, such as a read-only one, instructions and file reading still work but chats and memory are not saved. The AI panel tells you so.
-- The Agent window does not use projects yet. An agent can change the files in a folder's `.ieumoffice` too, so in a folder with material you do not know, use one of the ways that ask first. See [Agent mode](help://agent-mode).
+- The Agent window does not use projects yet. An agent can change the files in a folder's `.alloffice` too, so in a folder with material you do not know, use one of the ways that ask first. See [Agent mode](help://agent-mode).

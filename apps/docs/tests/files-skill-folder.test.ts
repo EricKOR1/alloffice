@@ -52,8 +52,8 @@ describe('attachment list: folder names for same-named attachments', () => {
   it('adds no folder for copies inside the folders the app makes for Drive files', () => {
     expect(
       listLines([
-        att('C:\\Temp\\ieumoffice-drive-attach\\k3j9x\\x.docx', 'x.docx', 'docx', 2048),
-        att('/Users/me/Library/IeumOffice/drive-cache/1AbCdE/x.docx', 'x.docx', 'docx', 2048),
+        att('C:\\Temp\\alloffice-drive-attach\\k3j9x\\x.docx', 'x.docx', 'docx', 2048),
+        att('/Users/me/Library/AllOffice/drive-cache/1AbCdE/x.docx', 'x.docx', 'docx', 2048),
       ]),
     ).toEqual([
       'Attachment list (index | file name | type | size):',

@@ -30,7 +30,7 @@ Un progetto è una cartella del tuo PC. Scegli un progetto in un pannello IA e l
 ## I file che vede l'IA
 
 - A ogni richiesta l'IA riceve il nome del progetto, le istruzioni, la memoria e un elenco con i nomi dei file della cartella. Quando le serve il contenuto di un file, lo legge da sola, come un allegato, quindi le parti nascoste all'IA restano nascoste.
-- Non legge i documenti aperti con modifiche non salvate, i file nascosti il cui nome inizia con un punto né la cartella `.ieumoffice`.
+- Non legge i documenti aperti con modifiche non salvate, i file nascosti il cui nome inizia con un punto né la cartella `.alloffice`.
 - Per tenere un file lontano dall'IA, premi **Nascondi all'IA** nella sezione File della pagina del progetto. Puoi annullarlo. Il file continua a comparire nei risultati di ricerca della Home.
 - Nelle cartelle sincronizzate da OneDrive, Google Drive e servizi simili, i file non scaricati su questo PC appaiono come «Non su questo PC». Quando l'IA vuole leggerne uno, ti viene prima chiesto se scaricarlo.
 - Digita `@` nel campo di input e dopo i documenti aperti compare «File di questo progetto». Sceglierne uno lo allega. Vedi [Il pannello dell'assistente IA](help://ai-panel).
@@ -59,10 +59,10 @@ Un progetto è una cartella del tuo PC. Scegli un progetto in un pannello IA e l
 
 ## Cosa resta nella cartella, e cose da sapere
 
-- Istruzioni, memoria e chat sono conservate come file di testo in una cartella `.ieumoffice` dentro la cartella del progetto. Se sposti la cartella o la copi su un altro PC, viaggiano con lei. Sull'altro PC, sceglila una volta con **Aggiungi cartella** in un pannello IA o con **Usa una cartella esistente** nella schermata Progetti della Home.
-- La cartella `.ieumoffice` viene creata solo quando c'è qualcosa da scrivere. Puoi aprire e modificare i suoi file con il Blocco note.
+- Istruzioni, memoria e chat sono conservate come file di testo in una cartella `.alloffice` dentro la cartella del progetto. Se sposti la cartella o la copi su un altro PC, viaggiano con lei. Sull'altro PC, sceglila una volta con **Aggiungi cartella** in un pannello IA o con **Usa una cartella esistente** nella schermata Progetti della Home.
+- La cartella `.alloffice` viene creata solo quando c'è qualcosa da scrivere. Puoi aprire e modificare i suoi file con il Blocco note.
 - Quello che scrivi in una chat può finire nella memoria. Per tenere fuori qualcosa, eliminalo con **Elimina** sulla riga «Ricordato» oppure disattiva la memoria.
 - Se scegli una cartella sincronizzata come progetto, anche istruzioni, memoria e chat vengono caricate su quel servizio. L'app te lo dice una volta, la prima volta che la scegli.
 - In una cartella condivisa usata da più persone, memoria e chat possono mescolarsi.
 - In una cartella in cui l'app non può scrivere, per esempio una di sola lettura, istruzioni e lettura dei file funzionano ancora, ma chat e memoria non vengono salvate. Il pannello IA te lo segnala.
-- La finestra dell'agente non usa ancora i progetti. Un agente può modificare anche i file nella cartella `.ieumoffice`, quindi in una cartella con materiale che non conosci usa uno dei modi che chiedono prima. Vedi [Modalità agente](help://agent-mode).
+- La finestra dell'agente non usa ancora i progetti. Un agente può modificare anche i file nella cartella `.alloffice`, quindi in una cartella con materiale che non conosci usa uno dei modi che chiedono prima. Vedi [Modalità agente](help://agent-mode).

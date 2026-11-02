@@ -1,6 +1,6 @@
 # Installing GenOffice
 
-Every version is published on the [Releases page](https://github.com/pblsketch/openoffice/releases/latest) of the project on GitHub. This version is released for Windows.
+Every version is published on the [Releases page](https://github.com/EricKOR1/alloffice/releases/latest) of the project on GitHub. This version is released for Windows.
 
 ## Pick the file for your machine
 
@@ -35,4 +35,4 @@ Because the installer is not signed, only run one you downloaded from the Releas
 
 ## The command line comes with it
 
-Every install ships an `ieumoffice` command that talks to the same engines the window does, so the two never disagree about a file. `ieumoffice install-cli` puts it on your `PATH`. See [Command line and agents](help://cli) for what it can do.
+Every install ships an `alloffice` command that talks to the same engines the window does, so the two never disagree about a file. `alloffice install-cli` puts it on your `PATH`. See [Command line and agents](help://cli) for what it can do.

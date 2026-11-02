@@ -63,7 +63,7 @@ export const pl = {
   undoFailed: 'Nie udało się cofnąć.',
   removeMemoryAria: 'Usuń tę pamięć: {text}',
   filesDesc:
-    'Pliki, które AI widzi w tym projekcie. Pliki ukryte i folder .ieumoffice są pominięte.',
+    'Pliki, które AI widzi w tym projekcie. Pliki ukryte i folder .alloffice są pominięte.',
   filesEmpty: 'Nie ma plików, które AI może zobaczyć.',
   filesLoadFailed: 'Nie udało się odczytać listy plików.',
   filesCount: 'Plików: {count}',

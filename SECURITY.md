@@ -3,11 +3,11 @@
 ## Reporting a Vulnerability
 
 Please report suspected vulnerabilities privately via GitHub's
-[private vulnerability reporting](https://github.com/pblsketch/openoffice/security/advisories/new)
-on this repository. Do not open public issues for security reports. IeumOffice
+[private vulnerability reporting](https://github.com/EricKOR1/alloffice/security/advisories/new)
+on this repository. Do not open public issues for security reports. AllOffice
 is maintained by volunteers, so reports are handled on a best-effort basis.
 
-IeumOffice is a modified version of GenOffice (see
+AllOffice is a modified version of GenOffice (see
 [License and acknowledgement](README.en.md#license-and-acknowledgement)). If a
 problem is in code the two projects share (the document engines, for example),
 please consider reporting it to the upstream project as well.
@@ -20,7 +20,7 @@ build provenance attestation, so you can check that it was made from this
 repository's source by its own workflow:
 
 ```
-gh attestation verify IeumOffice-Setup-<version>.exe --repo pblsketch/openoffice
+gh attestation verify AllOffice-Setup-<version>.exe --repo EricKOR1/alloffice
 ```
 
 The installer is not code-signed, so Windows shows an "unknown publisher"
@@ -29,7 +29,7 @@ warning the first time you run it.
 ## Trademark and Copyright Reports
 
 Send trademark or copyright infringement reports and licensing questions to
-pblsketch@gmail.com. The same address is in the app under Settings → About.
+the address in Settings → About. The same address is in the app under Settings → About.
 
 ## Process Security Posture
 
@@ -50,7 +50,7 @@ All application windows run with the full Electron renderer lockdown:
   (`ai-settings.json` in the app's user-data folder). On Windows (DPAPI) and
   on Linux with a desktop keyring (GNOME Keyring, KWallet) they are sealed with
   the operating system's encryption through Electron safeStorage, which ties
-  them to the user account; the `ieumoffice` command asks the app, started
+  them to the user account; the `alloffice` command asks the app, started
   hidden, to open them. On macOS, and on Linux without a keyring, they are
   still plain JSON, protected only by the permissions of the user account:
   the Mac build is not Developer ID signed, and sealing there would ask for

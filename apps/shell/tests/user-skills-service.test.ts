@@ -33,7 +33,7 @@ let settingsPath: string
 let trash: ReturnType<typeof vi.fn>
 let service: UserSkillsService
 
-const appDir = () => join(home, '.ieumoffice', 'skills')
+const appDir = () => join(home, '.alloffice', 'skills')
 
 function skill(dir: string, name: string, description: string, extra = '', body = 'Do it.\n') {
   mkdirSync(dir, { recursive: true })
@@ -241,7 +241,7 @@ describe('saving skills', () => {
       reason: 'bad-name',
       problem: 'characters',
     })
-    expect(await service.saveFromCard({ ...card, name: 'ieumoffice' })).toMatchObject({
+    expect(await service.saveFromCard({ ...card, name: 'alloffice' })).toMatchObject({
       problem: 'reserved',
     })
     expect(await service.saveFromCard({ ...card, description: ' ' })).toMatchObject({

@@ -59,7 +59,7 @@ export const ja = {
   undoFailed: '元に戻せませんでした。',
   removeMemoryAria: 'このメモリーを削除: {text}',
   filesDesc:
-    'このプロジェクトで AI が見られるファイルです。隠しファイルと .ieumoffice フォルダーは含まれません。',
+    'このプロジェクトで AI が見られるファイルです。隠しファイルと .alloffice フォルダーは含まれません。',
   filesEmpty: 'AI が見られるファイルはありません。',
   filesLoadFailed: 'ファイル一覧を読み取れませんでした。',
   filesCount: '{count} 個のファイル',

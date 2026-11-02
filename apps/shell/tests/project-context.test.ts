@@ -21,7 +21,7 @@ describe('assembleTrustedContext', () => {
       on,
     )
     expect(result.instructions).toEqual({
-      text: '[.ieumoffice/instructions.md]\nmine\n\n[AGENTS.md]\nagents\n\n[CLAUDE.md]\nclaude',
+      text: '[.alloffice/instructions.md]\nmine\n\n[AGENTS.md]\nagents\n\n[CLAUDE.md]\nclaude',
       sources: ['instructions', 'agents', 'claude'],
     })
   })
@@ -35,7 +35,7 @@ describe('assembleTrustedContext', () => {
     )
     expect(result.instructions?.text.length).toBe(40)
     expect(result.instructions?.sources).toEqual(['instructions'])
-    expect(result.notices).toContainEqual({ kind: 'instructions-truncated', chars: 100, limit: 40 })
+    expect(result.notices).toContainEqual({ kind: 'instructions-truncated', chars: 99, limit: 40 })
   })
 
   it('never cuts memory; a long one gets a notice', () => {

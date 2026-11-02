@@ -30,7 +30,7 @@ Proyek adalah satu folder di PC Anda. Pilih proyek di panel AI, dan AI bekerja d
 ## File yang dilihat AI
 
 - Pada setiap permintaan, AI menerima nama proyek, instruksi dan memorinya, serta daftar nama file di folder itu. Isi file dibaca sendiri oleh AI saat diperlukan, dengan cara yang sama seperti lampiran, sehingga bagian yang disembunyikan dari AI tetap tersembunyi.
-- AI tidak membaca dokumen terbuka yang punya perubahan belum disimpan, file tersembunyi yang namanya diawali titik, atau folder `.ieumoffice`.
+- AI tidak membaca dokumen terbuka yang punya perubahan belum disimpan, file tersembunyi yang namanya diawali titik, atau folder `.alloffice`.
 - Agar sebuah file tidak dilihat AI, tekan **Sembunyikan dari AI** di bagian File pada halaman proyek. Ini bisa dibatalkan. File itu tetap muncul di hasil pencarian Beranda.
 - Di folder yang disinkronkan oleh OneDrive, Google Drive, dan layanan sejenis, file yang belum diunduh ke PC ini ditandai "Tidak ada di PC ini". Saat AI ingin membacanya, Anda ditanya dulu apakah file itu mau diunduh.
 - Ketik `@` di kotak masukan, dan "File di proyek ini" muncul setelah dokumen yang terbuka. Memilih salah satunya akan melampirkannya. Lihat [Panel asisten AI](help://ai-panel).
@@ -59,10 +59,10 @@ Proyek adalah satu folder di PC Anda. Pilih proyek di panel AI, dan AI bekerja d
 
 ## Apa yang tersimpan di folder, dan hal yang perlu diketahui
 
-- Instruksi, memori, dan obrolan disimpan sebagai file teks di folder `.ieumoffice` di dalam folder proyek. Jika folder dipindahkan atau disalin ke PC lain, semuanya ikut terbawa. Di PC lain, pilih folder itu sekali dengan **Tambah folder** di panel AI atau **Gunakan folder yang ada** di layar Proyek pada Beranda.
-- Folder `.ieumoffice` hanya dibuat jika ada sesuatu yang perlu ditulis. Anda bisa membuka dan menyunting file di dalamnya dengan Notepad.
+- Instruksi, memori, dan obrolan disimpan sebagai file teks di folder `.alloffice` di dalam folder proyek. Jika folder dipindahkan atau disalin ke PC lain, semuanya ikut terbawa. Di PC lain, pilih folder itu sekali dengan **Tambah folder** di panel AI atau **Gunakan folder yang ada** di layar Proyek pada Beranda.
+- Folder `.alloffice` hanya dibuat jika ada sesuatu yang perlu ditulis. Anda bisa membuka dan menyunting file di dalamnya dengan Notepad.
 - Apa yang Anda ketik dalam obrolan bisa masuk ke memori. Agar sesuatu tidak tersimpan, hapus dengan **Hapus** pada baris "Diingat", atau nonaktifkan memori.
 - Jika Anda memilih folder yang disinkronkan sebagai proyek, instruksi, memori, dan obrolannya juga ikut diunggah ke layanan tersebut. Aplikasi memberi tahu Anda sekali, saat pertama kali folder itu dipilih.
 - Di folder bersama yang dipakai beberapa orang, memori dan obrolan bisa tercampur.
 - Di folder yang tidak bisa ditulisi aplikasi, misalnya folder baca-saja, instruksi dan pembacaan file tetap berfungsi, tetapi obrolan dan memori tidak disimpan. Panel AI akan memberi tahu Anda.
-- Jendela agen belum memakai proyek. Agen juga bisa mengubah file di folder `.ieumoffice`, jadi di folder yang isinya tidak Anda kenal, pakailah salah satu cara yang bertanya lebih dulu. Lihat [Mode agen](help://agent-mode).
+- Jendela agen belum memakai proyek. Agen juga bisa mengubah file di folder `.alloffice`, jadi di folder yang isinya tidak Anda kenal, pakailah salah satu cara yang bertanya lebih dulu. Lihat [Mode agen](help://agent-mode).

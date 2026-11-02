@@ -63,7 +63,7 @@ export const nl = {
   undoFailed: 'Ongedaan maken lukte niet.',
   removeMemoryAria: 'Dit geheugen verwijderen: {text}',
   filesDesc:
-    'Bestanden die de AI in dit project kan zien. Verborgen bestanden en de map .ieumoffice vallen erbuiten.',
+    'Bestanden die de AI in dit project kan zien. Verborgen bestanden en de map .alloffice vallen erbuiten.',
   filesEmpty: 'Er zijn geen bestanden die de AI kan zien.',
   filesLoadFailed: 'De bestandslijst kon niet worden gelezen.',
   filesCount: '{count} bestanden',

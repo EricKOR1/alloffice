@@ -24,11 +24,11 @@ export const UPSTREAM_NAME_LITERAL = `{{${UPSTREAM_PRODUCT_NAME}}}`
  * productName, the userData folder, the default save folder), which must stay
  * the same whatever the UI language is.
  */
-export const PRODUCT_NAME = 'IeumOffice'
+export const PRODUCT_NAME = 'AllOffice'
 
 /** Languages that show a localized product name instead of PRODUCT_NAME. */
 const LOCALIZED_PRODUCT_NAMES: Readonly<Record<string, string>> = {
-  ko: '이음오피스',
+  ko: '올오피스',
 }
 
 /** The product name as shown in a UI language (a Lang or a raw locale tag). */
@@ -51,11 +51,12 @@ export const PRODUCT_REPO_NAME = 'alloffice'
 /** `owner/repo`; the URLs built from it live in @genoffice/electron-utils (github-menu.ts) */
 export const PRODUCT_REPO_SLUG = `${PRODUCT_REPO_OWNER}/${PRODUCT_REPO_NAME}`
 
-/** The product's website: downloads, release notes and the step-by-step help pages. */
+/** Step-by-step help pages. AllOffice has no website of its own yet, so this is the upstream
+ * IeumOffice site, whose connect help (Claude/Codex/free AI) still applies as is. */
 export const PRODUCT_WEBSITE = 'https://ieumoffice.com'
 
 /** Where rights holders and users reach the maintainer about trademarks, copyright and licensing. */
-export const PRODUCT_CONTACT_EMAIL = 'pblsketch@gmail.com'
+export const PRODUCT_CONTACT_EMAIL = 'EricKOR1@users.noreply.github.com'
 
 const NAME_TOKEN = new RegExp(`\\{\\{${UPSTREAM_PRODUCT_NAME}\\}\\}|${UPSTREAM_PRODUCT_NAME}`, 'g')
 

@@ -30,7 +30,7 @@ Un proyecto es una carpeta de tu PC. Si eliges un proyecto en un panel de IA, la
 ## Archivos que ve la IA
 
 - Con cada petición, la IA recibe el nombre del proyecto, sus instrucciones y su memoria, y una lista con los nombres de los archivos de la carpeta. Cuando necesita el contenido de un archivo, lo lee ella misma igual que un adjunto, así que lo que está oculto a la IA sigue oculto.
-- No lee los documentos abiertos con cambios sin guardar, los archivos ocultos cuyo nombre empieza por un punto ni la carpeta `.ieumoffice`.
+- No lee los documentos abiertos con cambios sin guardar, los archivos ocultos cuyo nombre empieza por un punto ni la carpeta `.alloffice`.
 - Para que la IA no vea un archivo, pulsa **Ocultar a la IA** en la sección Archivos de la página del proyecto. Se puede deshacer. El archivo sigue apareciendo en los resultados de búsqueda de Inicio.
 - En carpetas sincronizadas con OneDrive, Google Drive y similares, los archivos que no están descargados en este PC aparecen como «No está en este PC». Si la IA quiere leer uno, primero se te pregunta si quieres descargarlo.
 - Escribe `@` en el campo de entrada y, después de los documentos abiertos, aparece «Archivos de este proyecto». Al elegir uno, queda adjunto. Consulta [El panel de IA](help://ai-panel).
@@ -59,10 +59,10 @@ Un proyecto es una carpeta de tu PC. Si eliges un proyecto en un panel de IA, la
 
 ## Lo que queda en la carpeta y cosas que conviene saber
 
-- Las instrucciones, la memoria y los chats se guardan como archivos de texto en una carpeta `.ieumoffice` dentro de la carpeta del proyecto. Si mueves la carpeta o la copias a otro PC, viajan con ella. En el otro PC, elígela una vez con **Añadir carpeta** en un panel de IA o con **Usar una carpeta existente** en la pantalla Proyectos de Inicio.
-- La carpeta `.ieumoffice` solo se crea cuando hay algo que escribir. Puedes abrir y editar sus archivos con el Bloc de notas.
+- Las instrucciones, la memoria y los chats se guardan como archivos de texto en una carpeta `.alloffice` dentro de la carpeta del proyecto. Si mueves la carpeta o la copias a otro PC, viajan con ella. En el otro PC, elígela una vez con **Añadir carpeta** en un panel de IA o con **Usar una carpeta existente** en la pantalla Proyectos de Inicio.
+- La carpeta `.alloffice` solo se crea cuando hay algo que escribir. Puedes abrir y editar sus archivos con el Bloc de notas.
 - Lo que escribes en un chat puede acabar en la memoria. Para dejar algo fuera, bórralo con **Eliminar** en la línea «Recordado» o desactiva la memoria.
 - Si eliges una carpeta sincronizada como proyecto, sus instrucciones, su memoria y sus chats también se suben a ese servicio. La app te avisa una vez, la primera vez que la eliges.
 - En una carpeta compartida que usan varias personas, la memoria y los chats pueden mezclarse.
 - En una carpeta en la que la app no puede escribir, como una de solo lectura, las instrucciones y la lectura de archivos siguen funcionando, pero los chats y la memoria no se guardan. El panel de IA te lo indica.
-- La ventana del agente todavía no usa proyectos. Un agente también puede modificar los archivos de la carpeta `.ieumoffice`, así que en una carpeta con material que no conoces, usa una de las formas que preguntan antes. Consulta [Modo agente](help://agent-mode).
+- La ventana del agente todavía no usa proyectos. Un agente también puede modificar los archivos de la carpeta `.alloffice`, así que en una carpeta con material que no conoces, usa una de las formas que preguntan antes. Consulta [Modo agente](help://agent-mode).

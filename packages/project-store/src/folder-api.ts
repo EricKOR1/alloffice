@@ -4,7 +4,7 @@
  * the home project screen).
  *
  * A project is one local folder. Its instructions, memory and chats live inside
- * the folder under `.ieumoffice/`, so moving or copying the folder carries the
+ * the folder under `.alloffice/`, so moving or copying the folder carries the
  * context along. What only this PC knows (the list, pins, trust, per-document
  * choices) lives in `app-settings.json` under `projects`.
  *
@@ -46,7 +46,7 @@ export function isValidProjectId(value: unknown): value is ProjectId {
  * ```
  * <project folder>/
  * ├── AGENTS.md, CLAUDE.md          read as instructions when present (and enabled)
- * └── .ieumoffice/
+ * └── .alloffice/
  *     ├── project.json
  *     ├── instructions.md
  *     ├── memory.md
@@ -58,7 +58,7 @@ export function isValidProjectId(value: unknown): value is ProjectId {
  * ```
  */
 export const PROJECT_FOLDER_NAMES = {
-  dataDir: '.ieumoffice',
+  dataDir: '.alloffice',
   projectFile: 'project.json',
   instructionsFile: 'instructions.md',
   memoryFile: 'memory.md',
@@ -103,7 +103,7 @@ export type ProjectEditor = (typeof PROJECT_EDITORS)[number]
 // On-disk formats inside the folder
 // ────────────────────────────────────────────────────────────
 
-/** `.ieumoffice/project.json` */
+/** `.alloffice/project.json` */
 export interface ProjectFolderFile {
   version: typeof PROJECT_FORMAT_VERSION
   id: ProjectId
@@ -113,7 +113,7 @@ export interface ProjectFolderFile {
   createdAt: string
 }
 
-/** `.ieumoffice/chats/<chatId>.json` */
+/** `.alloffice/chats/<chatId>.json` */
 export interface ProjectChatInfo {
   version: typeof PROJECT_FORMAT_VERSION
   id: ProjectId
@@ -136,7 +136,7 @@ export interface ProjectChatInfo {
 }
 
 /**
- * One line of `.ieumoffice/chats/<chatId>.jsonl`: the project-store message record
+ * One line of `.alloffice/chats/<chatId>.jsonl`: the project-store message record
  * (same caps and lenient reading) plus who wrote it.
  *
  * `fileRef`, when present, is the sending document's path relative to the project
@@ -235,7 +235,7 @@ export interface ProjectListItem {
   lastUsedAt: string
   /** The folder is gone ("folder missing"); choosing the row opens a folder picker to relocate */
   missing: boolean
-  /** A write into `.ieumoffice/` failed during this app run; chats and memory are not saved */
+  /** A write into `.alloffice/` failed during this app run; chats and memory are not saved */
   unwritable: boolean
   /** The folder is under a known sync folder (OneDrive, Google Drive for desktop) */
   syncFolder: boolean
@@ -249,7 +249,7 @@ export interface ProjectSelection {
   initialChatId: ProjectId | null
   /**
    * Set when the document sits under an unregistered folder holding
-   * `.ieumoffice/project.json`; the panel offers "[use]" (`adoptFolderHint`), never automatically.
+   * `.alloffice/project.json`; the panel offers "[use]" (`adoptFolderHint`), never automatically.
    */
   unregisteredProjectHint?: UnregisteredProjectHint
 }
@@ -267,7 +267,7 @@ export type FolderRefusalReason =
   | 'drive-root'
   /** The whole user folder */
   | 'user-home'
-  /** An agent-mode protected folder (`~/.claude`, `~/.codex`, `~/.genoffice`, `~/.ieumoffice`, app data) */
+  /** An agent-mode protected folder (`~/.claude`, `~/.codex`, `~/.genoffice`, `~/.alloffice`, app data) */
   | 'protected'
   /** A folder that contains a protected folder */
   | 'contains-protected'
@@ -340,7 +340,7 @@ export type ProjectNotice =
   | { kind: 'memory-long'; chars: number; limit: number }
   /** Instructions were over the limit; the tail was dropped */
   | { kind: 'instructions-truncated'; chars: number; limit: number }
-  /** `.ieumoffice/` cannot be written; chats and memory are not saved */
+  /** `.alloffice/` cannot be written; chats and memory are not saved */
   | { kind: 'unwritable' }
   /** First use of a folder under a sync service; instructions, memory and chats upload with it */
   | { kind: 'sync-folder'; service?: 'onedrive' | 'google-drive' }
@@ -434,9 +434,9 @@ export interface ProjectReadRequest extends ProjectToolScope {
 export type ProjectReadRefusal =
   /** Outside the folder, through a link, or `..` */
   | 'outside'
-  /** Hidden entry, `~$` file or inside `.ieumoffice/` */
+  /** Hidden entry, `~$` file or inside `.alloffice/` */
   | 'hidden'
-  /** Matched by `.ieumoffice/ignore` */
+  /** Matched by `.alloffice/ignore` */
   | 'ignored'
   | 'not-found'
   /** Open with unsaved changes */
@@ -567,7 +567,7 @@ export interface ProjectDetail {
   memoryConflictCopies: string[]
 }
 
-/** Common result of a write into `.ieumoffice/` */
+/** Common result of a write into `.alloffice/` */
 export type ProjectWriteResult = { status: 'ok' } | { status: 'unwritable' }
 
 // ────────────────────────────────────────────────────────────
@@ -640,7 +640,7 @@ export type AppendProjectChatResult =
   | { status: 'saved'; message: ProjectChatMessage }
   /** Held in memory until the first assistant reply creates the files */
   | { status: 'pending'; message: ProjectChatMessage }
-  /** `.ieumoffice/` cannot be written; the message is kept only on screen and in model input */
+  /** `.alloffice/` cannot be written; the message is kept only on screen and in model input */
   | { status: 'unwritable' }
 
 export interface RenameProjectChatArgs extends ProjectChatRef {
@@ -726,7 +726,7 @@ export interface EditMemoryArgs extends ProjectIdArgs {
 }
 
 export interface IgnorePathArgs extends ProjectIdArgs {
-  /** Folder-relative path; added to or removed from `.ieumoffice/ignore` as one line */
+  /** Folder-relative path; added to or removed from `.alloffice/ignore` as one line */
   relPath: string
 }
 

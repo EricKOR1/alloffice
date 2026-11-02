@@ -60,10 +60,10 @@ function baseStatus(): IntegrationsStatus {
   return {
     cli: {
       status: 'missing',
-      location: '/usr/local/bin/ieumoffice',
+      location: '/usr/local/bin/alloffice',
       manual:
-        'sudo ln -sf /Applications/IeumOffice.app/Contents/Resources/cli/ieumoffice /usr/local/bin/ieumoffice',
-      launcherDir: '/Applications/IeumOffice.app/Contents/Resources/cli',
+        'sudo ln -sf /Applications/AllOffice.app/Contents/Resources/cli/alloffice /usr/local/bin/alloffice',
+      launcherDir: '/Applications/AllOffice.app/Contents/Resources/cli',
       ephemeral: false,
       version: '0.4.0',
     },
@@ -74,7 +74,7 @@ function baseStatus(): IntegrationsStatus {
         id: 'claude-code',
         label: 'Claude Code',
         skillsDir: '/home/u/.claude/skills',
-        state: { status: 'missing', path: '/home/u/.claude/skills/ieumoffice/SKILL.md' },
+        state: { status: 'missing', path: '/home/u/.claude/skills/alloffice/SKILL.md' },
       },
       {
         id: 'agents',
@@ -82,7 +82,7 @@ function baseStatus(): IntegrationsStatus {
         skillsDir: '/home/u/.agents/skills',
         state: {
           status: 'foreign',
-          path: '/home/u/.agents/skills/ieumoffice/SKILL.md',
+          path: '/home/u/.agents/skills/alloffice/SKILL.md',
           installedVersion: '2.1.0',
         },
       },
@@ -94,7 +94,7 @@ function baseStatus(): IntegrationsStatus {
         legacy: true,
         state: {
           status: 'outdated',
-          path: '/home/u/.codex/skills/ieumoffice/SKILL.md',
+          path: '/home/u/.codex/skills/alloffice/SKILL.md',
           installedVersion: '2.0.0',
           older: true,
         },
@@ -151,7 +151,7 @@ describe('Settings → Integrations', () => {
       "Older copy in Codex's own folder. Codex now reads the skill from the shared folder (~/.agents); once it is installed there, you can remove this copy.",
     )
     // CLI block: launcher path, PATH state in plain words, the manual command as copyable code
-    expect(host.textContent).toContain('/Applications/IeumOffice.app/Contents/Resources/cli')
+    expect(host.textContent).toContain('/Applications/AllOffice.app/Contents/Resources/cli')
     expect(host.textContent).toContain("not on your terminal's PATH")
     expect(host.querySelector('.set-intg-cli code')?.textContent).toContain('sudo ln -sf')
     expect(host.textContent).toContain('skill 2.1.0')
@@ -164,12 +164,12 @@ describe('Settings → Integrations', () => {
     // MCP block: the launcher itself while genoffice is not on the PATH, as a command and as JSON
     const mcp = [...host.querySelectorAll('.set-intg-mcp code')].map((c) => c.textContent)
     expect(mcp[0]).toBe(
-      'claude mcp add --transport stdio ieumoffice -- /Applications/IeumOffice.app/Contents/Resources/cli/ieumoffice mcp',
+      'claude mcp add --transport stdio alloffice -- /Applications/AllOffice.app/Contents/Resources/cli/alloffice mcp',
     )
     expect(JSON.parse(mcp[1]!)).toEqual({
       mcpServers: {
-        ieumoffice: {
-          command: '/Applications/IeumOffice.app/Contents/Resources/cli/ieumoffice',
+        alloffice: {
+          command: '/Applications/AllOffice.app/Contents/Resources/cli/alloffice',
           args: ['mcp'],
         },
       },
@@ -181,25 +181,25 @@ describe('Settings → Integrations', () => {
     expect(
       mcpLaunch({
         status: 'present',
-        launcherDir: '/Applications/IeumOffice.app/Contents/Resources/cli',
+        launcherDir: '/Applications/AllOffice.app/Contents/Resources/cli',
       }),
-    ).toEqual({ command: 'ieumoffice', args: ['mcp'] })
-    const winDir = 'C:\\Users\\Jane Doe\\AppData\\Local\\Programs\\IeumOffice\\resources\\cli'
+    ).toEqual({ command: 'alloffice', args: ['mcp'] })
+    const winDir = 'C:\\Users\\Jane Doe\\AppData\\Local\\Programs\\AllOffice\\resources\\cli'
     const win = {
-      command: `${winDir}\\..\\..\\IeumOffice.exe`,
+      command: `${winDir}\\..\\..\\AllOffice.exe`,
       args: [`${winDir}\\genoffice.cjs`, 'mcp'],
       env: { ELECTRON_RUN_AS_NODE: '1' },
     }
     expect(mcpLaunch({ status: 'missing', launcherDir: winDir })).toEqual(win)
     expect(mcpLaunch({ status: 'present', launcherDir: winDir })).toEqual(win)
     expect(mcpClaudeCommand(win)).toBe(
-      `claude mcp add -e ELECTRON_RUN_AS_NODE=1 --transport stdio ieumoffice -- "${win.command}" "${win.args[0]}" mcp`,
+      `claude mcp add -e ELECTRON_RUN_AS_NODE=1 --transport stdio alloffice -- "${win.command}" "${win.args[0]}" mcp`,
     )
-    expect(JSON.parse(mcpConfigJson(win))).toEqual({ mcpServers: { ieumoffice: win } })
+    expect(JSON.parse(mcpConfigJson(win))).toEqual({ mcpServers: { alloffice: win } })
     expect(
-      mcpClaudeCommand({ command: '/Applications/Gen Office.app/cli/ieumoffice', args: ['mcp'] }),
+      mcpClaudeCommand({ command: '/Applications/Gen Office.app/cli/alloffice', args: ['mcp'] }),
     ).toBe(
-      'claude mcp add --transport stdio ieumoffice -- "/Applications/Gen Office.app/cli/ieumoffice" mcp',
+      'claude mcp add --transport stdio alloffice -- "/Applications/Gen Office.app/cli/alloffice" mcp',
     )
   })
 
@@ -217,7 +217,7 @@ describe('Settings → Integrations', () => {
     const row = host.querySelector('[data-agent="claude-code"]')!
     await click(buttonWithText('Install', row))
     expect(install).not.toHaveBeenCalled()
-    expect(row.textContent).toContain('Will write: /home/u/.claude/skills/ieumoffice/SKILL.md')
+    expect(row.textContent).toContain('Will write: /home/u/.claude/skills/alloffice/SKILL.md')
 
     await click(buttonWithText('Cancel', row))
     expect(row.querySelector('.set-intg-confirm')).toBeNull()
@@ -236,7 +236,7 @@ describe('Settings → Integrations', () => {
     const status = baseStatus()
     status.agents[1]!.state = {
       status: 'missing',
-      path: '/home/u/.agents/skills/ieumoffice/SKILL.md',
+      path: '/home/u/.agents/skills/alloffice/SKILL.md',
     }
     const install = vi.fn(async () => status.agents[1]!.state)
     await openIntegrations({
@@ -246,7 +246,7 @@ describe('Settings → Integrations', () => {
     const row = host.querySelector('[data-agent="agents"]')!
     await click(buttonWithText('Install', row))
     expect(row.querySelector('.set-intg-confirm')!.textContent).toContain(
-      'Will write: /home/u/.agents/skills/ieumoffice/SKILL.md The older copies at /home/u/.codex/skills/ieumoffice/SKILL.md are updated as well.',
+      'Will write: /home/u/.agents/skills/alloffice/SKILL.md The older copies at /home/u/.codex/skills/alloffice/SKILL.md are updated as well.',
     )
     await click(buttonWithText('Confirm', row))
     expect(install).toHaveBeenCalledWith({ agentId: 'agents' })
@@ -256,7 +256,7 @@ describe('Settings → Integrations', () => {
     const status = baseStatus()
     status.agents[2]!.state = {
       status: 'missing',
-      path: '/home/u/.codex/skills/ieumoffice/SKILL.md',
+      path: '/home/u/.codex/skills/alloffice/SKILL.md',
     }
     await openIntegrations({ status: async () => status })
     const row = host.querySelector('[data-agent="codex"]')!
@@ -266,10 +266,10 @@ describe('Settings → Integrations', () => {
   it('installs into a picked folder and saves the zip through the main process', async () => {
     const install = vi.fn(async () => ({
       status: 'installed' as const,
-      path: '/x/ieumoffice/SKILL.md',
+      path: '/x/alloffice/SKILL.md',
       installedVersion: '2.1.0',
     }))
-    const saveZip = vi.fn(async () => '/Users/u/Downloads/ieumoffice-skill-2.1.0.zip')
+    const saveZip = vi.fn(async () => '/Users/u/Downloads/alloffice-skill-2.1.0.zip')
     await openIntegrations({
       status: async () => baseStatus(),
       pickSkillDir: async () => '/x',
@@ -277,13 +277,13 @@ describe('Settings → Integrations', () => {
       saveSkillZip: saveZip,
     })
     await click(buttonWithText('Install into another folder…'))
-    expect(host.textContent).toContain('Will write: /x/ieumoffice/SKILL.md')
+    expect(host.textContent).toContain('Will write: /x/alloffice/SKILL.md')
     await click(buttonWithText('Confirm'))
     expect(install).toHaveBeenCalledWith({ dir: '/x' })
 
     await click(buttonWithText('Download skill (zip)'))
     expect(saveZip).toHaveBeenCalledWith('Save skill')
-    expect(host.textContent).toContain('Saved to /Users/u/Downloads/ieumoffice-skill-2.1.0.zip')
+    expect(host.textContent).toContain('Saved to /Users/u/Downloads/alloffice-skill-2.1.0.zip')
   })
 
   it('marks the Integrations entry while a detected assistant holds an older skill', async () => {

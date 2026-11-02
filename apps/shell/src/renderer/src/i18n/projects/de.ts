@@ -65,7 +65,7 @@ export const de = {
   undoFailed: 'Rückgängig machen nicht möglich.',
   removeMemoryAria: 'Diese Erinnerung löschen: {text}',
   filesDesc:
-    'Dateien, die die KI in diesem Projekt sehen kann. Versteckte Dateien und der Ordner .ieumoffice sind ausgenommen.',
+    'Dateien, die die KI in diesem Projekt sehen kann. Versteckte Dateien und der Ordner .alloffice sind ausgenommen.',
   filesEmpty: 'Es gibt keine Dateien, die die KI sehen kann.',
   filesLoadFailed: 'Die Dateiliste konnte nicht gelesen werden.',
   filesCount: '{count} Dateien',

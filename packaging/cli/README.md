@@ -1,6 +1,6 @@
 # Command-line archive (Linux x64)
 
-`ieumoffice` without the desktop app, for machines that only need the document
+`alloffice` without the desktop app, for machines that only need the document
 engines: agent sandboxes, servers and batch jobs. The archive carries the same
 bundle the installed app ships (`cli/genoffice.cjs`), its jsdom tree, the wasm
 engines and the xlsx sidecar, so a document is read and written by the same code
@@ -18,7 +18,7 @@ node packages/cli/pack-tarball.mjs \
   --out apps/shell/release --platform linux --arch x64
 ```
 
-That writes `ieumoffice-cli_<version>_linux-x64.tar.gz` and its `.sha256`.
+That writes `alloffice-cli_<version>_linux-x64.tar.gz` and its `.sha256`.
 `GENOFFICE_APP_VERSION` overrides the version; without it the packer reads the
 banner inside the shipped CLI bundle, so the archive cannot drift from the app.
 `.github/workflows/linux-build.yml` builds, tests and uploads it with the other
@@ -27,15 +27,15 @@ Linux files.
 Layout (the app's `resources/`):
 
 ```
-ieumoffice-cli/
-  cli/{ieumoffice, genoffice.cjs, package.json, node_modules/, skills/ieumoffice/SKILL.md}
+alloffice-cli/
+  cli/{alloffice, genoffice.cjs, package.json, node_modules/, skills/alloffice/SKILL.md}
   wasm/{pdfium.wasm, rhwp_bg.wasm, hb-subset.wasm}
   native/xlsx-sidecar
   LICENSE  NOTICE  THIRD-PARTY-NOTICES.txt
 ```
 
-`cli/ieumoffice` runs `node` on the bundle when no app binary sits beside it
-(`bin/ieumoffice` in `packages/cli`), so any Node 22 runs the archive.
+`cli/alloffice` runs `node` on the bundle when no app binary sits beside it
+(`bin/alloffice` in `packages/cli`), so any Node 22 runs the archive.
 
 ## Install
 
@@ -47,12 +47,12 @@ publish it with the same release that carries the archive.
 curl -fsSL https://ieumoffice.com/cli/install.sh | sh
 ```
 
-- writes only `~/.local/share/ieumoffice-cli` (or `$XDG_DATA_HOME`) and
-  `~/.local/bin/ieumoffice` (or `$XDG_BIN_HOME`); no root, no shell profile edits
+- writes only `~/.local/share/alloffice-cli` (or `$XDG_DATA_HOME`) and
+  `~/.local/bin/alloffice` (or `$XDG_BIN_HOME`); no root, no shell profile edits
 - installs Node 22 from nodejs.org (checked against its `SHASUMS256.txt`) only
   when the machine has none; `--node <path>` reuses one
 - verifies the archive against the release's `.sha256` before unpacking
-- leaves an `ieumoffice` that belongs to another program alone
+- leaves an `alloffice` that belongs to another program alone
 - `--uninstall` removes the launcher and the folder
 
 ## What it cannot do
@@ -65,7 +65,7 @@ the app sealed (`sealed:v1:`) cannot be opened without it.
 WebAssembly is the other boundary. A sandbox that caps virtual memory
 (`ulimit -v`, commonly 2 GB) cannot instantiate the PDF or Hangul engines or the
 HTTP parser Node uses: those commands answer exit 3, `error: "resource_limit"`
-instead of aborting, and `ieumoffice capabilities --json` reports
+instead of aborting, and `alloffice capabilities --json` reports
 `detail.wasm.available: false` before an agent plans the work. DOCX, XLSX, PPTX,
 Markdown, HTML, CSV and ODT work there.
 

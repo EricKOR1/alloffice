@@ -7,7 +7,7 @@ import type { IgnoreMatcher } from './ignore'
  * Whether a folder-relative path is a file the AI may see (spec 5.5, 5.9): it
  * stays inside the folder (no `..`, not absolute), no segment is a hidden entry
  * by the home tree's rule (dot names, `~$` lock files, OS junk, the Markdown
- * app-owned `assets/` folder), it is not under `.ieumoffice/`, and `ignore` does
+ * app-owned `assets/` folder), it is not under `.alloffice/`, and `ignore` does
  * not match it. Paths are not resolved here; callers that touch the disk also
  * check links (the read tool resolves the real path).
  */

@@ -11,7 +11,7 @@ import { readProjectFile } from './folder-files'
 import { relativeInside, samePath } from './paths'
 
 /**
- * A project's identity is the `id` in `.ieumoffice/project.json`, not its path
+ * A project's identity is the `id` in `.alloffice/project.json`, not its path
  * (spec 5.11). When a folder is added (or a missing project is re-picked) this
  * decides whether it is a project the list already knows, the same project moved,
  * or a copy that needs an id of its own.

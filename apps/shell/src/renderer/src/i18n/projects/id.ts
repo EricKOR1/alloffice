@@ -62,7 +62,7 @@ export const id = {
   undoFailed: 'Tidak dapat membatalkan.',
   removeMemoryAria: 'Hapus memori ini: {text}',
   filesDesc:
-    'File yang dapat dilihat AI di proyek ini. File tersembunyi dan folder .ieumoffice tidak disertakan.',
+    'File yang dapat dilihat AI di proyek ini. File tersembunyi dan folder .alloffice tidak disertakan.',
   filesEmpty: 'Tidak ada file yang dapat dilihat AI.',
   filesLoadFailed: 'Daftar file tidak dapat dibaca.',
   filesCount: '{count} file',

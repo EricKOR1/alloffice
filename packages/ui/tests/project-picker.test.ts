@@ -130,12 +130,12 @@ describe('ProjectPicker', () => {
   })
 
   it('shows where a new project goes and offers another place', () => {
-    const props = render({ lang: 'ko', defaultParentFolder: 'D:/Docs/IeumOffice' })
+    const props = render({ lang: 'ko', defaultParentFolder: 'D:/Docs/AllOffice' })
     openList()
     type('현장학습')
     const createRow = rows()[0]!
     expect(createRow.querySelector('.ai-project-row-path')?.textContent).toBe(
-      '만들 곳: D:/Docs/IeumOffice/현장학습',
+      '만들 곳: D:/Docs/AllOffice/현장학습',
     )
     expect(rowTexts()[1]).toBe('다른 곳에 만들기…')
     key(search()!, 'ArrowDown')

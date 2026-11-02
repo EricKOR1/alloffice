@@ -124,7 +124,7 @@ export function ocrHelperPath(): string | null {
   return candidates.find((p) => existsSync(p)) ?? null
 }
 
-/** skills/ieumoffice/SKILL.md as shipped beside this bundle (Resources/cli/skills) or in the checkout. */
+/** skills/alloffice/SKILL.md as shipped beside this bundle (Resources/cli/skills) or in the checkout. */
 export function bundledSkillPath(): string | null {
   const packaged = packagedResourcesDir()
   const candidates = [
@@ -135,7 +135,7 @@ export function bundledSkillPath(): string | null {
 }
 
 /** Linux names the binary from electron-builder's `linux.executableName`; it sits in the product's own /opt folder. */
-const LINUX_APP_BINARY = 'ieumoffice'
+const LINUX_APP_BINARY = 'alloffice'
 
 export interface AppLaunch {
   command: string
@@ -143,7 +143,7 @@ export interface AppLaunch {
 }
 
 /**
- * How to start the IeumOffice GUI: the app binary that hosts this CLI, an installed app, or the dev checkout.
+ * How to start the AllOffice GUI: the app binary that hosts this CLI, an installed app, or the dev checkout.
  * Only this product's own install locations are probed: an upstream GenOffice on the machine is never started.
  */
 export function appLaunch(env: NodeJS.ProcessEnv = process.env): AppLaunch | null {

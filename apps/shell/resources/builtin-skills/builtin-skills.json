@@ -46,7 +46,7 @@
   },
   {
     "name": "administration-report",
-    "source": "ieumoffice",
+    "source": "alloffice",
     "path": "",
     "commit": "",
     "license": "Apache-2.0",
@@ -55,7 +55,7 @@
   },
   {
     "name": "administration-report-draft",
-    "source": "ieumoffice",
+    "source": "alloffice",
     "path": "",
     "commit": "",
     "license": "Apache-2.0",

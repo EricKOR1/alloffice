@@ -59,7 +59,7 @@ export const vi = {
   undoFailed: 'Không hoàn tác được.',
   removeMemoryAria: 'Xóa bộ nhớ này: {text}',
   filesDesc:
-    'Các tệp AI có thể thấy trong dự án này. Tệp ẩn và thư mục .ieumoffice không được tính.',
+    'Các tệp AI có thể thấy trong dự án này. Tệp ẩn và thư mục .alloffice không được tính.',
   filesEmpty: 'Không có tệp nào AI có thể thấy.',
   filesLoadFailed: 'Không đọc được danh sách tệp.',
   filesCount: '{count} tệp',

@@ -15,27 +15,27 @@
 ‏אותו דבר מתוך מסוף — זו הדרך המתקדמת, וזו לה גונבים כאשר הסוכן יושב במקום שהחלונית אינה יכולה למצוא:
 
 ```sh
-ieumoffice mcp install all
+alloffice mcp install all
 ```
 
-‏היא מוצאת את סוכני התכנון שבמחשב הזה — Claude Code, Codex, Cursor, Gemini CLI, Copilot CLI, OpenCode, Windsurf — וכותבת את רשומת שרת ה-stdio בהגדרות של כל אחד מהם, ומשאירה את שאר הקובץ כפי שמצאה אותו. שם הרשומה הוא `ieumoffice`. כשעושים זאת ידנית עבור Claude Code, אותו רישום הוא `claude mcp add --transport stdio ieumoffice -- ieumoffice mcp`.
+‏היא מוצאת את סוכני התכנון שבמחשב הזה — Claude Code, Codex, Cursor, Gemini CLI, Copilot CLI, OpenCode, Windsurf — וכותבת את רשומת שרת ה-stdio בהגדרות של כל אחד מהם, ומשאירה את שאר הקובץ כפי שמצאה אותו. שם הרשומה הוא `alloffice`. כשעושים זאת ידנית עבור Claude Code, אותו רישום הוא `claude mcp add --transport stdio alloffice -- alloffice mcp`.
 
 ```sh
-ieumoffice mcp list             # where each agent stands
-ieumoffice mcp install cursor    # just one
-ieumoffice mcp uninstall cursor  # take it back out
+alloffice mcp list             # where each agent stands
+alloffice mcp install cursor    # just one
+alloffice mcp uninstall cursor  # take it back out
 ```
 
 ‏סוכן שהתקנתם במקום לא שגרתי זקוק ל-`--dir <path>`; ו-`--force` כותב מחדש רשומה שכבר קיימת.
 
-‏`ieumoffice mcp --help` מציג במסך אחד את כל מה שהשרת מקבל: הצורות להתקנה, להסרה ולהצגה, הגשה דרך HTTP, ושני הדגלים של הסכמות.
+‏`alloffice mcp --help` מציג במסך אחד את כל מה שהשרת מקבל: הצורות להתקנה, להסרה ולהצגה, הגשה דרך HTTP, ושני הדגלים של הסכמות.
 
 ## הרצה ללא עוזר
 
 עבור לקוח במחשב אחר, הגישו אותו ב-HTTP במקום זאת:
 
 ```sh
-ieumoffice mcp --http 8765 --token <secret>
+alloffice mcp --http 8765 --token <secret>
 ```
 
 ‏`--host <addr>` משנה את הכתובת שבה הוא מאזין. העבירו ללקוח את אותו אסימון.
@@ -55,7 +55,7 @@ ieumoffice mcp --http 8765 --token <secret>
 
 ## חיפוש, תמונות ומדיה: במה מותר לסוכן להשתמש
 
-בקשה שמגיעה מהפקודה `ieumoffice` או מלקוח MCP לא הוקלדה על ידכם באפליקציה, ולכן GenOffice נוהגת בה בזהירות.
+בקשה שמגיעה מהפקודה `alloffice` או מלקוח MCP לא הוקלדה על ידכם באפליקציה, ולכן GenOffice נוהגת בה בזהירות.
 
 - **חיפוש** פועל תמיד, והוא חינמי כברירת מחדל. במפתח של ספק חיפוש משתמשים רק אם בחרתם בו.
 - **יצירת תמונה** דורשת מפתח של ספק תמונות. בגרסה הזו מינוי אינו יוצר תמונות.
@@ -74,16 +74,16 @@ ieumoffice mcp --http 8765 --token <secret>
 
 ## סכמות, ותקציב קטן יותר
 
-‏`apply` ו-`create` מכריזות על הפרמטרים `ops`, `cells` ו-`data` שלהן עם הסכמה המוטיפה של כל פעולה, שנוצרה מ-`ieumoffice guide <domain> --json`. זה מדויק אך לא קטן. לקוח עם חלון הקשר צר יכול לבקש מערכים פשוטים במקום זאת:
+‏`apply` ו-`create` מכריזות על הפרמטרים `ops`, `cells` ו-`data` שלהן עם הסכמה המוטיפה של כל פעולה, שנוצרה מ-`alloffice guide <domain> --json`. זה מדויק אך לא קטן. לקוח עם חלון הקשר צר יכול לבקש מערכים פשוטים במקום זאת:
 
 ```sh
-ieumoffice mcp --compact-schemas
-GENOFFICE_MCP_COMPACT_SCHEMAS=1 ieumoffice mcp
+alloffice mcp --compact-schemas
+GENOFFICE_MCP_COMPACT_SCHEMAS=1 alloffice mcp
 ```
 
 ## למה צריך skill
 
-סוכן שאינו מכיר את מילון הפעולות ינחש. ה-skill נושא איתו את המפנייה ואת מדריכי העיצוב — אותו חומר ש-`ieumoffice guide` מדפיס — כך שהעוזר כותב פעולות שאת המפרט שלהן קרא באמת. התקינו אותו מהחלונית למעלה, או בעזרת `ieumoffice skill` ממסוף.
+סוכן שאינו מכיר את מילון הפעולות ינחש. ה-skill נושא איתו את המפנייה ואת מדריכי העיצוב — אותו חומר ש-`alloffice guide` מדפיס — כך שהעוזר כותב פעולות שאת המפרט שלהן קרא באמת. התקינו אותו מהחלונית למעלה, או בעזרת `alloffice skill` ממסוף.
 
 ## מה הוא מצליח להשיג באפליקציה
 

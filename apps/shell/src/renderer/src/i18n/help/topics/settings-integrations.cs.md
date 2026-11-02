@@ -55,8 +55,8 @@ Pod **Místní HTTP server** umí aplikace server spustit sama — přepínač z
 
 ## Přehled příkazů
 
-| Příkaz                | Co dělá                     |
-| --------------------- | --------------------------- |
-| `ieumoffice <soubor>` | otevře soubor               |
-| `ieumoffice mcp`      | spustí místní server MCP    |
-| `ieumoffice --help`   | všechny příkazy a přepínače |
+| Příkaz               | Co dělá                     |
+| -------------------- | --------------------------- |
+| `alloffice <soubor>` | otevře soubor               |
+| `alloffice mcp`      | spustí místní server MCP    |
+| `alloffice --help`   | všechny příkazy a přepínače |

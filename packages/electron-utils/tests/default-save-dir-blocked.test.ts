@@ -39,17 +39,17 @@ afterEach(() => {
 
 describe('default save dir under Controlled Folder Access', () => {
   it('reports a blocked folder as unusable instead of retrying the create', () => {
-    expect(isUsableSaveDir(join(root, 'Documents', 'IeumOffice'))).toBe(false)
+    expect(isUsableSaveDir(join(root, 'Documents', 'AllOffice'))).toBe(false)
   })
 
   it('still creates nested missing folders one level at a time', () => {
-    const nested = join(root, 'home', 'IeumOffice', 'drafts')
+    const nested = join(root, 'home', 'AllOffice', 'drafts')
     expect(isUsableSaveDir(nested)).toBe(true)
     expect(existsSync(nested)).toBe(true)
   })
 
   it('falls through to the next fallback when Documents is blocked', () => {
-    const home = join(root, 'home', 'IeumOffice')
-    expect(resolveDefaultSaveDir(null, [join(root, 'Documents', 'IeumOffice'), home])).toBe(home)
+    const home = join(root, 'home', 'AllOffice')
+    expect(resolveDefaultSaveDir(null, [join(root, 'Documents', 'AllOffice'), home])).toBe(home)
   })
 })

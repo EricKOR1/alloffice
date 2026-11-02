@@ -1,19 +1,19 @@
 # Baris perintah dan agen
 
-Setiap pemasangan membawa perintah `ieumoffice` yang menjalankan mesin yang sama dengan jendela — parser yang sama, penulis yang sama, perender yang sama. Berkas yang disimpan aplikasi dan berkas yang ditulis perintah itu adalah berkas yang sama, dan pemeriksaan yang lolos di panel AI aplikasi juga lolos di perintah.
+Setiap pemasangan membawa perintah `alloffice` yang menjalankan mesin yang sama dengan jendela — parser yang sama, penulis yang sama, perender yang sama. Berkas yang disimpan aplikasi dan berkas yang ditulis perintah itu adalah berkas yang sama, dan pemeriksaan yang lolos di panel AI aplikasi juga lolos di perintah.
 
 ```sh
-ieumoffice --help          # every command
-ieumoffice guide slides    # the op reference, for writing your own
+alloffice --help          # every command
+alloffice guide slides    # the op reference, for writing your own
 ```
 
-`ieumoffice --help` menampilkan seluruh permukaannya dalam satu layar: setiap perintah dengan satu baris yang menjelaskan apa yang dilakukannya, lalu opsi global dan kode keluar.
+`alloffice --help` menampilkan seluruh permukaannya dalam satu layar: setiap perintah dengan satu baris yang menjelaskan apa yang dilakukannya, lalu opsi global dan kode keluar.
 
 ## Mendapatkan perintahnya
 
-Perintah ini disertakan di dalam aplikasi. Untuk memanggilnya dengan nama, jalankan sekali `ieumoffice install-cli`: di Windows, perintah itu menambahkan folder tempat perintah berada ke `PATH` pengguna Anda, dan terminal yang Anda buka setelahnya akan menemukannya. **Pengaturan ▸ Integrasi** menunjukkan apakah terminal Anda sudah menemukan perintah itu dan, jika belum, baris persis yang harus dijalankan.
+Perintah ini disertakan di dalam aplikasi. Untuk memanggilnya dengan nama, jalankan sekali `alloffice install-cli`: di Windows, perintah itu menambahkan folder tempat perintah berada ke `PATH` pengguna Anda, dan terminal yang Anda buka setelahnya akan menemukannya. **Pengaturan ▸ Integrasi** menunjukkan apakah terminal Anda sudah menemukan perintah itu dan, jika belum, baris persis yang harus dijalankan.
 
-Agen pemrograman tidak memerlukan langkah itu. Aplikasi mencatat letak perintah di `~/.ieumoffice/launcher`, dan agen menemukannya di sana.
+Agen pemrograman tidak memerlukan langkah itu. Aplikasi mencatat letak perintah di `~/.alloffice/launcher`, dan agen menemukannya di sana.
 
 ## Perintah yang perlu diketahui
 
@@ -32,18 +32,18 @@ Agen pemrograman tidak memerlukan langkah itu. Aplikasi mencatat letak perintah 
 | `merge`           | Mengisi placeholder `{{key}}` pada templat `.docx`, `.pptx`, atau `.xlsx`.                                                                                                                                                                               |
 | `capabilities`    | Melaporkan fitur AI mana (pencarian, pembuatan gambar, analisis gambar dan video) yang tersedia di komputer ini, dan lewat jalur apa.                                                                                                                    |
 | `guide`           | Referensi op dan panduan desain, dibangkitkan dari definisi yang sama dengan yang dipakai eksekutor untuk memvalidasi — jadi tidak mungkin melenceng dari apa yang diterima `apply`. `--json` mengembalikannya beserta skema tiap op.                    |
-| `install-cli`     | Menaruh `ieumoffice` di `PATH`.                                                                                                                                                                                                                          |
+| `install-cli`     | Menaruh `alloffice` di `PATH`.                                                                                                                                                                                                                           |
 | `skill`           | Mendaftarkan agen pemrograman yang ditemukan di komputer ini, lalu memasang atau memperbarui skill GenOffice di dalamnya.                                                                                                                                |
 | `mcp`             | Menyajikan semua perintah sebagai alat Model Context Protocol. Lihat **Menghubungkan agen pemrograman**.                                                                                                                                                 |
 
 ## Menyunting: dokumen, lembar, presentasi
 
-`ieumoffice docs`, `ieumoffice sheet`, dan `ieumoffice slides` membaca dan menulis lewat jalur tulis yang sama dengan yang dipakai aplikasi, dan mereka berbagi satu kosakata: sebuah **op** adalah satu suntingan, dan sebuah **spec** adalah daftar op yang diterapkan berurutan.
+`alloffice docs`, `alloffice sheet`, dan `alloffice slides` membaca dan menulis lewat jalur tulis yang sama dengan yang dipakai aplikasi, dan mereka berbagi satu kosakata: sebuah **op** adalah satu suntingan, dan sebuah **spec** adalah daftar op yang diterapkan berurutan.
 
 ```sh
-ieumoffice sheet read report.xlsx
-ieumoffice slides apply deck.pptx --ops ops.json --dry-run
-ieumoffice docs apply brief.docx --ops ops.json
+alloffice sheet read report.xlsx
+alloffice slides apply deck.pptx --ops ops.json --dry-run
+alloffice docs apply brief.docx --ops ops.json
 ```
 
 `--dry-run` melaporkan apa yang akan dilakukan sebuah batch tanpa menulis apa pun, dan itulah cara murah untuk memeriksa sebuah spec sebelum dijalankan. Panel AI di aplikasi berjalan persis pada op-op ini, jadi apa pun yang bisa Anda minta kepadanya bisa Anda skripkan.
@@ -57,7 +57,7 @@ ieumoffice docs apply brief.docx --ops ops.json
 - `media` untuk gambar memakai penyedia berbasis kunci bila ada yang disiapkan. Perintah ini memakai langganan Claude atau Codex Anda hanya jika Anda sudah mengizinkannya, dan itu **nonaktif secara bawaan**; [Menghubungkan agen coding](help://mcp) menjelaskan sakelar itu beserta batasannya.
 - `media` untuk video atau audio memerlukan penyedia berbasis kunci yang mendukung video.
 
-`ieumoffice capabilities --json` melaporkan semua ini tanpa memanggil AI apa pun. `detail`-nya berisi:
+`alloffice capabilities --json` melaporkan semua ini tanpa memanggil AI apa pun. `detail`-nya berisi:
 
 | Bidang                                                                           | Isinya                                                                                                                                                                                                                                                                                   |
 | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -71,15 +71,15 @@ Ketika `image` atau `media` tidak dapat berjalan, perintah keluar dengan kode 4 
 
 ## Apa yang disimpannya di PC ini
 
-Kedua berkas berada di folder `.ieumoffice` di dalam folder pengguna Anda:
+Kedua berkas berada di folder `.alloffice` di dalam folder pengguna Anda:
 
-- `~/.ieumoffice/launcher` mencatat letak perintah aplikasi, sehingga agen pemrograman menemukannya meskipun perintah itu tidak ada di `PATH` Anda.
-- `~/.ieumoffice/cli-audit.jsonl` mendapat satu baris untuk setiap perintah yang dijalankan — perintahnya, argumennya, dan hasilnya — sehingga Anda bisa melihat belakangan apa yang dilakukan sebuah agen.
+- `~/.alloffice/launcher` mencatat letak perintah aplikasi, sehingga agen pemrograman menemukannya meskipun perintah itu tidak ada di `PATH` Anda.
+- `~/.alloffice/cli-audit.jsonl` mendapat satu baris untuk setiap perintah yang dijalankan — perintahnya, argumennya, dan hasilnya — sehingga Anda bisa melihat belakangan apa yang dilakukan sebuah agen.
 
 ## Model Context Protocol
 
-`ieumoffice mcp` menyajikan setiap perintah sebagai alat MCP, dan `ieumoffice mcp install <agent|all>` mendaftarkannya di konfigurasi milik agen pemrograman itu sendiri. Lihat **Menghubungkan agen pemrograman** untuk sisi tersebut.
+`alloffice mcp` menyajikan setiap perintah sebagai alat MCP, dan `alloffice mcp install <agent|all>` mendaftarkannya di konfigurasi milik agen pemrograman itu sendiri. Lihat **Menghubungkan agen pemrograman** untuk sisi tersebut.
 
 ## Yang tidak dilakukan perintah
 
-Perintah itu membaca dan menulis berkas. Ia bukan aplikasinya: tidak ada jendela, dan dialog pembaruan di dalam aplikasi tidak berlaku. Apa pun yang membutuhkan jendela — panel AI, pemeriksaan mutu atas satu slide hasil render — harus menunggu Anda membuka berkasnya. `ieumoffice render` memberi Anda pikselnya tanpa jendela, dan `ieumoffice slides` menata letak sebuah deck secara mandiri.
+Perintah itu membaca dan menulis berkas. Ia bukan aplikasinya: tidak ada jendela, dan dialog pembaruan di dalam aplikasi tidak berlaku. Apa pun yang membutuhkan jendela — panel AI, pemeriksaan mutu atas satu slide hasil render — harus menunggu Anda membuka berkasnya. `alloffice render` memberi Anda pikselnya tanpa jendela, dan `alloffice slides` menata letak sebuah deck secara mandiri.

@@ -82,7 +82,7 @@ const SKILL: AgentSessionSkill = {
   title: 'Meeting minutes',
   description: 'Writes minutes.',
   invoke: 'auto',
-  skillMd: 'C:\\Users\\me\\AppData\\Local\\IeumOffice\\agent-skills\\skills\\minutes\\SKILL.md',
+  skillMd: 'C:\\Users\\me\\AppData\\Local\\AllOffice\\agent-skills\\skills\\minutes\\SKILL.md',
   template: undefined,
 }
 
@@ -347,7 +347,7 @@ describe('a chip in the agent window', () => {
     const withTemplate = {
       ...SKILL,
       template:
-        'C:\\Users\\me\\AppData\\Local\\IeumOffice\\agent-skills\\skills\\minutes\\assets\\form.hwpx',
+        'C:\\Users\\me\\AppData\\Local\\AllOffice\\agent-skills\\skills\\minutes\\assets\\form.hwpx',
     }
     const text = agentSkillInstruction(withTemplate)
     expect(text).toContain(`Its template document is ${withTemplate.template}.`)
@@ -498,7 +498,7 @@ describe('the skill a change is for', () => {
     { id: 'plugin:tools:minutes', source: 'plugin', name: 'minutes', title: 'T', owned: false },
     { id: 'user:letter', source: 'user', name: 'letter', title: 'L', owned: false },
     { id: 'builtin:letter', source: 'builtin', name: 'letter', title: 'L', owned: false },
-    { id: 'app:ieumoffice', source: 'app', name: 'ieumoffice', title: 'I', owned: true },
+    { id: 'app:alloffice', source: 'app', name: 'alloffice', title: 'I', owned: true },
   ]
   const session = [
     { id: 'project:minutes', name: 'minutes' },
@@ -532,18 +532,18 @@ describe('the skill a change is for', () => {
 
   it('refuses a name no skill has, and a hidden one', () => {
     expect(targetOf('nope')).toMatch(/No skill/)
-    expect(targetOf('ieumoffice')).toMatch(/No skill/)
-    expect(targetOf('app:ieumoffice')).toMatch(/No skill/)
+    expect(targetOf('alloffice')).toMatch(/No skill/)
+    expect(targetOf('app:alloffice')).toMatch(/No skill/)
   })
 })
 
 describe('reading a candidate in main', () => {
   it('never reads the sign-in stores, the original app’s folder or the app’s own data', async () => {
     const home = temp()
-    const userData = join(home, 'AppData', 'IeumOffice')
+    const userData = join(home, 'AppData', 'AllOffice')
     const guard = {
       homeDir: home,
-      protectedPaths: ['.claude', '.codex', '.genoffice', '.ieumoffice'].map((n) => join(home, n)),
+      protectedPaths: ['.claude', '.codex', '.genoffice', '.alloffice'].map((n) => join(home, n)),
     }
     guard.protectedPaths.push(userData)
     for (const dir of [...guard.protectedPaths]) {

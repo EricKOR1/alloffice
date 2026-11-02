@@ -30,7 +30,7 @@ beforeEach(() => {
 
 /** Nothing the conversion staged is left beside the output. */
 function leftovers(dir: string): string[] {
-  return readdirSync(dir).filter((name) => name.startsWith('.ieumoffice-odt-'))
+  return readdirSync(dir).filter((name) => name.startsWith('.alloffice-odt-'))
 }
 
 describe('convert routes through .odt', () => {

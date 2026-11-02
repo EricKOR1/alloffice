@@ -73,7 +73,7 @@ function fakeHome(): { home: string; builtin: string } {
   const home = temp()
   const builtin = join(home, 'app-resources', 'builtin-skills')
   skill(builtin, 'meeting-minutes')
-  skill(join(home, '.ieumoffice', 'skills'), 'mine')
+  skill(join(home, '.alloffice', 'skills'), 'mine')
   skill(join(home, '.claude', 'skills'), 'claude-one')
   skill(join(home, '.agents', 'skills'), 'agents-one')
   skill(join(home, '.codex', 'skills'), 'codex-home-one')
@@ -111,7 +111,7 @@ describe('identifiers', () => {
 describe('sources', () => {
   it('skips hidden folders such as an install that is still staging', async () => {
     const home = temp()
-    const app = join(home, '.ieumoffice', 'skills')
+    const app = join(home, '.alloffice', 'skills')
     skill(app, '.ieum-staging-abc123', { name: 'half-copied' })
     skill(app, 'kept')
     const skills = await readUserSkillsFrom([{ source: 'app', dir: app }], { homeDir: home })
@@ -123,7 +123,7 @@ describe('sources', () => {
     const sources = await userSkillSources({ homeDir: home, builtinDir: builtin, projectRoot: 'P' })
     expect(sources).toEqual([
       { source: 'builtin', dir: builtin },
-      { source: 'app', dir: join(home, '.ieumoffice', 'skills') },
+      { source: 'app', dir: join(home, '.alloffice', 'skills') },
       { source: 'user', dir: join(home, '.claude', 'skills') },
       {
         source: 'plugin',
@@ -218,24 +218,24 @@ describe('the list', () => {
     expect(ids(await listUserSkills({ homeDir: home }))).toEqual(['user:shared'])
   })
 
-  it('never reads the genoffice or ieumoffice skill, in any case, by folder or by name', async () => {
+  it('never reads the genoffice or alloffice skill, in any case, by folder or by name', async () => {
     const home = temp()
     const claude = join(home, '.claude', 'skills')
     skill(claude, 'genoffice')
-    skill(claude, 'IeumOffice')
+    skill(claude, 'AllOffice')
     skill(claude, 'other-folder', { name: 'GenOffice' })
     skill(claude, 'kept')
-    skill(join(home, '.ieumoffice', 'skills'), 'ieumoffice')
+    skill(join(home, '.alloffice', 'skills'), 'alloffice')
     const skills = await listUserSkills({ homeDir: home })
     expect(ids(skills)).toEqual(['user:kept'])
   })
 
-  it('does not list the ieumoffice skill installed into the shared ~/.agents folder', async () => {
-    // Settings → Integrations writes ~/.agents/skills/ieumoffice for Codex, Cursor and the rest;
+  it('does not list the alloffice skill installed into the shared ~/.agents folder', async () => {
+    // Settings → Integrations writes ~/.agents/skills/alloffice for Codex, Cursor and the rest;
     // that folder is also the app's `codex` source, so the reserved name has to keep it out
     const home = temp()
     const shared = join(home, '.agents', 'skills')
-    skill(shared, 'ieumoffice')
+    skill(shared, 'alloffice')
     skill(shared, 'kept-shared')
     const skills = await listUserSkills({ homeDir: home })
     expect(ids(skills)).toEqual(['codex:kept-shared'])
@@ -285,7 +285,7 @@ describe('the list', () => {
 
   it('lists the same name from different sources side by side', async () => {
     const { home, builtin } = fakeHome()
-    skill(join(home, '.ieumoffice', 'skills'), 'meeting-minutes')
+    skill(join(home, '.alloffice', 'skills'), 'meeting-minutes')
     const skills = await listUserSkills({ homeDir: home, builtinDir: builtin })
     expect(ids(skills).filter((id) => id.endsWith(':meeting-minutes'))).toEqual([
       'builtin:meeting-minutes',
@@ -321,10 +321,10 @@ describe('the list', () => {
         },
       ]),
     )
-    skill(join(home, '.ieumoffice', 'skills'), 'from-github', {
+    skill(join(home, '.alloffice', 'skills'), 'from-github', {
       files: { '.ieum-source.json': '{"kind":"github"}' },
     })
-    skill(join(home, '.ieumoffice', 'skills'), 'local')
+    skill(join(home, '.alloffice', 'skills'), 'local')
     const skills = await listUserSkills({ homeDir: home, builtinDir: builtin })
     const by = (id: string) => skills.find((entry) => entry.id === id)
     expect(by('builtin:find-skills')?.agentOnly).toBe(true)
@@ -345,7 +345,7 @@ describe('one skill folder', () => {
     const base = temp()
     expect(await readUserSkillFolder(skill(base, 'GenOffice'), { source: 'app' })).toBeUndefined()
     expect(
-      await readUserSkillFolder(skill(base, 'x', { name: 'ieumoffice' }), { source: 'app' }),
+      await readUserSkillFolder(skill(base, 'x', { name: 'alloffice' }), { source: 'app' }),
     ).toBeUndefined()
   })
 

@@ -30,7 +30,7 @@ Een project is één map op je pc. Kies je in een AI-paneel een project, dan wer
 ## Bestanden die de AI ziet
 
 - Bij elk verzoek krijgt de AI de naam van het project, de instructies en het geheugen, en een lijst met de namen van de bestanden in de map. De inhoud van een bestand leest de AI zelf als dat nodig is, op dezelfde manier als een bijlage, dus delen die voor de AI verborgen zijn blijven verborgen.
-- Geopende documenten met niet-opgeslagen wijzigingen, verborgen bestanden waarvan de naam met een punt begint en de map `.ieumoffice` worden niet gelezen.
+- Geopende documenten met niet-opgeslagen wijzigingen, verborgen bestanden waarvan de naam met een punt begint en de map `.alloffice` worden niet gelezen.
 - Wil je een bestand bij de AI weghouden, druk dan op **Verbergen voor AI** in het onderdeel Bestanden van de projectpagina. Dat kun je terugdraaien. Het bestand staat nog wel in de zoekresultaten op Start.
 - In mappen die worden gesynchroniseerd door OneDrive, Google Drive en dergelijke, staan bestanden die niet naar deze pc zijn gedownload als 'Niet op deze pc'. Wil de AI er een lezen, dan wordt eerst gevraagd of het mag worden gedownload.
 - Typ `@` in het invoerveld en na de geopende documenten verschijnt 'Bestanden in dit project'. Kies er een om het bij te voegen. Zie [Het AI-assistentpaneel](help://ai-panel).
@@ -59,10 +59,10 @@ Een project is één map op je pc. Kies je in een AI-paneel een project, dan wer
 
 ## Wat er in de map blijft, en goed om te weten
 
-- Instructies, geheugen en chats worden als tekstbestanden bewaard in een map `.ieumoffice` binnen de projectmap. Verplaats je de map of kopieer je hem naar een andere pc, dan gaan ze mee. Kies hem op die andere pc één keer met **Map toevoegen** in een AI-paneel of met **Bestaande map gebruiken** op het scherm Projecten van Start.
-- De map `.ieumoffice` wordt pas gemaakt als er iets te schrijven is. Je kunt de bestanden erin openen en bewerken in Kladblok.
+- Instructies, geheugen en chats worden als tekstbestanden bewaard in een map `.alloffice` binnen de projectmap. Verplaats je de map of kopieer je hem naar een andere pc, dan gaan ze mee. Kies hem op die andere pc één keer met **Map toevoegen** in een AI-paneel of met **Bestaande map gebruiken** op het scherm Projecten van Start.
+- De map `.alloffice` wordt pas gemaakt als er iets te schrijven is. Je kunt de bestanden erin openen en bewerken in Kladblok.
 - Wat je in een chat typt, kan in het geheugen terechtkomen. Wil je iets erbuiten houden, verwijder het dan met **Verwijderen** op de regel 'Onthouden' of zet het geheugen uit.
 - Kies je een gesynchroniseerde map als project, dan worden de instructies, het geheugen en de chats ook naar die dienst geüpload. De app meldt dat één keer, de eerste keer dat je de map kiest.
 - In een gedeelde map die door meerdere mensen wordt gebruikt, kunnen geheugen en chats door elkaar raken.
 - In een map waarin de app niet kan schrijven, zoals een alleen-lezen map, werken instructies en bestanden lezen nog, maar worden chats en geheugen niet opgeslagen. Het AI-paneel meldt dat.
-- Het agentvenster gebruikt nog geen projecten. Een agent kan ook de bestanden in de map `.ieumoffice` wijzigen, dus gebruik in een map met materiaal dat je niet kent een van de manieren die eerst vragen. Zie [Agentmodus](help://agent-mode).
+- Het agentvenster gebruikt nog geen projecten. Een agent kan ook de bestanden in de map `.alloffice` wijzigen, dus gebruik in een map met materiaal dat je niet kent een van de manieren die eerst vragen. Zie [Agentmodus](help://agent-mode).

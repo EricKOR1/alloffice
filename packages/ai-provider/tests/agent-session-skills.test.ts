@@ -101,7 +101,7 @@ describe('the bundle', () => {
   it('takes only what it is given: the enabled skills and the project’s, from both project folders', async () => {
     const home = temp()
     const project = join(home, 'Project')
-    skillFolder(join(home, '.ieumoffice', 'skills'), 'mine')
+    skillFolder(join(home, '.alloffice', 'skills'), 'mine')
     skillFolder(join(home, '.claude', 'skills'), 'claude-off')
     skillFolder(join(home, '.claude', 'skills'), 'claude-on')
     skillFolder(join(home, '.agents', 'skills'), 'codex-off')
@@ -275,9 +275,9 @@ describe('the bundle', () => {
     const result = await buildAgentSkillBundle(
       [
         input('user', skillFolder(base, 'genoffice'), 'genoffice'),
-        input('app', skillFolder(base, 'IeumOffice'), 'IeumOffice'),
+        input('app', skillFolder(base, 'AllOffice'), 'AllOffice'),
         // by folder name too, whatever the front matter says
-        input('app', skillFolder(join(base, 'x'), 'ieumoffice'), 'renamed'),
+        input('app', skillFolder(join(base, 'x'), 'alloffice'), 'renamed'),
         input('app', skillFolder(base, 'kept'), 'kept'),
       ],
       bundle,

@@ -55,8 +55,8 @@ Di bawah **Pelayan HTTP tempatan**, aplikasi ini juga boleh menjalankan pelayan 
 
 ## Ringkasan baris arahan
 
-| Perintah            | Fungsinya                             |
-| ------------------- | ------------------------------------- |
-| `ieumoffice <fail>` | membuka fail                          |
-| `ieumoffice mcp`    | memulakan pelayan MCP tempatan        |
-| `ieumoffice --help` | memaparkan semua perintah dan pilihan |
+| Perintah           | Fungsinya                             |
+| ------------------ | ------------------------------------- |
+| `alloffice <fail>` | membuka fail                          |
+| `alloffice mcp`    | memulakan pelayan MCP tempatan        |
+| `alloffice --help` | memaparkan semua perintah dan pilihan |

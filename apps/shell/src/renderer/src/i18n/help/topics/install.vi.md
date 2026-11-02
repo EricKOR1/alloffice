@@ -1,6 +1,6 @@
 # Cài đặt GenOffice
 
-Mọi phiên bản đều được công bố trên [trang phát hành (Releases)](https://github.com/pblsketch/openoffice/releases/latest) của dự án trên GitHub. Phiên bản này được phát hành cho Windows.
+Mọi phiên bản đều được công bố trên [trang phát hành (Releases)](https://github.com/EricKOR1/alloffice/releases/latest) của dự án trên GitHub. Phiên bản này được phát hành cho Windows.
 
 ## Chọn tệp cho máy của bạn
 
@@ -35,4 +35,4 @@ Vì trình cài đặt chưa được ký, bạn chỉ nên chạy tệp đã t�
 
 ## Dòng lệnh đi kèm luôn
 
-Mọi bản cài đặt đều kèm lệnh `ieumoffice` nói chuyện với đúng những engine mà cửa sổ dùng, nên cả hai không bao giờ bất đồng về một tệp. `ieumoffice install-cli` đưa nó vào `PATH` của bạn. Xem [Dòng lệnh và tác nhân](help://cli) để biết nó làm được gì.
+Mọi bản cài đặt đều kèm lệnh `alloffice` nói chuyện với đúng những engine mà cửa sổ dùng, nên cả hai không bao giờ bất đồng về một tệp. `alloffice install-cli` đưa nó vào `PATH` của bạn. Xem [Dòng lệnh và tác nhân](help://cli) để biết nó làm được gì.

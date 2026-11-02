@@ -25,8 +25,8 @@ import {
   type SkillLedger,
 } from '../src/agent-skills'
 
-const skillText = (version: string, body = 'Run `ieumoffice --version` first.') =>
-  `---\nname: ieumoffice\ndescription: test\nmetadata:\n  version: ${version}\n  cli: '>=0.4.0'\n---\n\n${body}\n`
+const skillText = (version: string, body = 'Run `alloffice --version` first.') =>
+  `---\nname: alloffice\ndescription: test\nmetadata:\n  version: ${version}\n  cli: '>=0.4.0'\n---\n\n${body}\n`
 
 const bundled = (version = '1.2.0') => bundledSkillFrom(Buffer.from(skillText(version)))
 
@@ -126,8 +126,8 @@ describe('legacySkillCopies / skillRows', () => {
     // written by this app before the shared row existed
     const codexCopy = installSkill(join(h, '.codex', 'skills'), b, ledger)
     // someone else's copy in Gemini's folder: not ours, not listed
-    mkdirSync(join(h, '.gemini', 'skills', 'ieumoffice'), { recursive: true })
-    writeFileSync(join(h, '.gemini', 'skills', 'ieumoffice', 'SKILL.md'), skillText('1.0.0'))
+    mkdirSync(join(h, '.gemini', 'skills', 'alloffice'), { recursive: true })
+    writeFileSync(join(h, '.gemini', 'skills', 'alloffice', 'SKILL.md'), skillText('1.0.0'))
 
     const copies = legacySkillCopies(ledger, {}, h)
     expect(copies).toEqual([
@@ -141,7 +141,7 @@ describe('legacySkillCopies / skillRows', () => {
     expect(skillRows(ledger, {}, h).map((r) => r.id)).toEqual(['claude-code', 'agents', 'codex'])
 
     // a copy removed by hand leaves a stale ledger entry: the row goes, nothing is offered there
-    rmSync(join(h, '.codex', 'skills', 'ieumoffice'), { recursive: true })
+    rmSync(join(h, '.codex', 'skills', 'alloffice'), { recursive: true })
     expect(ledger[codexCopy]).toBeDefined()
     expect(legacySkillCopies(ledger, {}, h)).toEqual([])
     expect(skillRows(ledger, {}, h).map((r) => r.id)).toEqual(['claude-code', 'agents'])
@@ -166,7 +166,7 @@ describe('legacySkillCopies / skillRows', () => {
 describe('parseSkillFrontmatter / compareVersions', () => {
   it('reads name and metadata.version', () => {
     expect(parseSkillFrontmatter(skillText('2.1.0'))).toEqual({
-      name: 'ieumoffice',
+      name: 'alloffice',
       version: '2.1.0',
     })
     expect(parseSkillFrontmatter('---\nname: other\n---\nx')).toEqual({
@@ -193,7 +193,7 @@ describe('readInstallState', () => {
 
     // our install, current
     const path = installSkill(dir, b, ledger)
-    expect(path).toBe(join(dir, 'ieumoffice', 'SKILL.md'))
+    expect(path).toBe(join(dir, 'alloffice', 'SKILL.md'))
     expect(readFileSync(path, 'utf-8')).toBe(b.text)
     expect(ledger[path]).toMatchObject({ version: '1.2.0', sha256: b.sha256, channel: 'app' })
     expect(readInstallState(dir, b, ledger)).toMatchObject({
@@ -232,7 +232,7 @@ describe('readInstallState', () => {
     // the folder holds something else
     writeFileSync(path, '---\nname: other-skill\n---\n')
     expect(readInstallState(dir, b, ledger).status).toBe('occupied')
-    mkdirSync(join(dir, 'ieumoffice', 'nested'))
+    mkdirSync(join(dir, 'alloffice', 'nested'))
     writeFileSync(path, 'not a skill at all')
     expect(readInstallState(dir, b, ledger).status).toBe('occupied')
   })
@@ -244,16 +244,16 @@ describe('uninstallSkill', () => {
     const b = bundled()
     const ledger: SkillLedger = {}
     // foreign file: never touched
-    mkdirSync(join(dir, 'ieumoffice'), { recursive: true })
-    writeFileSync(join(dir, 'ieumoffice', 'SKILL.md'), skillText('1.0.0'))
+    mkdirSync(join(dir, 'alloffice'), { recursive: true })
+    writeFileSync(join(dir, 'alloffice', 'SKILL.md'), skillText('1.0.0'))
     expect(uninstallSkill(dir, ledger)).toBe(false)
-    expect(existsSync(join(dir, 'ieumoffice', 'SKILL.md'))).toBe(true)
+    expect(existsSync(join(dir, 'alloffice', 'SKILL.md'))).toBe(true)
 
     const path = installSkill(dir, b, ledger)
-    writeFileSync(join(dir, 'ieumoffice', 'notes.txt'), 'mine')
+    writeFileSync(join(dir, 'alloffice', 'notes.txt'), 'mine')
     expect(uninstallSkill(dir, ledger)).toBe(true)
     expect(existsSync(path)).toBe(false)
-    expect(existsSync(join(dir, 'ieumoffice', 'notes.txt'))).toBe(true)
+    expect(existsSync(join(dir, 'alloffice', 'notes.txt'))).toBe(true)
     expect(ledger[path]).toBeUndefined()
 
     installSkill(dir, b, ledger)
@@ -261,7 +261,7 @@ describe('uninstallSkill', () => {
     const dir2 = join(home(), 'skills')
     const p2 = installSkill(dir2, b, ledger)
     expect(uninstallSkill(dir2, ledger)).toBe(true)
-    expect(existsSync(join(dir2, 'ieumoffice'))).toBe(false)
+    expect(existsSync(join(dir2, 'alloffice'))).toBe(false)
     expect(existsSync(p2)).toBe(false)
   })
 })
@@ -270,9 +270,7 @@ describe('buildSkillZip', () => {
   it('holds genoffice/SKILL.md with the exact bundled bytes', async () => {
     const b = bundled('1.2.0')
     const zip = await JSZip.loadAsync(await buildSkillZip(b))
-    expect(Object.keys(zip.files).filter((f) => !zip.files[f]!.dir)).toEqual([
-      'ieumoffice/SKILL.md',
-    ])
-    expect(await zip.file('ieumoffice/SKILL.md')!.async('string')).toBe(b.text)
+    expect(Object.keys(zip.files).filter((f) => !zip.files[f]!.dir)).toEqual(['alloffice/SKILL.md'])
+    expect(await zip.file('alloffice/SKILL.md')!.async('string')).toBe(b.text)
   })
 })

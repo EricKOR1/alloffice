@@ -1,6 +1,6 @@
 # Instalace GenOffice
 
-Každá verze je zveřejněna na [stránce Releases](https://github.com/pblsketch/openoffice/releases/latest) projektu na GitHubu. Tato verze vychází pro Windows.
+Každá verze je zveřejněna na [stránce Releases](https://github.com/EricKOR1/alloffice/releases/latest) projektu na GitHubu. Tato verze vychází pro Windows.
 
 ## Vyberte soubor pro svůj počítač
 
@@ -35,4 +35,4 @@ Protože instalátor není podepsaný, spouštějte jen ten, který jste stáhli
 
 ## Příkazová řádka je součástí
 
-Každá instalace obsahuje příkaz `ieumoffice`, který mluví se stejnými enginy jako okno, takže se oba na souboru vždy shodnou. `ieumoffice install-cli` jej umístí do vaší `PATH`. Co umí, se dozvíte v kapitole [Příkazová řádka a agenti](help://cli).
+Každá instalace obsahuje příkaz `alloffice`, který mluví se stejnými enginy jako okno, takže se oba na souboru vždy shodnou. `alloffice install-cli` jej umístí do vaší `PATH`. Co umí, se dozvíte v kapitole [Příkazová řádka a agenti](help://cli).

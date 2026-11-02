@@ -1,6 +1,6 @@
 # 安装 GenOffice
 
-每个版本都发布在项目 GitHub 的 [Releases 页面](https://github.com/pblsketch/openoffice/releases/latest)上。这个版本面向 Windows 发布。
+每个版本都发布在项目 GitHub 的 [Releases 页面](https://github.com/EricKOR1/alloffice/releases/latest)上。这个版本面向 Windows 发布。
 
 ## 选择适合你机器的文件
 
@@ -35,4 +35,4 @@
 
 ## 命令行随包附带
 
-每个安装版本都带一个 `ieumoffice` 命令，它和窗口调用的是同一套引擎，因此两者对同一个文件不会给出不同的结果。`ieumoffice install-cli` 会把它放进你的 `PATH`。它能做什么，见[命令行与智能体](help://cli)。
+每个安装版本都带一个 `alloffice` 命令，它和窗口调用的是同一套引擎，因此两者对同一个文件不会给出不同的结果。`alloffice install-cli` 会把它放进你的 `PATH`。它能做什么，见[命令行与智能体](help://cli)。

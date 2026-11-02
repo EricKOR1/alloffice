@@ -1,6 +1,6 @@
 ---
-name: release-ieumoffice
-description: IeumOffice의 새 버전을 내는 작업(버전 올리기, Windows 설치 파일, GitHub 릴리스와 latest.yml, Mac·Linux 빌드)과 앱의 업데이트 창에 그대로 보이는 릴리스 본문 작성·윤문을 맡을 때 읽는다. Use when cutting a release, shipping a version, publishing an installer, or writing or polishing release notes.
+name: release-alloffice
+description: AllOffice의 새 버전을 내는 작업(버전 올리기, Windows 설치 파일, GitHub 릴리스와 latest.yml, Mac·Linux 빌드)과 앱의 업데이트 창에 그대로 보이는 릴리스 본문 작성·윤문을 맡을 때 읽는다. Use when cutting a release, shipping a version, publishing an installer, or writing or polishing release notes.
 ---
 
 # 릴리스 작업

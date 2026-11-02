@@ -24,10 +24,10 @@
 - 모든 언어가 모든 키를 가져야 한다. `zh` 사전이 키 집합을 정의하고 나머지 20개 언어는 `Record<keyof D, string>`으로 같은 키를 강제받는다. 빠진 번역은 실행 중의 대체가 아니라 타입 오류여야 한다. `createI18n`의 `en` → `zh` → 키 이름 순 대체는 오래된 사전 조각이 예외를 던지지 않게 하는 안전망일 뿐, 번역을 생략해도 된다는 뜻이 아니다.
 - 제품 이름은 출력 시점에 치환한다. 사전·도움말·소스는 제품을 원본 표기 `GenOffice`로 적고(원본의 수정을 계속 병합하기 위해서다), `createI18n`이 모든 번역 문자열에, `brandText`가 그 밖의 사용자에게 보이는 글에 제품 이름을 넣는다. 사전의 `GenOffice`를 일괄로 바꾸지 않는다.
 - 원본 이름 자체를 찍어야 하는 곳("GenOffice를 기반으로 합니다" 고지)은 `{{GenOffice}}`(`UPSTREAM_NAME_LITERAL`)로 쓴다. 이 고지는 지우거나 제품 이름으로 바뀌게 두지 않는다.
-- `brandText`가 바꾸지 않는 것을 유지한다. 더 긴 식별자 안의 이름(`GenOfficeFormField`), 소문자 `genoffice`(패키지 이름, 환경 변수, 스킴)는 손대지 않는다. 파일·폴더 이름 안의 이름(`GenOffice.exe`, `Documents/GenOffice`)은 언어와 무관하게 `PRODUCT_NAME`이 된다. 한국어 UI에서도 폴더 이름은 `IeumOffice`이고 화면 이름만 `이음오피스`다.
+- `brandText`가 바꾸지 않는 것을 유지한다. 더 긴 식별자 안의 이름(`GenOfficeFormField`), 소문자 `genoffice`(패키지 이름, 환경 변수, 스킴)는 손대지 않는다. 파일·폴더 이름 안의 이름(`GenOffice.exe`, `Documents/GenOffice`)은 언어와 무관하게 `PRODUCT_NAME`이 된다. 한국어 UI에서도 폴더 이름은 `AllOffice`이고 화면 이름만 `올오피스`다.
 - 치환은 템플릿에만 한다. `createI18n`은 단축키 변환 → 제품 이름 치환 → 자리 표시 채우기 순으로 처리한다. 매개변수 값은 맨 마지막에 들어가므로 치환되지 않는다(사용자 파일 이름이 실제로 `GenOffice`일 수 있다). 이 순서를 바꾸지 않는다.
 - `PRODUCT_NAME`은 PC에 등록되는 이름의 원천이다. 설치 프로그램의 제품 이름, userData 폴더, 기본 저장 폴더가 여기서 나오고 UI 언어와 무관하게 같아야 한다. 이 값을 바꾸면 기존 사용자의 설정 폴더가 달라진다. 언어별 표시 이름은 `LOCALIZED_PRODUCT_NAMES`에만 추가한다.
-- 원본 앱의 폴더를 물려받지 않는다. userData 이름은 설치본 `IeumOffice`, 개발 실행 `IeumOffice-Dev`이며 둘 다 이 제품의 것이다. 원본이 쓰던 폴더 이름으로 되돌리거나 그것을 찾아 읽는 코드를 넣지 않는다.
+- 원본 앱의 폴더를 물려받지 않는다. userData 이름은 설치본 `AllOffice`, 개발 실행 `AllOffice-Dev`이며 둘 다 이 제품의 것이다. 원본이 쓰던 폴더 이름으로 되돌리거나 그것을 찾아 읽는 코드를 넣지 않는다.
 - `LANGS` 선언의 모양을 유지한다. `tools/check-help-langs.mjs`가 이 파일을 import하지 않고 글자로 읽어 `export const LANGS`의 `= [` 와 `]` 사이에서 언어 코드를 뽑는다. 배열을 다른 식으로 조립하면 그 검사가 실패한다.
 
 ## 이 모듈의 방식

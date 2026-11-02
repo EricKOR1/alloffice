@@ -275,7 +275,7 @@ export const HELP_TOPICS: HelpTopicMeta[] = [
       '기억',
       'memory',
       'ignore',
-      '.ieumoffice',
+      '.alloffice',
       'AGENTS.md',
       'CLAUDE.md',
     ],
@@ -405,7 +405,7 @@ export const HELP_TOPICS: HelpTopicMeta[] = [
     id: 'cli',
     group: 'manage',
     order: 3,
-    keywords: ['命令行', 'cli', 'ieumoffice', 'convert', 'render', '命令行工具', '终端'],
+    keywords: ['命令行', 'cli', 'alloffice', 'convert', 'render', '命令行工具', '终端'],
   },
   {
     id: 'google-drive',

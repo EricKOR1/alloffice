@@ -1,10 +1,10 @@
 # 새 버전 내는 절차 (Windows, Mac 베타)
 
-이음오피스(IeumOffice)의 새 버전을 만들어 GitHub에 올리는 순서입니다. 위에서부터 차례대로 하면 됩니다.
+올오피스(AllOffice)의 새 버전을 만들어 GitHub에 올리는 순서입니다. 위에서부터 차례대로 하면 됩니다.
 
-설치된 앱은 공개 저장소 `pblsketch/openoffice`의 **릴리스(Releases)** 를 보고 스스로 업데이트합니다. 그래서 "새 버전을 낸다"는 것은 설치 파일을 만들어 그 저장소의 릴리스에 올리는 일입니다. 따로 운영하는 서버나 비밀 키는 없습니다.
+설치된 앱은 공개 저장소 `EricKOR1/alloffice`의 **릴리스(Releases)** 를 보고 스스로 업데이트합니다. 그래서 "새 버전을 낸다"는 것은 설치 파일을 만들어 그 저장소의 릴리스에 올리는 일입니다. 따로 운영하는 서버나 비밀 키는 없습니다.
 
-> **에이전트에게 맡길 때.** Claude Code 같은 에이전트로 릴리스를 맡기면 `.claude/skills/release-ieumoffice/SKILL.md`를 함께 읽게 합니다. 승인 없이는 게시하지 않는 규칙, 릴리스 본문 윤문, 업데이트 창 확인 절차가 그 스킬에 있습니다.
+> **에이전트에게 맡길 때.** Claude Code 같은 에이전트로 릴리스를 맡기면 `.claude/skills/release-alloffice/SKILL.md`를 함께 읽게 합니다. 승인 없이는 게시하지 않는 규칙, 릴리스 본문 윤문, 업데이트 창 확인 절차가 그 스킬에 있습니다.
 
 > **"확인 필요" 표시에 대하여.** 이 문서는 저장소의 설정과 스크립트, 업데이트 라이브러리(electron-updater 6.8.9, electron-builder 26.15.3)의 실제 코드를 읽고 일부는 직접 실행해 확인한 내용으로 썼습니다. 다만 문서를 쓰는 시점에는 릴리스가 하나도 없어서, 설치 파일을 끝까지 만들어 올리고 실제로 업데이트되는지까지는 해 보지 못했습니다. 그런 부분은 **확인 필요**라고 적어 두었습니다. 첫 릴리스 때 직접 확인하고, 확인한 뒤에는 표시를 지워 주세요.
 
@@ -56,7 +56,7 @@ Windows SDK는 스캔 문서 글자 인식 도우미(`win-ocr.exe`)를 만들 �
 
 ## 4. 설치 파일 만들기
 
-**GitHub Actions로 만들기 (권장, 결정 0056).** Mac·Linux처럼 GitHub의 Windows 빌드 기계가 만들고, 설치 파일과 `latest.yml`에 "이 저장소의 이 커밋에서 만들었다"는 출처 증명을 붙입니다. 사용자는 `gh attestation verify IeumOffice-Setup-<버전>.exe --repo pblsketch/openoffice`로 확인할 수 있습니다.
+**GitHub Actions로 만들기 (권장, 결정 0056).** Mac·Linux처럼 GitHub의 Windows 빌드 기계가 만들고, 설치 파일과 `latest.yml`에 "이 저장소의 이 커밋에서 만들었다"는 출처 증명을 붙입니다. 사용자는 `gh attestation verify AllOffice-Setup-<버전>.exe --repo EricKOR1/alloffice`로 확인할 수 있습니다.
 
 1. 6번대로 릴리스를 **본문만으로** 먼저 공개합니다. 프리릴리스를 거치지 않고 바로 정식 공개합니다("Set as a pre-release"는 체크하지 않고 "Set as the latest release"를 체크). 파일은 아직 올리지 않습니다. 파일이 붙기 전까지 설치된 앱은 받을 것이 없다고 보고 조용히 넘어가고, 사이트의 내려받기 버튼은 릴리스 페이지로 갑니다.
 2. **Actions** 탭 → **Windows build** → **Run workflow**에서 가지는 `main`, **release_tag** 칸에 그 태그(예: `v0.12.4`)를 적고 실행합니다.
@@ -65,9 +65,9 @@ Windows SDK는 스캔 문서 글자 인식 도우미(`win-ocr.exe`)를 만들 �
 
 빌드나 검사가 실패해 파일이 하나도 붙지 않았다면, 그 릴리스와 태그를 지워 직전 릴리스가 다시 "최신"이 되게 하고 고친 뒤 처음부터 다시 합니다. 받은 사람이 없으므로 같은 번호를 다시 써도 됩니다.
 
-**Google 드라이브 클라이언트.** 세 빌드(Windows·macOS·Linux)는 저장소 secrets의 `GENOFFICE_GOOGLE_CLIENT_ID`와 `GENOFFICE_GOOGLE_CLIENT_SECRET`을 앱 빌드와 묶기 단계에 넘깁니다(결정 0033, 0085). 두 값이 없으면 빌드는 그대로 끝나지만 설치본에 드라이브 기능이 빠집니다. 값은 저장소 주인이 `gh secret set GENOFFICE_GOOGLE_CLIENT_ID --repo pblsketch/openoffice`처럼 직접 넣고, 커밋이나 로그에 남기지 않습니다.
+**Google 드라이브 클라이언트.** 세 빌드(Windows·macOS·Linux)는 저장소 secrets의 `GENOFFICE_GOOGLE_CLIENT_ID`와 `GENOFFICE_GOOGLE_CLIENT_SECRET`을 앱 빌드와 묶기 단계에 넘깁니다(결정 0033, 0085). 두 값이 없으면 빌드는 그대로 끝나지만 설치본에 드라이브 기능이 빠집니다. 값은 저장소 주인이 `gh secret set GENOFFICE_GOOGLE_CLIENT_ID --repo EricKOR1/alloffice`처럼 직접 넣고, 커밋이나 로그에 남기지 않습니다.
 
-release_tag를 비워 두면 결과물(`ieumoffice-windows-x64`)만 남습니다. **처음 한 번은 이렇게 돌려** 내려받은 설치 파일이 손으로 만든 것과 똑같이 설치되고 동작하는지 확인합니다. _(확인 필요: 이 워크플로는 아직 Actions에서 돌려 보지 않았습니다. 첫 실행에서 확인한 뒤 이 표시를 지워 주세요.)_
+release_tag를 비워 두면 결과물(`alloffice-windows-x64`)만 남습니다. **처음 한 번은 이렇게 돌려** 내려받은 설치 파일이 손으로 만든 것과 똑같이 설치되고 동작하는지 확인합니다. _(확인 필요: 이 워크플로는 아직 Actions에서 돌려 보지 않았습니다. 첫 실행에서 확인한 뒤 이 표시를 지워 주세요.)_
 
 Actions를 쓸 수 없을 때는 아래처럼 이 PC에서 만듭니다. 이렇게 올린 파일에는 출처 증명이 없습니다.
 
@@ -116,9 +116,9 @@ npm run dist:win -- -- --publish never
 
 | 파일                                    | 설명                                                                                                    | 릴리스에 올리나                                                                |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `IeumOffice-Setup-<버전>.exe`           | 설치 파일                                                                                               | **올린다 (필수)**                                                              |
+| `AllOffice-Setup-<버전>.exe`            | 설치 파일                                                                                               | **올린다 (필수)**                                                              |
 | `latest.yml`                            | 설치된 앱이 읽는 안내 파일. 버전 번호, 설치 파일 이름, 파일이 손상되지 않았는지 확인하는 값이 들어 있다 | **올린다 (필수)**                                                              |
-| `IeumOffice-Setup-<버전>.exe.blockmap`  | 바뀐 부분만 받게 해 주는 보조 파일                                                                      | 올려도 되고 안 올려도 된다. 이 앱은 항상 설치 파일 전체를 받으므로 쓰지 않는다 |
+| `AllOffice-Setup-<버전>.exe.blockmap`   | 바뀐 부분만 받게 해 주는 보조 파일                                                                      | 올려도 되고 안 올려도 된다. 이 앱은 항상 설치 파일 전체를 받으므로 쓰지 않는다 |
 | `win-unpacked` 폴더, `builder-*.yml` 등 | 만드는 과정에서 생긴 것                                                                                 | 올리지 않는다                                                                  |
 
 올리기 전에 확인합니다.
@@ -126,18 +126,18 @@ npm run dist:win -- -- --publish never
 1. `latest.yml`을 메모장으로 열어 `version:` 이 3번에서 정한 번호인지 봅니다.
 2. 같은 파일의 `path:` 에 적힌 이름이 설치 파일 이름과 **글자 하나까지** 같은지 봅니다.
 3. 설치 파일을 실행해 설치하고, 앱이 뜨는지, 설정 → 정보의 버전이 새 번호인지 봅니다.
-4. 탐색기에서 `.odt` 파일을 오른쪽 단추로 눌러 "연결 프로그램"에 이음오피스가 있는지, 골랐을 때 워드 탭으로 열리는지 봅니다. `.odt`를 두 번 눌렀을 때 열리는 프로그램(한컴 등)은 설치 전과 같아야 합니다. _(확인 필요: ODT 등록을 더한 뒤 아직 설치본으로 확인하지 않았습니다. 확인한 뒤 이 표시를 지워 주세요.)_
+4. 탐색기에서 `.odt` 파일을 오른쪽 단추로 눌러 "연결 프로그램"에 올오피스가 있는지, 골랐을 때 워드 탭으로 열리는지 봅니다. `.odt`를 두 번 눌렀을 때 열리는 프로그램(한컴 등)은 설치 전과 같아야 합니다. _(확인 필요: ODT 등록을 더한 뒤 아직 설치본으로 확인하지 않았습니다. 확인한 뒤 이 표시를 지워 주세요.)_
 
 지켜야 할 것:
 
 - **설치 파일과 `latest.yml`은 반드시 같은 빌드에서 나온 한 쌍**이어야 합니다. 설치 파일만 다시 만들고 `latest.yml`은 예전 것을 올리면, 설치된 앱이 "파일이 손상되었다"고 판단해 업데이트에 실패합니다.
 - 파일 이름을 바꾸지 않습니다.
 
-> **확인함(0.12.2, 2026-10-20):** `apps/shell/release`에 `IeumOffice-Setup-<버전>.exe`, `IeumOffice-Setup-<버전>.exe.blockmap`, `latest.yml`, `builder-debug.yml`, `win-unpacked`가 생깁니다. 위 표의 이름과 같습니다.
+> **확인함(0.12.2, 2026-10-20):** `apps/shell/release`에 `AllOffice-Setup-<버전>.exe`, `AllOffice-Setup-<버전>.exe.blockmap`, `latest.yml`, `builder-debug.yml`, `win-unpacked`가 생깁니다. 위 표의 이름과 같습니다.
 
 ## 6. GitHub 릴리스 만들기
 
-1. <https://github.com/pblsketch/openoffice/releases/new> 를 엽니다.
+1. <https://github.com/EricKOR1/alloffice/releases/new> 를 엽니다.
 2. **태그**: `v` + 버전 번호. 예: 버전이 `0.11.1`이면 `v0.11.1`. "Choose a tag"에 직접 적고 "Create new tag on publish"를 고릅니다. 대상(Target)은 3번에서 올린 커밋이 있는 브랜치입니다.
 3. **제목**: 알아보기 쉬운 이름(예: `v0.11.1`). **설명**: 바뀐 점.
    - 설명은 웹 페이지와 **앱의 업데이트 창** 모두에 그대로 나옵니다(앱은 본문을 번역하지 않습니다).
@@ -163,7 +163,7 @@ npm run dist:win -- -- --publish never
 올린 뒤 바로 확인합니다. 브라우저에서 아래 주소를 열었을 때 `latest.yml`이 내려받아지면 됩니다.
 
 ```
-https://github.com/pblsketch/openoffice/releases/latest/download/latest.yml
+https://github.com/EricKOR1/alloffice/releases/latest/download/latest.yml
 ```
 
 (릴리스가 하나도 없던 2026-10-13에는 이 주소가 "404 찾을 수 없음"이었습니다.)
@@ -201,7 +201,7 @@ https://github.com/pblsketch/openoffice/releases/latest/download/latest.yml
 
 잘 안 될 때 볼 곳:
 
-- 내려받다 만 업데이트 파일은 `%LOCALAPPDATA%\ieumoffice-updater` 폴더에 있습니다. 이 폴더를 지우고 다시 시도해도 됩니다.
+- 내려받다 만 업데이트 파일은 `%LOCALAPPDATA%\alloffice-updater` 폴더에 있습니다. 이 폴더를 지우고 다시 시도해도 됩니다.
 - 업데이트 창이 아예 안 뜨면: 릴리스가 초안이 아닌지, `latest.yml`이 올라가 있는지, `latest.yml`의 `version`이 설치된 버전보다 큰지 순서대로 확인합니다.
 - "업데이트 다운로드에 실패했습니다"가 나오면: 릴리스에 올린 설치 파일 이름이 `latest.yml`의 `path`와 같은지, 두 파일이 같은 빌드에서 나온 것인지 확인합니다.
 
@@ -236,16 +236,16 @@ Mac판은 Apple 개발자 서명 없는 베타로, Apple Silicon용과 Intel용�
 **손으로 올리기.** release_tag를 비워 두면 결과를 내려받아 직접 올립니다.
 
 1. 3번에서 버전을 올린 커밋을 push한 뒤, GitHub 저장소의 **Actions** 탭 → 왼쪽의 **macOS build** → **Run workflow**를 누릅니다. 가지는 그 커밋이 있는 가지를 고릅니다.
-2. 40~70분쯤 뒤 초록색 체크가 뜨면 그 실행을 열고, 아래 **Artifacts**의 `ieumoffice-mac`을 내려받아 압축을 풉니다. 빨간색이면 올리지 않습니다. 빌드가 두 앱을 실제로 띄워 보는 검사까지 하기 때문에(Intel판은 Rosetta로), 실패했다면 그 버전의 Mac판에 문제가 있는 것입니다.
+2. 40~70분쯤 뒤 초록색 체크가 뜨면 그 실행을 열고, 아래 **Artifacts**의 `alloffice-mac`을 내려받아 압축을 풉니다. 빨간색이면 올리지 않습니다. 빌드가 두 앱을 실제로 띄워 보는 검사까지 하기 때문에(Intel판은 Rosetta로), 실패했다면 그 버전의 Mac판에 문제가 있는 것입니다.
 3. 안에 든 파일을 확인합니다.
 
 | 파일                                          | 설명                                                                   | 릴리스에 올리나                |
 | --------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------ |
-| `IeumOffice-<버전>-arm64.dmg`                 | Apple Silicon Mac 사용자가 받는 설치 파일                              | **올린다 (필수)**              |
-| `IeumOffice-<버전>-x64.dmg`                   | Intel Mac 사용자가 받는 설치 파일                                      | **올린다 (필수)**              |
+| `AllOffice-<버전>-arm64.dmg`                  | Apple Silicon Mac 사용자가 받는 설치 파일                              | **올린다 (필수)**              |
+| `AllOffice-<버전>-x64.dmg`                    | Intel Mac 사용자가 받는 설치 파일                                      | **올린다 (필수)**              |
 | `latest-mac.yml` (베타 번호면 `beta-mac.yml`) | Mac 앱이 새 버전을 알아보는 안내 파일. Windows의 `latest.yml`과 다르다 | **올린다 (필수)**              |
-| `IeumOffice-<버전>-arm64-mac.zip`             | Apple Silicon 앱을 zip으로 묶은 것. `latest-mac.yml`이 가리킨다        | **올린다** (안내 파일과 한 쌍) |
-| `IeumOffice-<버전>-mac.zip`                   | Intel 앱을 zip으로 묶은 것. `latest-mac.yml`이 가리킨다                | **올린다** (안내 파일과 한 쌍) |
+| `AllOffice-<버전>-arm64-mac.zip`              | Apple Silicon 앱을 zip으로 묶은 것. `latest-mac.yml`이 가리킨다        | **올린다** (안내 파일과 한 쌍) |
+| `AllOffice-<버전>-mac.zip`                    | Intel 앱을 zip으로 묶은 것. `latest-mac.yml`이 가리킨다                | **올린다** (안내 파일과 한 쌍) |
 | `*.blockmap`                                  | 보조 파일                                                              | 올리지 않아도 된다             |
 
 4. 6번에서 만든(또는 만들) 릴리스를 "Edit"하여 위 파일을 끌어다 놓고 저장합니다. Windows 파일과 이름이 겹치지 않으므로 함께 둡니다.
@@ -266,19 +266,19 @@ Linux판(64비트 x64)도 베타로 냅니다. Windows·Mac 설치 파일과 **�
 
 **자동으로 올리기 (권장).** 6번까지 끝내 릴리스를 먼저 공개한 뒤, **Actions** 탭 → **Linux build** → **Run workflow**에서 가지는 `main`, **release_tag** 칸에 그 릴리스의 태그(예: `v0.12.1`)를 적고 실행합니다. 빌드와 검사가 모두 통과하면 `AppImage`, `deb`, `rpm`, `latest-linux.yml`이 그 릴리스에 저절로 붙습니다.
 
-**손으로 올리기.** release_tag를 비워 두면 실행 결과의 **Artifacts**에서 `ieumoffice-linux-x64`를 내려받아 직접 올립니다.
+**손으로 올리기.** release_tag를 비워 두면 실행 결과의 **Artifacts**에서 `alloffice-linux-x64`를 내려받아 직접 올립니다.
 
-| 파일                                                   | 설명                                                                     | 릴리스에 올리나   |
-| ------------------------------------------------------ | ------------------------------------------------------------------------ | ----------------- |
-| `IeumOffice-<버전>.AppImage`                           | 설치 없이 실행하는 단일 파일. 스스로 업데이트한다                        | **올린다 (필수)** |
-| `ieumoffice_<버전>_amd64.deb`                          | Ubuntu·Debian용 패키지(`/opt/IeumOffice`에 설치, `/usr/bin/ieumoffice`)  | **올린다 (필수)** |
-| `ieumoffice-<버전>.x86_64.rpm`                         | Fedora·RHEL·openSUSE용 패키지                                            | **올린다**        |
-| `ieumoffice-cli_<버전>_linux-x64.tar.gz` (+ `.sha256`) | 데스크톱 앱 없이 도는 명령줄 묶음(Linux x64). 에이전트 샌드박스·서버용   | **올린다**        |
-| `latest-linux.yml` (베타 번호면 `beta-linux.yml`)      | Linux 앱이 새 버전을 알아보는 안내 파일. `AppImage` 자동 업데이트에 쓴다 | **올린다 (필수)** |
+| 파일                                                  | 설명                                                                     | 릴리스에 올리나   |
+| ----------------------------------------------------- | ------------------------------------------------------------------------ | ----------------- |
+| `AllOffice-<버전>.AppImage`                           | 설치 없이 실행하는 단일 파일. 스스로 업데이트한다                        | **올린다 (필수)** |
+| `alloffice_<버전>_amd64.deb`                          | Ubuntu·Debian용 패키지(`/opt/AllOffice`에 설치, `/usr/bin/alloffice`)    | **올린다 (필수)** |
+| `alloffice-<버전>.x86_64.rpm`                         | Fedora·RHEL·openSUSE용 패키지                                            | **올린다**        |
+| `alloffice-cli_<버전>_linux-x64.tar.gz` (+ `.sha256`) | 데스크톱 앱 없이 도는 명령줄 묶음(Linux x64). 에이전트 샌드박스·서버용   | **올린다**        |
+| `latest-linux.yml` (베타 번호면 `beta-linux.yml`)     | Linux 앱이 새 버전을 알아보는 안내 파일. `AppImage` 자동 업데이트에 쓴다 | **올린다 (필수)** |
 
 알아 둘 것:
 
-- **`AppImage`는 스스로 업데이트하고, `deb`·`rpm`은 새 버전을 알려 주기만 합니다.** `deb`·`rpm`으로 설치한 앱은 `/opt/IeumOffice`가 관리자 권한 폴더여서 스스로 덮어쓰지 않고, 업데이트 창에서 "다운로드 페이지 열기"로 안내합니다. `latest-linux.yml`을 올려 두어야 새 버전을 알아봅니다.
+- **`AppImage`는 스스로 업데이트하고, `deb`·`rpm`은 새 버전을 알려 주기만 합니다.** `deb`·`rpm`으로 설치한 앱은 `/opt/AllOffice`가 관리자 권한 폴더여서 스스로 덮어쓰지 않고, 업데이트 창에서 "다운로드 페이지 열기"로 안내합니다. `latest-linux.yml`을 올려 두어야 새 버전을 알아봅니다.
 - **명령줄 묶음은 설치 스크립트와 함께 냅니다.** 사이트의 `install.sh`(원본은 `packaging/cli/install.sh`)의 `DEFAULT_VERSION`을 이번 버전으로 고쳐 사이트에 올려야 `curl … | sh`가 새 버전을 설치합니다. 묶음은 Electron·GTK 없이 돌고, PDF·한글·웹 명령은 가상 메모리 상한(`ulimit -v`)이 낮으면 크래시 대신 `resource_limit`으로 답합니다(`packaging/cli/README.md`).
 - Linux판의 동작은 저장소 주인이 직접 확인할 수 없습니다. Linux 사용자에게서 들어온 보고를 `docs/tracking/status.md`에 적습니다.
 
