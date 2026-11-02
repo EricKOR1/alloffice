@@ -149,8 +149,8 @@ describe('registered names derived from the product name', () => {
   })
 
   it('names the public repository once', () => {
-    expect(PRODUCT_REPO_OWNER).toBe('pblsketch')
-    expect(PRODUCT_REPO_NAME).toBe('openoffice')
-    expect(PRODUCT_REPO_SLUG).toBe('pblsketch/openoffice')
+    expect(PRODUCT_REPO_OWNER).toBe('EricKOR1')
+    expect(PRODUCT_REPO_NAME).toBe('alloffice')
+    expect(PRODUCT_REPO_SLUG).toBe('EricKOR1/alloffice')
   })
 })
