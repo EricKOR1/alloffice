@@ -1,0 +1,290 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Wed, 4 Nov 2026 00:00:00 +0900
+Subject: [PATCH 29/29] =?UTF-8?q?fix(layout):=20=EC=B9=B8=EC=9D=98=20?=
+ =?UTF-8?q?=EA=B8=80=EC=9D=84=20=EA=B3=A0=EC=B9=9C=20=EA=B8=80=EC=9E=90?=
+ =?UTF-8?q?=EC=B2=98=EB=9F=BC=20=EC=B7=A8=EA=B8=89=20=ED=91=9C=EB=8A=94=20?=
+ =?UTF-8?q?=EB=82=B4=EC=9A=A9=EB=8C=80=EB=A1=9C=20=ED=82=A4=EC=9A=B0?=
+ =?UTF-8?q?=EA=B3=A0=20=EB=8A=98=EC=96=B4=EB=82=9C=20=EB=86=92=EC=9D=B4?=
+ =?UTF-8?q?=EB=A5=BC=20=EC=A0=80=EC=9E=A5=ED=95=9C=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+글자처럼 취급한 표는 내용이 선언 높이(hp:sz)를 넘으면 선언 높이로 비례 축소한다.
+편집 세션 예외(session_edited)는 원본 HWP5에만 켜져, HWPX 서식의 칸에 글을 늘리면
+행이 눌려 글이 칸 밖으로 넘치고 표 아래 글과 겹쳤다. 저장한 뒤 다시 열면 HWP도
+같은 일이 생겼다(선언 높이와 표를 담은 저장 줄 높이가 편집 전 값 그대로).
+
+칸 문단을 다시 나눌 때 그 표(경로의 바깥 표 포함)에 "고침" 표시를 하고, 표시된 표는
+비례 축소하지 않는다. 조판 뒤에는 최상위 표의 선언 높이를 max(처음 높이, 그린 높이)로
+맞추고, 한글처럼 표 높이를 적은 호스트 저장 줄의 높이·기준선도 같이 바꾼다. 그래서
+편집 직후와 다시 연 문서가 같은 쪽 나눔을 갖고, 한컴 한글에도 늘어난 높이가 간다.
+---
+ src/diagnostics/ir_field_sweep.rs             |  1 +
+ .../commands/object_ops/table.rs              |  2 +
+ src/document_core/commands/text_editing.rs    | 38 +++++++++
+ src/document_core/html_table_import.rs        |  1 +
+ src/document_core/queries/rendering.rs        | 77 +++++++++++++++++++
+ src/model/table.rs                            | 12 +++
+ src/renderer/height_measurer.rs               |  4 +
+ src/scaffold/builder.rs                       |  1 +
+ 8 files changed, 136 insertions(+)
+
+diff --git a/src/diagnostics/ir_field_sweep.rs b/src/diagnostics/ir_field_sweep.rs
+index 987daa24..cf961269 100644
+--- a/src/diagnostics/ir_field_sweep.rs
++++ b/src/diagnostics/ir_field_sweep.rs
+@@ -939,6 +939,7 @@ fn sweep_table(base: &str, a: &Table, b: &Table, out: &mut DivergenceCollector)
+         raw_ctrl_seal: _,
+         raw_table_record_attr,
+         raw_table_record_extra,
++        edited_base_height: _,
+     } = a;
+ 
+     macro_rules! f {
+diff --git a/src/document_core/commands/object_ops/table.rs b/src/document_core/commands/object_ops/table.rs
+index 3413ce73..279294b9 100644
+--- a/src/document_core/commands/object_ops/table.rs
++++ b/src/document_core/commands/object_ops/table.rs
+@@ -619,6 +619,7 @@ impl DocumentCore {
+             }),
+             // [#3570] 한컴은 TABLE 레코드를 zone 개수까지만 쓴다 — 여분 2바이트 없음.
+             raw_table_record_extra: Vec::new(),
++            edited_base_height: None,
+         };
+         table.rebuild_grid();
+ 
+@@ -1040,6 +1041,7 @@ impl DocumentCore {
+             raw_table_record_attr: 0x04000006,
+             // [#3570] 한컴은 TABLE 레코드를 zone 개수까지만 쓴다 — 여분 2바이트 없음.
+             raw_table_record_extra: Vec::new(),
++            edited_base_height: None,
+         };
+         table.rebuild_grid();
+ 
+diff --git a/src/document_core/commands/text_editing.rs b/src/document_core/commands/text_editing.rs
+index c554a9c7..0cbd3a5f 100644
+--- a/src/document_core/commands/text_editing.rs
++++ b/src/document_core/commands/text_editing.rs
+@@ -2914,6 +2914,9 @@ impl DocumentCore {
+             .get_mut(control_idx)
+         {
+             Some(Control::Table(table)) => {
++                if cell_idx != 65534 {
++                    table.mark_cell_text_edited();
++                }
+                 let cell_para = if cell_idx == 65534 {
+                     table
+                         .caption
+@@ -3266,6 +3269,40 @@ impl DocumentCore {
+         None
+     }
+ 
++    /// [ieum 0029] path 가 지나는 표마다 칸의 글을 고쳤다고 표시한다.
++    fn mark_tables_on_cell_path(
++        &mut self,
++        section_idx: usize,
++        parent_para_idx: usize,
++        path: &[(usize, usize, usize)],
++    ) {
++        let Some(mut para) = self
++            .document
++            .sections
++            .get_mut(section_idx)
++            .and_then(|s| s.paragraphs.get_mut(parent_para_idx))
++        else {
++            return;
++        };
++        for &(ctrl_idx, cell_idx, cell_para_idx) in path {
++            let Some(Control::Table(table)) = para.controls.get_mut(ctrl_idx) else {
++                return;
++            };
++            if cell_idx == 65534 {
++                return;
++            }
++            table.mark_cell_text_edited();
++            let Some(next) = table
++                .cells
++                .get_mut(cell_idx)
++                .and_then(|c| c.paragraphs.get_mut(cell_para_idx))
++            else {
++                return;
++            };
++            para = next;
++        }
++    }
++
+     /// [#2755] path 기반 셀 리플로우 (깊이 ≥ 2 중첩 표 지원).
+     ///
+     /// `reflow_cell_paragraph`(flat)는 최외곽 표만 리플로우한다. 이 변형은 path 의
+@@ -3285,6 +3322,7 @@ impl DocumentCore {
+         else {
+             return;
+         };
++        self.mark_tables_on_cell_path(section_idx, parent_para_idx, path);
+         let styles = self.resolve_render_styles();
+         let dpi = self.dpi;
+         let cell_width_px = hwpunit_to_px(cell_width, dpi);
+diff --git a/src/document_core/html_table_import.rs b/src/document_core/html_table_import.rs
+index e4b1f846..e2a671bf 100644
+--- a/src/document_core/html_table_import.rs
++++ b/src/document_core/html_table_import.rs
+@@ -634,6 +634,7 @@ impl DocumentCore {
+             raw_ctrl_seal: None,
+             raw_table_record_attr: tbl_rec_attr,
+             raw_table_record_extra: vec![0u8; 2], // 표준 추가 2바이트
++            edited_base_height: None,
+         };
+         table.rebuild_grid();
+ 
+diff --git a/src/document_core/queries/rendering.rs b/src/document_core/queries/rendering.rs
+index 3a83fdec..8cf2b917 100644
+--- a/src/document_core/queries/rendering.rs
++++ b/src/document_core/queries/rendering.rs
+@@ -4911,6 +4911,83 @@ impl DocumentCore {
+     /// 측정 통일(B). `paginate_pass` 의 `force_break_before` 훅과 `LayoutOverflow` 의
+     /// section_index/is_first_in_column 계측은 측정 통일 작업의 진단·후속용으로 유지한다.
+     pub(crate) fn paginate(&mut self) {
++        self.paginate_sections();
++        self.sync_edited_table_heights();
++    }
++
++    /// [ieum 0029] 칸의 글을 고친 최상위 글자처럼 취급 표의 선언 높이를 그린 높이에 맞춘다.
++    /// 한컴 한글처럼 늘어난 높이를 저장해, 다시 열었을 때 옛 선언 높이로 눌려 겹치지
++    /// 않게 한다. 처음 고칠 때의 높이보다 작게는 줄이지 않는다.
++    fn sync_edited_table_heights(&mut self) {
++        use crate::model::shape::common_obj_offsets;
++        let dpi = self.dpi;
++        for (sec_idx, tables) in self.measured_tables.iter().enumerate() {
++            let Some(section) = self.document.sections.get_mut(sec_idx) else {
++                continue;
++            };
++            for mt in tables {
++                let Some(Control::Table(table)) = section
++                    .paragraphs
++                    .get_mut(mt.para_index)
++                    .and_then(|p| p.controls.get_mut(mt.control_index))
++                else {
++                    continue;
++                };
++                let Some(base) = table.edited_base_height else {
++                    continue;
++                };
++                if !table.common.treat_as_char {
++                    continue;
++                }
++                let drawn_px = mt.cumulative_heights.last().copied().unwrap_or(0.0);
++                if drawn_px <= 0.0 {
++                    continue;
++                }
++                let drawn = crate::renderer::px_to_hwpunit(drawn_px, dpi).max(0) as u32;
++                let height = base.max(drawn);
++                let previous = table.common.height;
++                if height == previous {
++                    continue;
++                }
++                table.common.height = height;
++                if table.raw_ctrl_data.len() >= common_obj_offsets::HEIGHT.end {
++                    table.raw_ctrl_data[common_obj_offsets::HEIGHT]
++                        .copy_from_slice(&height.to_le_bytes());
++                }
++                // 한글은 글자처럼 취급한 표가 든 줄의 높이에 표 높이를 적는다. 그 줄의
++                // 저장 높이도 함께 바꿔야 쪽 나누기가 옛 높이로 다음 글을 앞당기지 않는다.
++                if let Some(host) = section.paragraphs.get_mut(mt.para_index) {
++                    Self::resize_stored_tac_line(host, previous, height);
++                }
++            }
++        }
++    }
++
++    /// [ieum 0029] 높이가 `previous`인 표를 담은 저장 줄(한글이 표 높이를 그대로 적은 줄)의
++    /// 높이를 `height`로 바꾼다. 기준선은 같은 비율로 옮긴다.
++    fn resize_stored_tac_line(
++        host: &mut crate::model::paragraph::Paragraph,
++        previous: u32,
++        height: u32,
++    ) {
++        let (Ok(previous), Ok(height)) = (i32::try_from(previous), i32::try_from(height)) else {
++            return;
++        };
++        if previous <= 0 {
++            return;
++        }
++        for seg in host.line_segs.iter_mut() {
++            if seg.line_height != previous || seg.text_height != previous {
++                continue;
++            }
++            seg.line_height = height;
++            seg.text_height = height;
++            seg.baseline_distance = ((i64::from(seg.baseline_distance) * i64::from(height))
++                / i64::from(previous)) as i32;
++        }
++    }
++
++    fn paginate_sections(&mut self) {
+         self.pending_pagination_job = None;
+         let sec_count = self.document.sections.len().max(1);
+         let empty_breaks: Vec<std::collections::HashSet<usize>> =
+diff --git a/src/model/table.rs b/src/model/table.rs
+index 406dd1b2..f52a1664 100644
+--- a/src/model/table.rs
++++ b/src/model/table.rs
+@@ -77,6 +77,11 @@ pub struct Table {
+     pub raw_table_record_attr: u32,
+     /// HWPTAG_TABLE 레코드의 border_fill_id 이후 추가 바이트 (라운드트립 보존용)
+     pub raw_table_record_extra: Vec<u8>,
++    /// [ieum 0029] 이 세션에서 칸의 글을 고친 표면 Some(처음 고칠 때의 선언 높이).
++    /// 고친 표는 선언 높이로 비례 축소하지 않고 내용대로 키우며(편집 세션과 같은 규칙),
++    /// 조판 뒤 선언 높이를 max(처음 높이, 그린 높이)로 맞춰 저장 파일에도 남긴다.
++    #[serde(skip)]
++    pub edited_base_height: Option<u32>,
+ }
+ 
+ /// 표 쪽 나눔 종류
+@@ -559,6 +564,13 @@ impl Cell {
+ }
+ 
+ impl Table {
++    /// [ieum 0029] 칸의 글을 고쳤다고 표시한다. 처음 표시할 때의 선언 높이를 기억한다.
++    pub fn mark_cell_text_edited(&mut self) {
++        if self.edited_base_height.is_none() {
++            self.edited_base_height = Some(self.common.height);
++        }
++    }
++
+     #[cfg(test)]
+     pub(crate) fn reset_paragraph_frame_owner_widths_calls_for_test() {
+         PARAGRAPH_FRAME_OWNER_WIDTHS_CALLS.with(|calls| calls.set(0));
+diff --git a/src/renderer/height_measurer.rs b/src/renderer/height_measurer.rs
+index 01598505..8a7f8a9b 100644
+--- a/src/renderer/height_measurer.rs
++++ b/src/renderer/height_measurer.rs
+@@ -4316,8 +4316,12 @@ impl HeightMeasurer {
+         // 편집으로 셀이 자란 성장분까지 선언높이로 눌러 다른 행의 몫을 잠식한다
+         // (셀 Enter 재현: 표가 선언 높이에 고정된 채 행 경계만 위로 밀림).
+         // 편집 세션은 실측을 신뢰한다.
++        // [ieum 0029] 이 세션에서 칸의 글을 고친 표도 편집 세션과 같이 실측을 따른다.
++        // HWPX·생성 문서는 session_edited 신호가 없어, 고친 칸이 선언 높이에 눌려
++        // 글이 칸 밖으로 넘치고 표 아래 글과 겹쳤다.
+         let table_height = if table.common.treat_as_char
+             && !self.session_edited
++            && table.edited_base_height.is_none()
+             && common_h > 0.0
+             && raw_table_height > common_h + shrink_threshold
+             && raw_table_height <= common_h * TAC_SHRINK_MAX_OVERFLOW_RATIO
+diff --git a/src/scaffold/builder.rs b/src/scaffold/builder.rs
+index 6a463169..abdec602 100644
+--- a/src/scaffold/builder.rs
++++ b/src/scaffold/builder.rs
+@@ -426,6 +426,7 @@ fn build_table_paragraph(
+         raw_ctrl_seal: None,
+         raw_table_record_attr: 0x0000_0006, // bits 0-1 = 2(나눔, 행 단위 = HWPX CELL), bit2 = repeat_header
+         raw_table_record_extra: Vec::new(),
++        edited_base_height: None,
+     };
+     table.rebuild_grid();
+ 
+-- 
+2.43.0
+
