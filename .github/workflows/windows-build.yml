@@ -208,6 +208,13 @@ jobs:
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] || { echo "not a version tag: $TAG"; exit 1; }
           built=$(sed -n 's/^version: *//p' windows/latest.yml | tr -d "'\"")
           [ "v$built" = "$TAG" ] || { echo "built $built, but the release is $TAG"; exit 1; }
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --verify-tag --title "$TAG" --notes "Windows 10/11 64-bit installer. The installer is unsigned: if Windows SmartScreen warns, choose More info -> Run anyway."
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            # an annotated tag carries the release notes the app's update window shows
+            if [ "$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq .object.type)" = "tag" ]; then
+              gh release create "$TAG" --verify-tag --title "$TAG" --notes-from-tag
+            else
+              gh release create "$TAG" --verify-tag --title "$TAG" --notes "Windows 10/11 64-bit installer. The installer is unsigned: if Windows SmartScreen warns, choose More info -> Run anyway."
+            fi
+          fi
           gh release upload "$TAG" windows/AllOffice-Setup-*.exe windows/AllOffice-Setup-*.exe.blockmap windows/latest.yml --clobber
           gh release view "$TAG" --json assets --jq '.assets[].name'
