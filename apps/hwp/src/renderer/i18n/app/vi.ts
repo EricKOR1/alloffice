@@ -21,6 +21,10 @@ export const vi = {
   saveProtected:
     'Chưa lưu: tài liệu này được bảo vệ bằng mật khẩu, và lưu ở đây sẽ ghi tệp không có mật khẩu.',
   backupKept: 'Đã lưu. Phiên bản trước được giữ lại dưới tên {name}.',
+  openedIncomplete:
+    'Tài liệu này dùng định dạng XML cũ của Hangul (HWPML); không đọc được {count} đối tượng như hình ảnh nên chúng không hiển thị. Để bảo vệ bản gốc, tài liệu này sẽ không được lưu. Hãy mở bản sao đã lưu dưới dạng HWP hoặc HWPX trong Hancom Hangul.',
+  saveIncomplete:
+    'Chưa lưu: không đọc được {count} đối tượng như hình ảnh từ tài liệu Hangul XML cũ (HWPML) này, và lưu sẽ làm mất chúng. Hãy mở bản sao đã lưu dưới dạng HWP hoặc HWPX trong Hancom Hangul.',
   openedTracked:
     'Tài liệu này có theo dõi thay đổi. Bạn đang thấy nội dung hiện tại đã áp dụng các thay đổi; khi lưu, nội dung này được giữ lại và bản ghi thay đổi bị bỏ đi.',
   saveTracked:

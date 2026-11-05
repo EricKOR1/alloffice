@@ -950,6 +950,8 @@ export interface AgentPluginSurface {
   /** take the marks of the changes made so far off the pages */
   clearMarks(): { ok: true }
   undo(steps: number, expectedForeign: number): AgentUndoResult
+  /** objects the engine skipped reading the document from HWPML (XML); 0 for any other */
+  importLoss(): { skippedObjects: number }
   /** the memos of the document in document order, with their pages and anchor rectangles */
   listMemos(): AgentMemoList
   /** whether the selection (or the caret) may carry a memo anchor */
@@ -1029,3 +1031,6 @@ export declare const agentPlugin: {
 }
 
 export default agentPlugin
+
+/** objects the engine skipped reading an HWPML file, from its open metadata JSON */
+export declare function hmlSkippedObjectCount(metadataJson: string | null | undefined): number

@@ -22,6 +22,10 @@ export const cs = {
   saveProtected:
     'Neuloženo: tento dokument je chráněn heslem a uložením zde by se zapsal bez hesla.',
   backupKept: 'Uloženo. Předchozí verze byla zachována jako {name}.',
+  openedIncomplete:
+    'Tento dokument používá starší formát XML programu Hangul (HWPML); {count} objektů, například obrázků, nešlo přečíst a nejsou zobrazeny. Kvůli ochraně originálu se tento dokument neuloží. Otevřete kopii uloženou v Hancom Hangul jako HWP nebo HWPX.',
+  saveIncomplete:
+    'Neuloženo: {count} objektů, například obrázků, nešlo z tohoto staršího dokumentu Hangul XML (HWPML) přečíst a uložení by je vynechalo. Otevřete kopii uloženou v Hancom Hangul jako HWP nebo HWPX.',
   openedTracked:
     'Tento dokument obsahuje sledované změny. Vidíte jeho aktuální text s použitými změnami; uložením se tento text zachová a záznam změn se odstraní.',
   saveTracked:

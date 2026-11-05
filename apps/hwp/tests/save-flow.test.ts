@@ -8,6 +8,7 @@ const HWPX = Uint8Array.from([4, 5, 6])
 function editor(overrides: Partial<SaveEditorPort> = {}): SaveEditorPort {
   return {
     isPasswordProtected: vi.fn(async () => false),
+    skippedObjects: vi.fn(async () => 0),
     exportHwp: vi.fn(async () => HWP),
     exportHwpx: vi.fn(async () => HWPX),
     exportHwpVerify: vi.fn(async () => ({
@@ -337,6 +338,23 @@ describe('runSave', () => {
       // no dialog, no export, no write; the waiting main process is released
       expect(host.beginSave).not.toHaveBeenCalled()
       expect(ed.exportHwpx).not.toHaveBeenCalled()
+      expect(host.commitSave).not.toHaveBeenCalled()
+      expect(host.abortSave).toHaveBeenCalledOnce()
+    }
+  })
+
+  it('never writes an HWPML document the engine read only in part', async () => {
+    for (const mode of ['save', 'saveAs'] as const) {
+      const ed = editor({ skippedObjects: vi.fn(async () => 27) })
+      const host = api({ ok: true, path: 'C:/d/a.hwp', format: 'hwp' })
+      expect(await runSave(ed, host, mode)).toEqual({
+        kind: 'failed',
+        reason: 'incomplete',
+        skipped: 27,
+      })
+      // no dialog, no export, no write: the original keeps its pictures
+      expect(host.beginSave).not.toHaveBeenCalled()
+      expect(ed.exportHwp).not.toHaveBeenCalled()
       expect(host.commitSave).not.toHaveBeenCalled()
       expect(host.abortSave).toHaveBeenCalledOnce()
     }

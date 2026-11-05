@@ -1082,6 +1082,34 @@ function checkReplacement(replacement) {
   }
 }
 
+/**
+ * The objects of the document body the engine skipped when it read an HWPML (XML) file:
+ * pictures, footers, lines and the like that a save as HWP or HWPX would drop. An object
+ * inside one already counted (a picture in a skipped group) is not counted again. 0 for a
+ * document read from HWP or HWPX, or a whole HWPML one.
+ */
+export function hmlSkippedObjectCount(metadataJson) {
+  let metadata
+  try {
+    metadata = JSON.parse(metadataJson ?? 'null')
+  } catch {
+    return 0
+  }
+  const warnings = Array.isArray(metadata?.warnings) ? metadata.warnings : []
+  // each skipped element is one warning, named by its element path; one under the path of
+  // another skipped element went with it
+  const skipped = warnings
+    .filter(
+      (warning) =>
+        warning?.code === 'UnsupportedElement' &&
+        typeof warning.xmlPath === 'string' &&
+        warning.xmlPath.startsWith('/HWPML/BODY/'),
+    )
+    .map((warning) => warning.xmlPath)
+  const outer = new Set(skipped)
+  return skipped.filter((path) => ![...outer].some((other) => path.startsWith(`${other}/`))).length
+}
+
 function expectOk(json, what) {
   const result = parse(json)
   if (result && result.ok === false) throw fail('ENGINE_REFUSED', `the editor refused to ${what}`)
@@ -6945,6 +6973,18 @@ export const agentPlugin = {
        * The memos of the document in document order, each with the page its anchor starts
        * on and the rectangles it covers, or the caret bar of one with no text range.
        */
+      /**
+       * How many objects the engine skipped reading this document from HWPML: a save would
+       * write the document without them. 0 for any other document.
+       */
+      importLoss: guarded(() =>
+        host.read((doc) =>
+          typeof doc.getHmlOpenMetadata === 'function'
+            ? { skippedObjects: hmlSkippedObjectCount(doc.getHmlOpenMetadata()) }
+            : { skippedObjects: 0 },
+        ),
+      ),
+
       listMemos: guarded(() => {
         listedMemos = null
         // An older engine has no memo API. Say so instead of pretending the

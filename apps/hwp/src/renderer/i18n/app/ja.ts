@@ -22,6 +22,10 @@ export const ja = {
   saveProtected:
     '保存しませんでした。この文書はパスワードで保護されており、ここで保存するとパスワードなしで書き出されます。',
   backupKept: '保存しました。以前の内容は {name} として残しました。',
+  openedIncomplete:
+    'この文書は旧形式のハングル XML（HWPML）のため、画像など {count} 個のオブジェクトを読み込めず表示されていません。元のファイルを守るため、この文書は保存しません。Hancom Hangul で HWP または HWPX として保存し直したファイルを開いてください。',
+  saveIncomplete:
+    '保存しませんでした。旧形式のハングル XML（HWPML）文書の画像など {count} 個のオブジェクトを読み込めず、保存するとそれらが失われます。Hancom Hangul で HWP または HWPX として保存し直したファイルを開いてください。',
   openedTracked:
     'この文書には変更履歴があります。画面には変更を反映した現在の内容だけが表示され、保存すると変更履歴なしでこの内容が保存されます。',
   saveTracked:

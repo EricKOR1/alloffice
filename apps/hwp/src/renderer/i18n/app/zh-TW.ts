@@ -20,6 +20,10 @@ export const zhTW = {
   saveVerifyHint: '原檔案未變動。請在「另存新檔」中選擇 HWPX，或使用「匯出為 PDF」。',
   saveProtected: '未儲存：此文件有密碼保護，在這裡儲存會寫出不含密碼的檔案。',
   backupKept: '已儲存。先前的版本保留為 {name}。',
+  openedIncomplete:
+    '此文件使用舊版韓文 XML 格式（HWPML），圖片等 {count} 個物件無法讀取，未顯示。為保護原始檔，此文件不會被儲存。請在 Hancom Hangul 中另存為 HWP 或 HWPX 後再開啟。',
+  saveIncomplete:
+    '未儲存：此舊版韓文 XML（HWPML）文件中有圖片等 {count} 個物件無法讀取，儲存會遺失它們。請在 Hancom Hangul 中另存為 HWP 或 HWPX 後再開啟。',
   openedTracked:
     '此文件包含追蹤修訂。畫面上只顯示套用修訂後的目前內容；儲存時會儲存此內容，不保留修訂記錄。',
   saveTracked:

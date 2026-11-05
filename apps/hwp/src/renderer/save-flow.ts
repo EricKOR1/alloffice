@@ -12,6 +12,11 @@ import type {
 export interface SaveEditorPort {
   /** the open document was unlocked with a password; the exports below would write it without one */
   isPasswordProtected(): Promise<boolean>
+  /**
+   * objects the engine skipped reading the document from an HWPML (XML) file, which the
+   * exports below would leave out; 0 for any other document
+   */
+  skippedObjects(): Promise<number>
   exportHwp(): Promise<Uint8Array>
   exportHwpx(): Promise<Uint8Array>
   /** serialize to HWP, reload the result inside the engine, report whether it came back whole */
@@ -48,12 +53,15 @@ export type SaveOutcome =
    * `protected`: the document has a password this save path cannot keep.
    * `tracked`: the document has tracked changes this save path cannot keep.
    * `verify`: the engine could not read back what it was about to write.
+   * `incomplete`: the document came from HWPML with `skipped` objects the engine could not
+   * read; a save would write it without them.
    */
   | {
       kind: 'failed'
       reason: 'protected' | 'tracked' | 'verify' | 'export' | 'write'
       detail?: string
     }
+  | { kind: 'failed'; reason: 'incomplete'; skipped: number; detail?: string }
 
 const fileNameOf = (path: string) => path.split(/[\\/]/).pop() ?? path
 
@@ -131,6 +139,12 @@ export async function runSave(
     if (await editor.isPasswordProtected()) {
       api.abortSave()
       return { kind: 'failed', reason: 'protected' }
+    }
+    // an HWPML file read in part: any save would drop what the engine could not read
+    const skipped = await editor.skippedObjects()
+    if (skipped > 0) {
+      api.abortSave()
+      return { kind: 'failed', reason: 'incomplete', skipped }
     }
   } catch (error) {
     api.abortSave()

@@ -22,6 +22,10 @@ export const pt = {
   saveProtected:
     'Não salvo: este documento é protegido por senha, e salvá-lo aqui o gravaria sem a senha.',
   backupKept: 'Salvo. A versão anterior foi mantida como {name}.',
+  openedIncomplete:
+    'Este documento usa um formato XML antigo do Hangul (HWPML); {count} objetos, como imagens, não puderam ser lidos e não são exibidos. Para proteger o original, este documento não será salvo. Abra uma cópia salva como HWP ou HWPX no Hancom Hangul.',
+  saveIncomplete:
+    'Não salvo: {count} objetos, como imagens, não puderam ser lidos deste documento XML antigo do Hangul (HWPML), e salvá-lo os perderia. Abra uma cópia salva como HWP ou HWPX no Hancom Hangul.',
   openedTracked:
     'Este documento tem alterações controladas. Você vê o texto atual, com as alterações aplicadas; ao salvar, este texto é mantido e o registro de alterações é descartado.',
   saveTracked:

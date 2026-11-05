@@ -21,6 +21,10 @@ export const en = {
   saveProtected:
     'Not saved: this document is password-protected, and saving it here would write it without the password.',
   backupKept: 'Saved. The previous version was kept as {name}.',
+  openedIncomplete:
+    'This document uses an older Hangul XML format (HWPML); {count} objects such as pictures could not be read and are not shown. To protect the original, this document will not be saved. Open a copy saved as HWP or HWPX in Hancom Hangul instead.',
+  saveIncomplete:
+    'Not saved: {count} objects such as pictures could not be read from this older Hangul XML (HWPML) document, and saving would leave them out. Open a copy saved as HWP or HWPX in Hancom Hangul instead.',
   openedTracked:
     'This document has tracked changes. You see its current text, with the changes applied; saving keeps this text and drops the record of changes.',
   saveTracked:

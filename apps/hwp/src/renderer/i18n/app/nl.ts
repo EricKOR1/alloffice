@@ -22,6 +22,10 @@ export const nl = {
   saveProtected:
     'Niet opgeslagen: dit document is met een wachtwoord beveiligd, en hier opslaan zou het zonder wachtwoord wegschrijven.',
   backupKept: 'Opgeslagen. De vorige versie is bewaard als {name}.',
+  openedIncomplete:
+    'Dit document gebruikt een ouder Hangul-XML-formaat (HWPML); {count} objecten, zoals afbeeldingen, konden niet worden gelezen en worden niet getoond. Om het origineel te beschermen wordt dit document niet opgeslagen. Open een kopie die in Hancom Hangul als HWP of HWPX is opgeslagen.',
+  saveIncomplete:
+    'Niet opgeslagen: {count} objecten, zoals afbeeldingen, konden niet uit dit oudere Hangul-XML-document (HWPML) worden gelezen, en opslaan zou ze weglaten. Open een kopie die in Hancom Hangul als HWP of HWPX is opgeslagen.',
   openedTracked:
     'Dit document bevat bijgehouden wijzigingen. U ziet de huidige tekst, met de wijzigingen verwerkt; bij opslaan blijft deze tekst behouden en vervalt het overzicht van wijzigingen.',
   saveTracked:

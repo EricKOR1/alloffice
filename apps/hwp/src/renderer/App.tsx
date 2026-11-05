@@ -103,6 +103,7 @@ function savePortOf(editor: RhwpEditor): SaveEditorPort {
         throw new Error('the editor did not report password protection')
       return flag
     },
+    skippedObjects: async () => (await agent.importLoss()).skippedObjects,
     exportHwp: () => editor.exportHwp(),
     exportHwpx: () => editor.exportHwpx(),
     exportHwpVerify: () => editor.exportHwpVerify(),
@@ -255,6 +256,19 @@ export default function App() {
         setPhase('ready')
         if (await window.hwpApi.trackingDropped().catch(() => false)) {
           if (!disposed) setNotice({ tone: 'info', key: 'openedTracked', sticky: true })
+        }
+        // an HWPML (XML) file the engine read in part: said once, before any edit is lost
+        const skipped = await createAgentBridge(() => editor)
+          .importLoss()
+          .then((loss) => loss.skippedObjects)
+          .catch(() => 0)
+        if (skipped > 0 && !disposed) {
+          setNotice({
+            tone: 'info',
+            key: 'openedIncomplete',
+            params: { count: String(skipped) },
+            sticky: true,
+          })
         }
       } catch (error) {
         if (disposed) return
@@ -423,18 +437,26 @@ export default function App() {
         if (outcome.kind === 'failed') {
           // a protected or tracked document cannot be saved by this path at all;
           // the manual save explains that once instead of every autosave backoff
-          const propertyFailure = outcome.reason === 'protected' || outcome.reason === 'tracked'
+          const propertyFailure =
+            outcome.reason === 'protected' ||
+            outcome.reason === 'tracked' ||
+            outcome.reason === 'incomplete'
           if (!automatic || !propertyFailure) {
             setNotice({
               tone: 'error',
+              ...(outcome.reason === 'incomplete'
+                ? { params: { count: String(outcome.skipped) } }
+                : {}),
               key:
                 outcome.reason === 'protected'
                   ? 'saveProtected'
-                  : outcome.reason === 'tracked'
-                    ? 'saveTracked'
-                    : outcome.reason === 'verify'
-                      ? 'saveVerifyFailed'
-                      : 'saveFailed',
+                  : outcome.reason === 'incomplete'
+                    ? 'saveIncomplete'
+                    : outcome.reason === 'tracked'
+                      ? 'saveTracked'
+                      : outcome.reason === 'verify'
+                        ? 'saveVerifyFailed'
+                        : 'saveFailed',
               ...(outcome.reason === 'verify'
                 ? { detail: t('saveVerifyHint') }
                 : outcome.detail

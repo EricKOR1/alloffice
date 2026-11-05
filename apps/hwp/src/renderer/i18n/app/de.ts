@@ -22,6 +22,10 @@ export const de = {
   saveProtected:
     'Nicht gespeichert: Dieses Dokument ist kennwortgeschützt, und beim Speichern hier würde es ohne Kennwort geschrieben.',
   backupKept: 'Gespeichert. Die vorherige Version wurde als {name} aufbewahrt.',
+  openedIncomplete:
+    'Dieses Dokument verwendet ein älteres Hangul-XML-Format (HWPML); {count} Objekte wie Bilder konnten nicht gelesen werden und werden nicht angezeigt. Zum Schutz des Originals wird dieses Dokument nicht gespeichert. Öffnen Sie stattdessen eine in Hancom Hangul als HWP oder HWPX gespeicherte Kopie.',
+  saveIncomplete:
+    'Nicht gespeichert: {count} Objekte wie Bilder konnten aus diesem älteren Hangul-XML-Dokument (HWPML) nicht gelesen werden, und beim Speichern würden sie fehlen. Öffnen Sie stattdessen eine in Hancom Hangul als HWP oder HWPX gespeicherte Kopie.',
   openedTracked:
     'Dieses Dokument enthält nachverfolgte Änderungen. Angezeigt wird der aktuelle Text mit übernommenen Änderungen; beim Speichern bleibt dieser Text erhalten, die Änderungsverfolgung entfällt.',
   saveTracked:

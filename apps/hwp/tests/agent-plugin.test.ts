@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { agentPlugin, type AgentPluginHost } from '../studio-plugin/agent-plugin.mjs'
+import {
+  agentPlugin,
+  hmlSkippedObjectCount,
+  type AgentPluginHost,
+} from '../studio-plugin/agent-plugin.mjs'
 
 interface Cell {
   /** body paragraph the table sits in */
@@ -362,5 +366,31 @@ describe('a failing engine call', () => {
     expect(() => broken.findText('본문')).toThrow(Error)
     expect(() => broken.findText('본문')).toThrow(/engine said no/)
     expect(editor.text()).toBe('본문')
+  })
+})
+
+describe('hmlSkippedObjectCount', () => {
+  const warning = (xmlPath: string, code = 'UnsupportedElement') => ({ code, xmlPath })
+  const count = (warnings: unknown[] | null) =>
+    hmlSkippedObjectCount(warnings === null ? 'null' : JSON.stringify({ warnings }))
+
+  it('counts each skipped body object once, not what went with it', () => {
+    expect(
+      count([
+        warning('/HWPML/HEAD/COMPATIBLEDOCUMENT'),
+        warning('/HWPML/BODY/SECTION/P/TEXT/PICTURE'),
+        warning('/HWPML/BODY/SECTION/P/TEXT/PICTURE'),
+        warning('/HWPML/BODY/SECTION/P/TEXT/FOOTER'),
+        warning('/HWPML/BODY/SECTION/P/TEXT/FOOTER/PARALIST/P/TEXT/LINE'),
+        warning('/HWPML/BODY/SECTION/P/TEXT/EQUATION', 'UnsupportedEquationSemantics'),
+      ]),
+    ).toBe(3)
+  })
+
+  it('is 0 for a document not read from HWPML or read whole', () => {
+    expect(count(null)).toBe(0)
+    expect(count([])).toBe(0)
+    expect(hmlSkippedObjectCount('not json')).toBe(0)
+    expect(hmlSkippedObjectCount(undefined)).toBe(0)
   })
 })

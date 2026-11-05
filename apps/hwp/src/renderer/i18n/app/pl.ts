@@ -22,6 +22,10 @@ export const pl = {
   saveProtected:
     'Nie zapisano: ten dokument jest chroniony hasłem, a zapisanie go tutaj zapisałoby go bez hasła.',
   backupKept: 'Zapisano. Poprzednia wersja została zachowana jako {name}.',
+  openedIncomplete:
+    'Ten dokument używa starszego formatu XML programu Hangul (HWPML); nie udało się odczytać {count} obiektów, np. obrazów, więc nie są widoczne. Aby chronić oryginał, ten dokument nie zostanie zapisany. Otwórz kopię zapisaną w Hancom Hangul jako HWP lub HWPX.',
+  saveIncomplete:
+    'Nie zapisano: nie udało się odczytać {count} obiektów, np. obrazów, z tego starszego dokumentu Hangul XML (HWPML), a zapis by je pominął. Otwórz kopię zapisaną w Hancom Hangul jako HWP lub HWPX.',
   openedTracked:
     'Ten dokument zawiera śledzone zmiany. Widzisz jego bieżący tekst z zastosowanymi zmianami; zapisanie zachowa ten tekst i usunie historię zmian.',
   saveTracked:

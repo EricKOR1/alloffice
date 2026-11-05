@@ -22,6 +22,10 @@ export const ms = {
   saveProtected:
     'Tidak disimpan: dokumen ini dilindungi kata laluan, dan menyimpannya di sini akan menulisnya tanpa kata laluan.',
   backupKept: 'Disimpan. Versi sebelumnya disimpan sebagai {name}.',
+  openedIncomplete:
+    'Dokumen ini menggunakan format XML Hangul lama (HWPML); {count} objek seperti gambar tidak dapat dibaca dan tidak dipaparkan. Untuk melindungi yang asal, dokumen ini tidak akan disimpan. Buka salinan yang disimpan sebagai HWP atau HWPX dalam Hancom Hangul.',
+  saveIncomplete:
+    'Tidak disimpan: {count} objek seperti gambar tidak dapat dibaca daripada dokumen XML Hangul lama (HWPML) ini, dan menyimpannya akan menghilangkannya. Buka salinan yang disimpan sebagai HWP atau HWPX dalam Hancom Hangul.',
   openedTracked:
     'Dokumen ini mengandungi perubahan yang dijejak. Anda melihat teks semasanya, dengan perubahan digunakan; menyimpan akan mengekalkan teks ini dan membuang rekod perubahan.',
   saveTracked:
