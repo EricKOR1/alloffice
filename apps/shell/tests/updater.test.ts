@@ -166,7 +166,7 @@ vi.mock('../src/main/update-window', () => ({
   clearUpdateState: () => closeUpdateWindow(),
 }))
 
-const FIRST_CHECK_DELAY_MS = 15_000
+const FIRST_CHECK_DELAY_MS = 3_000
 const RECHECK_INTERVAL_MS = 4 * 60 * 60 * 1000
 
 let platformSpy: { restore: () => void } | null = null
@@ -352,7 +352,7 @@ beforeEach(() => {
   updaterState.listeners.clear()
   updaterState.autoDownload = true
   updaterState.autoInstallOnAppQuit = false
-  updaterState.disableDifferentialDownload = false
+  updaterState.disableDifferentialDownload = true
   updaterState.fullChangelog = false
   updaterState.channel = null
   updaterState.allowDowngrade = false
@@ -407,13 +407,14 @@ describe('initAutoUpdater', () => {
     expect(checkForUpdates).not.toHaveBeenCalled()
   })
 
-  it('configures manual full-package download and checks after the initial delay', async () => {
+  it('configures a manual differential download and checks after the initial delay', async () => {
     const { initAutoUpdater } = await loadUpdater()
     initAutoUpdater(() => null)
     expect(updaterState.autoDownload).toBe(false)
     // the installer is started at will-quit by the updater itself
     expect(updaterState.autoInstallOnAppQuit).toBe(false)
-    expect(updaterState.disableDifferentialDownload).toBe(true)
+    // only the changed blocks are downloaded (electron-updater falls back to the whole file)
+    expect(updaterState.disableDifferentialDownload).toBe(false)
     // full changelog: the window shows the bodies of every skipped release
     expect(updaterState.fullChangelog).toBe(true)
     expect(checkForUpdates).not.toHaveBeenCalled()

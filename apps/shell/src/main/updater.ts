@@ -648,7 +648,8 @@ const tUpd = createI18n({
 // that is bound to fail.
 const SELF_UPDATES = process.platform !== 'darwin'
 
-const FIRST_CHECK_DELAY_MS = 15_000
+// soon after the window is up, so a new version is offered almost at once on launch
+const FIRST_CHECK_DELAY_MS = 3_000
 const RECHECK_INTERVAL_MS = 4 * 60 * 60 * 1000
 
 // After this many failed download/apply attempts for the same version the
@@ -888,9 +889,10 @@ export function initAutoUpdater(
   // installer cannot close the app over a save prompt, and every start is
   // recorded for the next launch to check.
   autoUpdater.autoInstallOnAppQuit = false
-  // full-package policy: never attempt blockmap differential downloads
-  // (a release then needs only the installer and its latest.yml)
-  autoUpdater.disableDifferentialDownload = true
+  // download only the blocks that changed (the release's .blockmap against the installer the
+  // previous install left in the updater cache): about 11 MB of the 192 MB installer between
+  // 1.0.1 and 1.0.2. electron-updater falls back to the whole installer on any failure.
+  autoUpdater.disableDifferentialDownload = false
   installResumeDownload(autoUpdater as unknown as Parameters<typeof installResumeDownload>[0])
 
   let latestSeenVersion: string | null = null
