@@ -1,0 +1,88 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 00:00:00 +0900
+Subject: [PATCH 30/30] =?UTF-8?q?fix(hml):=20=ED=95=9C=EA=B8=80=EC=9D=B4?=
+ =?UTF-8?q?=20=EC=A0=80=EC=9E=A5=ED=95=9C=20HWPML=202.x=20=ED=8C=90(2.7=20?=
+ =?UTF-8?q?=EB=93=B1)=EC=9D=84=20=EB=B0=9B=EB=8A=94=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+HML 해석기는 판 번호로 분기하지 않는데 여는 문은 2.1·2.9·2.91만 열어,
+`.hwp` 이름으로 도는 HWPML 2.7 학교 서식이 "지원하지 않는 HWPML 버전입니다:
+2.7"로 열리지 않았다. `2` 또는 `2.<숫자>` 꼴이면 같은 태그 기반 경로로 받고,
+2 판이 아닌 값은 그대로 거절한다.
+---
+ src/parser/hml/reader.rs | 16 +++++++++++++++-
+ src/parser/mod.rs        | 24 ++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+), 1 deletion(-)
+
+diff --git a/src/parser/hml/reader.rs b/src/parser/hml/reader.rs
+index 6d9924de..071d0e51 100755
+--- a/src/parser/hml/reader.rs
++++ b/src/parser/hml/reader.rs
+@@ -498,7 +498,10 @@ impl<'a> ReadState<'a> {
+         // 않는다.** 여기서 검사한 뒤 `source.version` 에 담아 `doc_info.hwpml_version`
+         // 메타데이터로 흘려보낼 뿐이고(`adapter.rs:29`), 요소 처리는 전부 태그 이름으로
+         // 간다. 그래서 2.1 을 통과시키는 것은 같은 태그 기반 경로로 보내는 것뿐이다.
+-        if !matches!(version.as_str(), "2.1" | "2.9" | "2.91") {
++        // [ieum 0030] 한글 2007~2010 무렵이 저장한 `2.5`·`2.7`·`2.8` 같은 2.x 판도
++        // 같은 태그 기반 경로로 받는다(학교 공문 서식이 `.hwp` 이름의 2.7 판으로
++        // 돈다). 2 판이 아닌 값(모르는 큰 판)은 여전히 거절한다.
++        if !is_hwpml_v2(&version) {
+             return Err(HmlError::UnsupportedVersion(version));
+         }
+         self.source.version = version;
+@@ -1854,3 +1857,14 @@ fn set_indexed<T: Default>(values: &mut Vec<T>, index: usize, value: T, max_inde
+     values[index] = value;
+     true
+ }
++
++/// [ieum 0030] `2` 또는 `2.<숫자>` 꼴의 HWPML 판인가.
++fn is_hwpml_v2(version: &str) -> bool {
++    match version.strip_prefix('2') {
++        Some("") => true,
++        Some(rest) => rest
++            .strip_prefix('.')
++            .is_some_and(|digits| !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())),
++        None => false,
++    }
++}
+diff --git a/src/parser/mod.rs b/src/parser/mod.rs
+index bbbd9103..50d2e1e3 100644
+--- a/src/parser/mod.rs
++++ b/src/parser/mod.rs
+@@ -2959,6 +2959,30 @@ mod tests {
+         }
+     }
+ 
++    #[test]
++    fn test_parse_document_accepts_older_hwpml_2x_versions() {
++        // [ieum 0030] 한글이 저장한 2.x 판(2.7 등)은 같은 태그 경로로 읽는다.
++        for version in ["2.0", "2.5", "2.7", "2.8"] {
++            let hwpml = format!(
++                r#"<?xml version="1.0" encoding="UTF-8"?><HWPML Version="{version}"></HWPML>"#
++            );
++            if let Err(ParseError::HmlError(hml::HmlError::UnsupportedVersion(v))) =
++                parse_document(hwpml.as_bytes())
++            {
++                panic!("HWPML {v} should not be refused as unsupported");
++            }
++        }
++        for version in ["3.0", "2.x", "20.1"] {
++            let hwpml = format!(
++                r#"<?xml version="1.0" encoding="UTF-8"?><HWPML Version="{version}"></HWPML>"#
++            );
++            assert!(matches!(
++                parse_document(hwpml.as_bytes()),
++                Err(ParseError::HmlError(hml::HmlError::UnsupportedVersion(_)))
++            ));
++        }
++    }
++
+     #[test]
+     fn test_parse_document_with_metadata_preserves_hml_import_diagnostics() {
+         let parsed =
+-- 
+2.43.0
+

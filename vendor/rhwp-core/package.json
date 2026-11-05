@@ -1,6 +1,6 @@
 {
   "name": "@rhwp/core",
-  "version": "0.8.7-ieum.18",
+  "version": "0.8.7-ieum.19",
   "description": "rhwp v0.8.7 HWP/HWPX engine (WebAssembly) rebuilt with the patches in ./patches",
   "private": true,
   "type": "module",
@@ -47,9 +47,10 @@
       "0026-hwpx-drop-rows-covered-by-merged-cells.patch",
       "0027-merged-table-cell-extents.patch",
       "0028-paragraph-float-follows-drawn-host.patch",
-      "0029-edited-tac-table-grows-with-text.patch"
+      "0029-edited-tac-table-grows-with-text.patch",
+      "0030-hwpml-2x-versions.patch"
     ],
     "wasmPack": "0.15.0",
-    "wasmSha256": "f2c2c3fe0252c51a4e4833d8d4648664cacdbd226b08d3139cd62e8ffb7b6354"
+    "wasmSha256": "3b9053d387e2d9ed988b73428ce369915b78fd31dd147f5ae07977b20cca196e"
   }
 }
