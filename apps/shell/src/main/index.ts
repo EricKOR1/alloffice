@@ -973,10 +973,10 @@ function persistLang(lang: Lang): void {
 
 let cachedUpdateChannel: UpdateChannel | null = null
 
+// AllOffice publishes no pre-releases and Settings offers no channel: every install follows
+// the stable releases, even one whose settings file still says "beta" from an older build.
 function currentUpdateChannel(): UpdateChannel {
-  if (cachedUpdateChannel) return cachedUpdateChannel
-  const saved = readAppSettings(APP_SETTINGS_PATH()).updateChannel
-  cachedUpdateChannel = isUpdateChannel(saved) ? saved : 'stable'
+  cachedUpdateChannel ??= 'stable'
   return cachedUpdateChannel
 }
 
@@ -6304,7 +6304,8 @@ function registerHomeIpc(): void {
   ipcMain.handle(HOME_CHANNELS.getUpdateChannel, (): UpdateChannel => currentUpdateChannel())
 
   ipcMain.handle(HOME_CHANNELS.setUpdateChannel, (_event, channel: unknown) => {
-    if (!isUpdateChannel(channel) || channel === currentUpdateChannel()) return
+    if (!isUpdateChannel(channel) || channel !== 'stable' || channel === currentUpdateChannel())
+      return
     cachedUpdateChannel = channel
     writeAppSetting(APP_SETTINGS_PATH(), 'updateChannel', channel)
     applyUpdateChannel(channel)
