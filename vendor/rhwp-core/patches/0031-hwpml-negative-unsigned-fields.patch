@@ -1,0 +1,85 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 00:00:00 +0900
+Subject: [PATCH 31/31] =?UTF-8?q?fix(hml):=20HWPML=20=EC=9D=98=20=EB=B6=80?=
+ =?UTF-8?q?=ED=98=B8=20=EC=97=86=EB=8A=94=20=EC=B9=B8=EC=97=90=20=EC=A0=81?=
+ =?UTF-8?q?=ED=9E=8C=20=EC=9D=8C=EC=88=98=EB=A5=BC=20=EC=9D=B4=EC=A7=84=20?=
+ =?UTF-8?q?HWP=20=EC=B2=98=EB=9F=BC=20=EC=9D=BD=EB=8A=94=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+한글이 저장한 HWPML 2.7 학교 서식이 "잘못된 HML XML입니다: invalid numeric
+attribute -1566"로 열리지 않았다. 뒤집힌 사각형의 SHAPECOMPONENT
+CurHeight="-1566"처럼 한글은 부호 있는 값을 음수로 쓰는데, 모델은 그 칸을
+부호 없이 담는다. 이진 HWP 읽기처럼 같은 비트(2의 보수)로 받고, 어떤 부호 없는
+폭에도 이렇게 담기지 않는 값은 그대로 거절한다.
+---
+ src/parser/hml/reader.rs | 24 ++++++++++++++++++++++++
+ src/parser/mod.rs        | 10 ++++++++++
+ 2 files changed, 34 insertions(+)
+
+diff --git a/src/parser/hml/reader.rs b/src/parser/hml/reader.rs
+index 071d0e51..ff60f15a 100755
+--- a/src/parser/hml/reader.rs
++++ b/src/parser/hml/reader.rs
+@@ -1703,11 +1703,35 @@ where
+         .map(|value| {
+             value
+                 .parse()
++                .or_else(|_| parse_wrapped_negative(&value))
+                 .map_err(|_| HmlError::InvalidXml(format!("invalid numeric attribute {value}")))
+         })
+         .transpose()
+ }
+ 
++/// [ieum 0031] A negative number in a field the model keeps unsigned (an offset or size that
++/// HWP stores as the two's complement of a signed value): read it as those same bits, as the
++/// binary HWP reader does. Older Hancom HWPML writes such fields signed (`-1566`). A value no
++/// unsigned width can hold this way stays an error.
++fn parse_wrapped_negative<T>(value: &str) -> Result<T, ()>
++where
++    T: std::str::FromStr,
++{
++    let negative: i64 = value.trim().parse().map_err(|_| ())?;
++    if negative >= 0 {
++        return Err(());
++    }
++    for bits in [32u32, 16, 8] {
++        let span = 1i64 << bits;
++        if negative >= -(span / 2) {
++            if let Ok(parsed) = (negative + span).to_string().parse() {
++                return Ok(parsed);
++            }
++        }
++    }
++    Err(())
++}
++
+ fn parse_border_width(element: &BytesStart<'_>) -> Result<u8, HmlError> {
+     let Some(value) = attribute(element, b"Width")? else {
+         return Ok(border_width_index(0.1));
+diff --git a/src/parser/mod.rs b/src/parser/mod.rs
+index 50d2e1e3..7bd5a67b 100644
+--- a/src/parser/mod.rs
++++ b/src/parser/mod.rs
+@@ -2983,6 +2983,16 @@ mod tests {
+         }
+     }
+ 
++    #[test]
++    fn test_hml_reads_negative_numbers_in_unsigned_fields() {
++        // [ieum 0031] 한글 HWPML 은 부호 있는 값을 음수로 쓴다(`VertOffset`, 표 크기 등).
++        // 모델이 부호 없이 담는 칸은 이진 HWP 처럼 같은 비트로 읽는다.
++        let sample = include_str!("../../samples/hml/formatting_table.hml");
++        let negative = sample.replacen("<SIZE Height=\"", "<SIZE Height=\"-", 1);
++        assert_ne!(negative, sample, "the sample has an object size to make negative");
++        parse_document(negative.as_bytes()).expect("a negative number in an unsigned field opens");
++    }
++
+     #[test]
+     fn test_parse_document_with_metadata_preserves_hml_import_diagnostics() {
+         let parsed =
+-- 
+2.43.0
+

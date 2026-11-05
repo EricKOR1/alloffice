@@ -1,6 +1,6 @@
 {
   "name": "@rhwp/core",
-  "version": "0.8.7-ieum.19",
+  "version": "0.8.7-ieum.22",
   "description": "rhwp v0.8.7 HWP/HWPX engine (WebAssembly) rebuilt with the patches in ./patches",
   "private": true,
   "type": "module",
@@ -48,9 +48,12 @@
       "0027-merged-table-cell-extents.patch",
       "0028-paragraph-float-follows-drawn-host.patch",
       "0029-edited-tac-table-grows-with-text.patch",
-      "0030-hwpml-2x-versions.patch"
+      "0030-hwpml-2x-versions.patch",
+      "0031-hwpml-negative-unsigned-fields.patch",
+      "0032-hml-relative-table-size.patch",
+      "0033-hml-shape-object-owner.patch"
     ],
     "wasmPack": "0.15.0",
-    "wasmSha256": "3b9053d387e2d9ed988b73428ce369915b78fd31dd147f5ae07977b20cca196e"
+    "wasmSha256": "ed7d30cd1ce2de8c807632b18d3863b872750101ab8857bf3c97e5148a0367fa"
   }
 }

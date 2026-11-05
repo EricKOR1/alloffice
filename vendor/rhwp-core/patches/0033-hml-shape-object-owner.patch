@@ -1,0 +1,120 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 00:00:00 +0900
+Subject: [PATCH 33/33] =?UTF-8?q?fix(hml):=20=EC=B9=B8=20=EC=95=88=20?=
+ =?UTF-8?q?=EA=B0=9C=EC=B2=B4=EC=9D=98=20=ED=81=AC=EA=B8=B0=C2=B7=EC=9C=84?=
+ =?UTF-8?q?=EC=B9=98=EA=B0=80=20=EB=B0=94=EA=B9=A5=20=ED=91=9C=EC=9D=98=20?=
+ =?UTF-8?q?=EA=B2=83=EC=9D=84=20=EB=8D=AE=EC=A7=80=20=EC=95=8A=EB=8A=94?=
+ =?UTF-8?q?=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+HML 해석기는 SHAPEOBJECT·SIZE·POSITION 을 스택에서 가장 가까운 표나 사각형의
+것으로 담았다. 그래서 칸 안 수식(모델이 크기를 따로 담지 않는다)의
+`SIZE Width="525"`가 바깥 표의 폭이 되어, HWPML 2.7 시험지의 [실험 과정] 표가
+폭 24px 막대로 그려졌다. SHAPEOBJECT 의 바로 위가 표·사각형일 때만 담는다.
+---
+ src/parser/hml/reader.rs | 23 +++++++++++++++++++++++
+ src/parser/mod.rs        | 30 ++++++++++++++++++++++++++++++
+ 2 files changed, 53 insertions(+)
+
+diff --git a/src/parser/hml/reader.rs b/src/parser/hml/reader.rs
+index e1d1a7ad..b73d5e0c 100755
+--- a/src/parser/hml/reader.rs
++++ b/src/parser/hml/reader.rs
+@@ -989,6 +989,9 @@ impl<'a> ReadState<'a> {
+     }
+ 
+     fn capture_object_size(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        if !self.shape_object_belongs_to_table_or_rectangle() {
++            return Ok(());
++        }
+         if self.nearest_object_is_table() {
+             let relative = |key: &[u8]| -> Result<bool, HmlError> {
+                 Ok(attribute(element, key)?.is_some_and(|value| value != "Absolute"))
+@@ -1009,6 +1012,9 @@ impl<'a> ReadState<'a> {
+     }
+ 
+     fn capture_object_position(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        if !self.shape_object_belongs_to_table_or_rectangle() {
++            return Ok(());
++        }
+         if self.nearest_object_is_table() {
+             if let Some(table) = self.tables.last_mut() {
+                 table.common.horizontal_offset =
+@@ -1041,6 +1047,20 @@ impl<'a> ReadState<'a> {
+         Ok(())
+     }
+ 
++    /// [ieum 0033] `SHAPEOBJECT` 와 그 자식(`SIZE`·`POSITION`)이 표나 사각형의 것인가.
++    /// 칸 안의 수식·그림처럼 모델이 따로 담지 않는 개체의 `SHAPEOBJECT` 도 같은 이름이라,
++    /// 스택에서 가장 가까운 표·사각형만 보면 그 개체의 크기·위치가 바깥 표의 것을 덮는다
++    /// (HWPML 2.7 시험지: 칸 안 수식의 `Width="525"` 가 표 폭이 되었다).
++    fn shape_object_belongs_to_table_or_rectangle(&self) -> bool {
++        let Some(shape_object) = self.stack.iter().rposition(|name| name == "SHAPEOBJECT") else {
++            return true;
++        };
++        shape_object
++            .checked_sub(1)
++            .and_then(|owner| self.stack.get(owner))
++            .is_some_and(|owner| owner == "TABLE" || owner == "RECTANGLE")
++    }
++
+     fn nearest_object_is_table(&self) -> bool {
+         let rectangle = self.stack.iter().rposition(|name| name == "RECTANGLE");
+         let table = self.stack.iter().rposition(|name| name == "TABLE");
+@@ -1059,6 +1079,9 @@ impl<'a> ReadState<'a> {
+     }
+ 
+     fn capture_shape_object(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        if !self.shape_object_belongs_to_table_or_rectangle() {
++            return Ok(());
++        }
+         let text_wrap = parse_text_wrap(attribute(element, b"TextWrap")?.as_deref());
+         // SHAPEOBJECT 는 표에도 방출되므로(write_shape_object) rectangle 뿐 아니라
+         // 표의 common.text_wrap 도 되읽어야 한다. 종전엔 rectangle 만 처리해 표의
+diff --git a/src/parser/mod.rs b/src/parser/mod.rs
+index 2241a91d..65d02f25 100644
+--- a/src/parser/mod.rs
++++ b/src/parser/mod.rs
+@@ -3017,6 +3017,36 @@ mod tests {
+         assert_eq!(width(&relative), width(&absolute));
+     }
+ 
++    #[test]
++    fn test_hml_object_inside_a_cell_does_not_resize_its_table() {
++        // [ieum 0033] 칸 안 수식의 SHAPEOBJECT/SIZE 가 바깥 표의 크기를 덮지 않는다.
++        let sample = include_str!("../../samples/hml/formatting_table.hml");
++        let width = |xml: &str| {
++            let doc = parse_document(xml.as_bytes()).expect("opens");
++            doc.sections[0]
++                .paragraphs
++                .iter()
++                .flat_map(|p| p.controls.iter())
++                .find_map(|c| match c {
++                    crate::model::control::Control::Table(t) => Some(t.common.width),
++                    _ => None,
++                })
++                .expect("a table")
++        };
++        let at = sample.find("<CELL ").expect("a cell");
++        let text = at + sample[at..].find("<CHAR>").expect("cell text");
++        let equation = concat!(
++            "<EQUATION BaseLine=\"86\" BaseUnit=\"1000\" LineMode=\"false\" ",
++            "TextColor=\"0\" Version=\"Equation Version 60\">",
++            "<SHAPEOBJECT InstId=\"1\" Lock=\"false\" NumberingType=\"Equation\" ZOrder=\"9\">",
++            "<SIZE Height=\"975\" HeightRelTo=\"Absolute\" Protect=\"false\" ",
++            "Width=\"525\" WidthRelTo=\"Absolute\"/></SHAPEOBJECT>",
++            "<SCRIPT>a</SCRIPT></EQUATION>"
++        );
++        let with_equation = format!("{}{}{}", &sample[..text], equation, &sample[text..]);
++        assert_eq!(width(&with_equation), width(sample));
++    }
++
+     /// The sample's table SIZE with its width written as 100 % of the column.
+     fn regex_free_relative_table(sample: &str) -> String {
+         let at = sample.find("<TABLE").expect("a table");
+-- 
+2.43.0
+
