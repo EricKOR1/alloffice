@@ -1,6 +1,6 @@
 {
   "name": "@rhwp/core",
-  "version": "0.8.7-ieum.22",
+  "version": "0.8.7-ieum.26",
   "description": "rhwp v0.8.7 HWP/HWPX engine (WebAssembly) rebuilt with the patches in ./patches",
   "private": true,
   "type": "module",
@@ -51,9 +51,13 @@
       "0030-hwpml-2x-versions.patch",
       "0031-hwpml-negative-unsigned-fields.patch",
       "0032-hml-relative-table-size.patch",
-      "0033-hml-shape-object-owner.patch"
+      "0033-hml-shape-object-owner.patch",
+      "0034-hml-pictures.patch",
+      "0035-hml-header-footer-line-autonum.patch",
+      "0036-hml-groups-and-hwp-save.patch",
+      "0037-hml-multi-column-and-page-number.patch"
     ],
     "wasmPack": "0.15.0",
-    "wasmSha256": "ed7d30cd1ce2de8c807632b18d3863b872750101ab8857bf3c97e5148a0367fa"
+    "wasmSha256": "db00c6c6ddbeeeece166b8fd5fa994afbcabd5090d49de912880a347fba9ce5f"
   }
 }

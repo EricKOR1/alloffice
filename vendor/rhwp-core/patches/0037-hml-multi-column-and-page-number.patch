@@ -1,0 +1,152 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 00:00:00 +0900
+Subject: [PATCH 37/37] =?UTF-8?q?fix(hml):=20=EB=8B=A8=20=EC=A0=95?=
+ =?UTF-8?q?=EC=9D=98=20=EB=AC=B8=EB=8B=A8=EC=9D=84=20=EB=8B=A4=EB=8B=A8=20?=
+ =?UTF-8?q?=EB=82=98=EB=88=84=EA=B8=B0=EB=A1=9C=20=EC=9D=BD=EA=B3=A0,=20?=
+ =?UTF-8?q?=EC=AA=BD=20=EB=B2=88=ED=98=B8=EC=99=80=20=EC=84=A0=20=EC=83=89?=
+ =?UTF-8?q?=EC=9D=84=20=EA=B7=B8=EB=A6=B0=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- 단 정의(COLDEF)를 담은 문단을 HWPX 해석기처럼 다단 나누기(문단 머리 bit 1)로
+  읽는다. 본문 중간의 2단 정의가 무시되어 2단 시험지가 1단으로 그려졌다(13쪽 → 8쪽).
+  HML 다시 쓰기의 사전 검사는 단 정의를 담은 문단의 이 비트를 되돌릴 수 있는 것으로 본다.
+- 자동 번호는 HWP 의 문단 글처럼 자리 글자 하나를 차지한다(배치가 그 자리에 번호를
+  쓴다). 자리 글자가 없어 쪽 번호가 그려지지 않았다.
+- 단독 선 개체는 LINESHAPE 의 선 색을 읽는다(사각형은 HML 이 되돌려 쓸 수 있는 검정 그대로).
+---
+ src/parser/hml/adapter.rs       | 15 +++++++++++++--
+ src/parser/hml/reader.rs        | 15 ++++++++++++++-
+ src/parser/mod.rs               | 18 ++++++++++++++++++
+ src/serializer/hml/preflight.rs | 18 +++++++++++++++++-
+ 4 files changed, 62 insertions(+), 4 deletions(-)
+
+diff --git a/src/parser/hml/adapter.rs b/src/parser/hml/adapter.rs
+index 0b1a17d9..be787853 100644
+--- a/src/parser/hml/adapter.rs
++++ b/src/parser/hml/adapter.rs
+@@ -112,11 +112,22 @@ fn into_paragraph(source: HmlParagraph) -> Result<Paragraph, HmlError> {
+     if char_shapes.is_empty() {
+         char_shapes.push(CharShapeRef::default());
+     }
++    // [ieum 0037] 단 정의를 담은 문단은 HWP 의 "다단 나누기"(PARA_HEADER bit 1)다. HWPX
++    // 해석기와 같이 쪽·단 나누기와 비트로 합친다. 고치기 전에는 본문 중간의 2단 정의가
++    // 무시되어 2단 시험지가 1단으로 그려졌다.
++    let mut raw_break_type = source.raw_break_type;
++    let mut column_type = source.column_type;
++    if controls.iter().any(|c| matches!(c, Control::ColumnDef(_))) {
++        raw_break_type |= 0x02;
++        if column_type == crate::model::paragraph::ColumnBreakType::None {
++            column_type = crate::model::paragraph::ColumnBreakType::MultiColumn;
++        }
++    }
+     Ok(Paragraph {
+         para_shape_id: source.para_shape_id,
+         style_id: source.style_id,
+-        column_type: source.column_type,
+-        raw_break_type: source.raw_break_type,
++        column_type,
++        raw_break_type,
+         char_count: source.raw_pos + 1,
+         has_para_text: !source.text.is_empty() || !controls.is_empty(),
+         text: source.text,
+diff --git a/src/parser/hml/reader.rs b/src/parser/hml/reader.rs
+index dded99af..688d071e 100755
+--- a/src/parser/hml/reader.rs
++++ b/src/parser/hml/reader.rs
+@@ -1285,9 +1285,15 @@ impl<'a> ReadState<'a> {
+                 &format!("Alpha={alpha}"),
+             ));
+         }
++        // [ieum 0035] a line (never written back to HML) keeps its colour; a rectangle keeps
++        // black, which is all the HML writer can write back
++        let color: u32 = parse_attribute(element, b"Color")?.unwrap_or(0);
+         if let Some(rectangle) = self.rectangles.last_mut() {
+             rectangle.border_line.width = width;
+             rectangle.border_line.attr = attr;
++            if rectangle.line.is_some() {
++                rectangle.border_line.color = color;
++            }
+         }
+         Ok(())
+     }
+@@ -1662,7 +1668,14 @@ impl<'a> ReadState<'a> {
+     /// [ieum 0035] `AUTONUM Number NumberType` → 자동 번호. 형식은 자식 `AUTONUMFORMAT`.
+     fn start_auto_number(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
+         use crate::model::control::{AutoNumber, AutoNumberType};
+-        self.reserve_control_slot()?;
++        // like HWP's PARA_TEXT, the number holds one placeholder character in the text (8 code
++        // units of the raw stream); the layout writes the number in its place
++        {
++            let paragraph = self.current_paragraph()?;
++            paragraph.char_offsets.push(paragraph.raw_pos);
++            paragraph.text.push(' ');
++            paragraph.raw_pos += 8;
++        }
+         let number: u16 = parse_attribute(element, b"Number")?.unwrap_or(1);
+         let number_type = match attribute(element, b"NumberType")?.as_deref() {
+             Some("Footnote") => AutoNumberType::Footnote,
+diff --git a/src/parser/mod.rs b/src/parser/mod.rs
+index 7bf57c43..8abb4d32 100644
+--- a/src/parser/mod.rs
++++ b/src/parser/mod.rs
+@@ -3182,6 +3182,24 @@ mod tests {
+         assert_eq!(skipped, 0);
+     }
+ 
++    #[test]
++    fn test_hml_column_definition_starts_a_multi_column_region() {
++        // [ieum 0037] a paragraph holding a COLDEF begins a multi-column region
++        let sample = include_str!("../../samples/hml/formatting_table.hml");
++        let coldef = "<COLDEF Count=\"2\" Layout=\"Left\" SameGap=\"3000\" SameSize=\"true\" \
++                      Type=\"Newspaper\"/>";
++        let xml = sample.replacen("<CHAR>abc</CHAR>", &format!("{coldef}<CHAR>abc</CHAR>"), 1);
++        assert_ne!(xml, sample);
++        let doc = parse_document(xml.as_bytes()).expect("opens");
++        let paragraph = doc.sections[0]
++            .paragraphs
++            .iter()
++            .find(|p| p.controls.iter().any(|c| matches!(c, crate::model::control::Control::ColumnDef(_))))
++            .expect("the paragraph with the column definition");
++        assert_eq!(paragraph.raw_break_type & 0x02, 0x02);
++        assert_eq!(paragraph.column_type, crate::model::paragraph::ColumnBreakType::MultiColumn);
++    }
++
+     #[test]
+     fn test_hml_pictures_survive_saving_as_hwp() {
+         // [ieum 0034] a document read from HWPML saves as HWP with its pictures
+diff --git a/src/serializer/hml/preflight.rs b/src/serializer/hml/preflight.rs
+index 17a7c85d..0db273c0 100644
+--- a/src/serializer/hml/preflight.rs
++++ b/src/serializer/hml/preflight.rs
+@@ -289,8 +289,24 @@ fn validate_paragraph(paragraph: &Paragraph, path: &str, blockers: &mut Vec<HmlS
+         "paragraph character-shape runs cannot be reconstructed by the HML reader",
+         blockers,
+     );
++    // [ieum 0037] the HML reader marks a paragraph that holds a COLDEF as a multi-column
++    // break (bit 0x02), so that bit comes back whenever the column definition is written
++    let holds_column_def = paragraph
++        .controls
++        .iter()
++        .any(|control| matches!(control, crate::model::control::Control::ColumnDef(_)));
++    let (column_type, raw_break_type) = if holds_column_def {
++        let without = paragraph.raw_break_type & !0x02;
++        let kind = match paragraph.column_type {
++            ColumnBreakType::MultiColumn => ColumnBreakType::None,
++            other => other,
++        };
++        (kind, without)
++    } else {
++        (paragraph.column_type, paragraph.raw_break_type)
++    };
+     let supported_break = matches!(
+-        (paragraph.column_type, paragraph.raw_break_type),
++        (column_type, raw_break_type),
+         (ColumnBreakType::None, 0)
+             | (ColumnBreakType::Page, 0x04)
+             | (ColumnBreakType::Column, 0x08)
+-- 
+2.43.0
+

@@ -1,0 +1,446 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 00:00:00 +0900
+Subject: [PATCH 35/35] =?UTF-8?q?feat(hml):=20HWPML=20=EC=9D=98=20?=
+ =?UTF-8?q?=EB=A8=B8=EB=A6=AC=EB=A7=90=C2=B7=EA=BC=AC=EB=A6=AC=EB=A7=90,?=
+ =?UTF-8?q?=20=EC=84=A0,=20=EC=9E=90=EB=8F=99=20=EB=B2=88=ED=98=B8?=
+ =?UTF-8?q?=EB=A5=BC=20=EC=9D=BD=EB=8A=94=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+HML 해석기는 HEADER·FOOTER·LINE·AUTONUM 을 건너뛰어, HWPML 2.7 시험지의
+꼬리말(가로선과 쪽 번호)이 빠졌다. 머리말·꼬리말은 그 안 문단을 담은 컨트롤로,
+선은 사각형과 같은 칸에 두 끝점(StartX/Y, EndX/Y, IsReverseHV)을 더한 선 개체로,
+AUTONUM 은 번호 종류(NumberType)와 AUTONUMFORMAT 의 모양·위 첨자를 담은 자동
+번호로 읽는다. 문단은 스택에서 가장 안쪽인 칸·글상자·머리말/꼬리말이 갖는다.
+---
+ src/parser/hml/adapter.rs |  70 ++++++++++++++
+ src/parser/hml/reader.rs  | 186 +++++++++++++++++++++++++++++++++++++-
+ src/parser/mod.rs         |  55 +++++++++++
+ 3 files changed, 309 insertions(+), 2 deletions(-)
+
+diff --git a/src/parser/hml/adapter.rs b/src/parser/hml/adapter.rs
+index 312a96ec..26e2cb50 100644
+--- a/src/parser/hml/adapter.rs
++++ b/src/parser/hml/adapter.rs
+@@ -133,6 +133,9 @@ fn into_control(source: HmlControl) -> Result<Control, HmlError> {
+         HmlControl::Equation(equation) => Ok(into_equation(equation)),
+         HmlControl::Rectangle(rectangle) => into_rectangle(rectangle),
+         HmlControl::Picture(picture) => Ok(into_picture(picture)),
++        HmlControl::Line(line) => Ok(into_line(line)),
++        HmlControl::HeaderFooter(header_footer) => into_header_footer(header_footer),
++        HmlControl::AutoNumber(number) => Ok(Control::AutoNumber(number)),
+         HmlControl::Table(table) => into_table(table),
+         HmlControl::ColumnDef(column_def) => Ok(Control::ColumnDef(column_def)),
+     }
+@@ -297,6 +300,73 @@ fn into_picture(source: HmlRectangle) -> Control {
+     }))
+ }
+ 
++/// [ieum 0035] HWPML `LINE` → 선 개체.
++fn into_line(source: HmlRectangle) -> Control {
++    use crate::model::shape::LineShape;
++    let line = source.line.unwrap_or_default();
++    let common = CommonObjAttr {
++        ctrl_id: crate::parser::tags::CTRL_GEN_SHAPE,
++        width: source.width,
++        height: source.height,
++        horizontal_offset: source.horizontal_offset as u32,
++        vertical_offset: source.vertical_offset as u32,
++        treat_as_char: source.treat_as_char,
++        flow_with_text: source.flow_with_text,
++        allow_overlap: source.allow_overlap,
++        vert_rel_to: source.vert_rel_to,
++        vert_align: source.vert_align,
++        horz_rel_to: source.horz_rel_to,
++        horz_align: source.horz_align,
++        text_wrap: source.text_wrap,
++        ..Default::default()
++    };
++    let drawing = DrawingObjAttr {
++        shape_attr: source.shape_attr,
++        border_line: source.border_line,
++        fill: source.fill,
++        ..Default::default()
++    };
++    Control::Shape(Box::new(ShapeObject::Line(LineShape {
++        common,
++        drawing,
++        start: crate::model::Point {
++            x: line.start.0,
++            y: line.start.1,
++        },
++        end: crate::model::Point {
++            x: line.end.0,
++            y: line.end.1,
++        },
++        started_right_or_bottom: line.reversed,
++        ..Default::default()
++    })))
++}
++
++/// [ieum 0035] HWPML `HEADER`/`FOOTER` → 머리말·꼬리말.
++fn into_header_footer(
++    source: super::reader::HmlHeaderFooter,
++) -> Result<Control, HmlError> {
++    use crate::model::header_footer::{Footer, Header};
++    let paragraphs = source
++        .paragraphs
++        .into_iter()
++        .map(into_paragraph)
++        .collect::<Result<Vec<_>, _>>()?;
++    Ok(if source.is_header {
++        Control::Header(Box::new(Header {
++            apply_to: source.apply_to,
++            paragraphs,
++            ..Default::default()
++        }))
++    } else {
++        Control::Footer(Box::new(Footer {
++            apply_to: source.apply_to,
++            paragraphs,
++            ..Default::default()
++        }))
++    })
++}
++
+ fn into_equation(source: HmlEquation) -> Control {
+     let (width, height) =
+         crate::renderer::equation::intrinsic_size_hwp(&source.script, source.font_size);
+diff --git a/src/parser/hml/reader.rs b/src/parser/hml/reader.rs
+index 2c925cf5..3347d7ab 100755
+--- a/src/parser/hml/reader.rs
++++ b/src/parser/hml/reader.rs
+@@ -115,6 +115,12 @@ pub(crate) enum HmlControl {
+     Rectangle(HmlRectangle),
+     /// [ieum 0034] 그림(`picture` 가 채워진 개체)
+     Picture(HmlRectangle),
++    /// [ieum 0035] 선(`line` 이 채워진 개체)
++    Line(HmlRectangle),
++    /// [ieum 0035] 머리말·꼬리말
++    HeaderFooter(HmlHeaderFooter),
++    /// [ieum 0035] 자동 번호(쪽 번호 등)
++    AutoNumber(crate::model::control::AutoNumber),
+     Table(HmlTable),
+     ColumnDef(ColumnDef),
+ }
+@@ -157,6 +163,24 @@ pub(crate) struct HmlRectangle {
+     /// [ieum 0034] `CONTAINER`(묶음 개체). 그림 하나만 묶은 것은 그 그림으로 옮기고,
+     /// 그 밖의 묶음은 건너뛰고 경고로 남긴다.
+     pub container: Option<HmlContainer>,
++    /// [ieum 0035] `LINE`(선)이면 시작·끝점과 뒤집힘.
++    pub line: Option<HmlLine>,
++}
++
++/// [ieum 0035] HWPML `LINE` 의 두 끝점.
++#[derive(Debug, Default)]
++pub(crate) struct HmlLine {
++    pub start: (i32, i32),
++    pub end: (i32, i32),
++    pub reversed: bool,
++}
++
++/// [ieum 0035] HWPML `HEADER`/`FOOTER`.
++#[derive(Debug, Default)]
++pub(crate) struct HmlHeaderFooter {
++    pub is_header: bool,
++    pub apply_to: crate::model::header_footer::HeaderFooterApply,
++    pub paragraphs: Vec<HmlParagraph>,
+ }
+ 
+ /// [ieum 0034] HWPML `PICTURE` 의 그림 고유 정보.
+@@ -245,6 +269,8 @@ struct ReadState<'a> {
+     equations: Vec<HmlEquation>,
+     accepted_script_depth: Option<usize>,
+     rectangles: Vec<HmlRectangle>,
++    /// [ieum 0035] 열린 머리말·꼬리말
++    header_footers: Vec<HmlHeaderFooter>,
+     tables: Vec<HmlTable>,
+     cells: Vec<HmlCell>,
+     font_language: Option<usize>,
+@@ -278,6 +304,7 @@ impl<'a> ReadState<'a> {
+             equations: Vec::new(),
+             accepted_script_depth: None,
+             rectangles: Vec::new(),
++            header_footers: Vec::new(),
+             tables: Vec::new(),
+             cells: Vec::new(),
+             font_language: None,
+@@ -494,6 +521,18 @@ impl<'a> ReadState<'a> {
+             "SCRIPT" => self.start_equation_script(element),
+             "RECTANGLE" => self.start_rectangle(element),
+             "PICTURE" => self.start_picture(element),
++            "LINE" if self.stack.iter().rev().nth(1).map(String::as_str) == Some("TEXT") => {
++                self.start_line(element)
++            }
++            "HEADER" | "FOOTER"
++                if self.stack.iter().rev().nth(1).map(String::as_str) == Some("TEXT") =>
++            {
++                self.start_header_footer(name == "HEADER", element)
++            }
++            "AUTONUM" if self.stack.iter().rev().nth(1).map(String::as_str) == Some("TEXT") => {
++                self.start_auto_number(element)
++            }
++            "AUTONUMFORMAT" => self.capture_auto_number_format(element),
+             "CONTAINER" => self.start_container(),
+             "IMAGERECT" => self.capture_image_rect(element),
+             "IMAGECLIP" => self.capture_image_clip(element),
+@@ -533,6 +572,14 @@ impl<'a> ReadState<'a> {
+             "SCRIPT" => self.finish_equation_script(),
+             "RECTANGLE" => self.finish_rectangle()?,
+             "PICTURE" => self.finish_picture()?,
++            "LINE" if self.stack.iter().rev().nth(1).map(String::as_str) == Some("TEXT") => {
++                self.finish_line()?
++            }
++            "HEADER" | "FOOTER"
++                if self.stack.iter().rev().nth(1).map(String::as_str) == Some("TEXT") =>
++            {
++                self.finish_header_footer()?
++            }
+             "CONTAINER" => self.finish_container()?,
+             "CELL" => self.finish_cell()?,
+             "TABLE" => self.finish_table()?,
+@@ -1116,7 +1163,10 @@ impl<'a> ReadState<'a> {
+             .checked_sub(1)
+             .and_then(|owner| self.stack.get(owner))
+             .is_some_and(|owner| {
+-                matches!(owner.as_str(), "TABLE" | "RECTANGLE" | "PICTURE" | "CONTAINER")
++                matches!(
++                    owner.as_str(),
++                    "TABLE" | "RECTANGLE" | "PICTURE" | "CONTAINER" | "LINE"
++                )
+             })
+     }
+ 
+@@ -1124,7 +1174,9 @@ impl<'a> ReadState<'a> {
+         let rectangle = self
+             .stack
+             .iter()
+-            .rposition(|name| matches!(name.as_str(), "RECTANGLE" | "PICTURE" | "CONTAINER"));
++            .rposition(|name| {
++                matches!(name.as_str(), "RECTANGLE" | "PICTURE" | "CONTAINER" | "LINE")
++            });
+         let table = self.stack.iter().rposition(|name| name == "TABLE");
+         table.is_some_and(|table_index| rectangle.is_none_or(|rect_index| table_index > rect_index))
+     }
+@@ -1288,6 +1340,21 @@ impl<'a> ReadState<'a> {
+         // 문단이 셀로 흘러들어 글상자는 비고(adapter 가 None 으로 접음) 셀에는 이물
+         // 문단이 남았다. 글상자가 스택상 더 안쪽일 때만 글상자를 고르고, 나머지는
+         // 종전 순서(셀 → 구역)를 그대로 유지한다.
++        // [ieum 0035] a header/footer deeper than any cell or text box owns the paragraph
++        let header_footer = self
++            .stack
++            .iter()
++            .rposition(|name| name == "HEADER" || name == "FOOTER");
++        let other = self
++            .stack
++            .iter()
++            .rposition(|name| name == "CELL" || name == "DRAWTEXT");
++        if header_footer.is_some_and(|hf| other.is_none_or(|o| hf > o)) {
++            if let Some(owner) = self.header_footers.last_mut() {
++                owner.paragraphs.push(paragraph);
++                return Ok(());
++            }
++        }
+         let owner_is_cell = self.nearest_paragraph_owner_is_cell();
+         if let Some(rectangle) = self.rectangles.last_mut().filter(|_| !owner_is_cell) {
+             rectangle.text_box.push(paragraph);
+@@ -1503,6 +1570,117 @@ impl<'a> ReadState<'a> {
+         Ok(())
+     }
+ 
++    /// [ieum 0035] `LINE`: 사각형과 같은 칸에 크기·배치를 담고, 두 끝점을 더한다.
++    fn start_line(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        self.reserve_control_slot()?;
++        let point = |x: &[u8], y: &[u8]| -> Result<(i32, i32), HmlError> {
++            Ok((
++                parse_attribute(element, x)?.unwrap_or(0),
++                parse_attribute(element, y)?.unwrap_or(0),
++            ))
++        };
++        self.rectangles.push(HmlRectangle {
++            line: Some(HmlLine {
++                start: point(b"StartX", b"StartY")?,
++                end: point(b"EndX", b"EndY")?,
++                reversed: parse_bool_attribute(element, b"IsReverseHV")?,
++            }),
++            ..Default::default()
++        });
++        Ok(())
++    }
++
++    fn finish_line(&mut self) -> Result<(), HmlError> {
++        let line = self
++            .rectangles
++            .pop()
++            .ok_or_else(|| HmlError::InvalidXml("unexpected LINE end".to_string()))?;
++        self.current_paragraph()?
++            .controls
++            .push(HmlControl::Line(line));
++        Ok(())
++    }
++
++    fn start_header_footer(
++        &mut self,
++        is_header: bool,
++        element: &BytesStart<'_>,
++    ) -> Result<(), HmlError> {
++        use crate::model::header_footer::HeaderFooterApply;
++        self.reserve_control_slot()?;
++        let apply_to = match attribute(element, b"ApplyPageType")?.as_deref() {
++            Some("Even") => HeaderFooterApply::Even,
++            Some("Odd") => HeaderFooterApply::Odd,
++            _ => HeaderFooterApply::Both,
++        };
++        self.header_footers.push(HmlHeaderFooter {
++            is_header,
++            apply_to,
++            paragraphs: Vec::new(),
++        });
++        Ok(())
++    }
++
++    fn finish_header_footer(&mut self) -> Result<(), HmlError> {
++        let header_footer = self
++            .header_footers
++            .pop()
++            .ok_or_else(|| HmlError::InvalidXml("unexpected HEADER/FOOTER end".to_string()))?;
++        self.current_paragraph()?
++            .controls
++            .push(HmlControl::HeaderFooter(header_footer));
++        Ok(())
++    }
++
++    /// [ieum 0035] `AUTONUM Number NumberType` → 자동 번호. 형식은 자식 `AUTONUMFORMAT`.
++    fn start_auto_number(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        use crate::model::control::{AutoNumber, AutoNumberType};
++        self.reserve_control_slot()?;
++        let number: u16 = parse_attribute(element, b"Number")?.unwrap_or(1);
++        let number_type = match attribute(element, b"NumberType")?.as_deref() {
++            Some("Footnote") => AutoNumberType::Footnote,
++            Some("Endnote") => AutoNumberType::Endnote,
++            Some("Figure") => AutoNumberType::Picture,
++            Some("Table") => AutoNumberType::Table,
++            Some("Equation") => AutoNumberType::Equation,
++            Some("TotalPage") => AutoNumberType::TotalPage,
++            _ => AutoNumberType::Page,
++        };
++        self.current_paragraph()?
++            .controls
++            .push(HmlControl::AutoNumber(AutoNumber {
++                number_type,
++                number,
++                assigned_number: number,
++                ..Default::default()
++            }));
++        Ok(())
++    }
++
++    fn capture_auto_number_format(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        if self.stack.iter().rev().nth(1).map(String::as_str) != Some("AUTONUM") {
++            return Ok(());
++        }
++        let superscript = parse_bool_attribute(element, b"Superscript")?;
++        // HWP 번호 모양: 0 아라비아 숫자, 1 동그라미 숫자, 2 로마 대문자, 3 로마 소문자,
++        // 4 영문 대문자, 5 영문 소문자
++        let format = match attribute(element, b"Type")?.as_deref() {
++            Some("CircledDigit") => 1,
++            Some("RomanCapital") => 2,
++            Some("RomanSmall") => 3,
++            Some("LatinCapital") => 4,
++            Some("LatinSmall") => 5,
++            _ => 0,
++        };
++        if let Ok(paragraph) = self.current_paragraph() {
++            if let Some(HmlControl::AutoNumber(number)) = paragraph.controls.last_mut() {
++                number.superscript = superscript;
++                number.format = format;
++            }
++        }
++        Ok(())
++    }
++
+     fn finish_rectangle(&mut self) -> Result<(), HmlError> {
+         let rectangle = self
+             .rectangles
+@@ -1713,6 +1891,10 @@ impl<'a> ReadState<'a> {
+                     | "TABLE"
+                     | "PICTURE"
+                     | "CONTAINER"
++                    | "LINE"
++                    | "HEADER"
++                    | "FOOTER"
++                    | "AUTONUM"
+             )
+     }
+ 
+diff --git a/src/parser/mod.rs b/src/parser/mod.rs
+index 97d029cd..b767603b 100644
+--- a/src/parser/mod.rs
++++ b/src/parser/mod.rs
+@@ -3136,6 +3136,61 @@ mod tests {
+         }
+     }
+ 
++    #[test]
++    fn test_hml_footer_with_line_and_page_number_is_read() {
++        // [ieum 0035] the footer of an HWPML 2.7 test paper: a rule and the page number
++        let sample = include_str!("../../samples/hml/formatting_table.hml");
++        let footer = concat!(
++            "<FOOTER ApplyPageType=\"Both\" SeriesNum=\"3\"><PARALIST LineWrap=\"Break\" ",
++            "LinkListID=\"0\" LinkListIDNext=\"0\" TextDirection=\"0\" VertAlign=\"Bottom\">",
++            "<P ParaShape=\"0\" Style=\"0\"><TEXT CharShape=\"0\">",
++            "<LINE EndX=\"100\" EndY=\"100\" IsReverseHV=\"false\" StartX=\"0\" StartY=\"0\">",
++            "<SHAPEOBJECT InstId=\"1\" Lock=\"false\" NumberingType=\"Figure\" ZOrder=\"0\">",
++            "<SIZE Height=\"1\" HeightRelTo=\"Absolute\" Protect=\"false\" Width=\"51592\" ",
++            "WidthRelTo=\"Absolute\"/><POSITION AffectLSpacing=\"false\" AllowOverlap=\"true\" ",
++            "FlowWithText=\"false\" HoldAnchorAndSO=\"false\" HorzAlign=\"Left\" HorzOffset=\"0\" ",
++            "HorzRelTo=\"Para\" TreatAsChar=\"true\" VertAlign=\"Top\" VertOffset=\"0\" ",
++            "VertRelTo=\"Para\"/></SHAPEOBJECT><DRAWINGOBJECT><SHAPECOMPONENT CurHeight=\"1\" ",
++            "CurWidth=\"51592\" GroupLevel=\"0\" OriHeight=\"100\" OriWidth=\"100\" XPos=\"0\" ",
++            "YPos=\"0\"/><LINESHAPE Alpha=\"0\" Color=\"7895160\" EndCap=\"Flat\" Style=\"Solid\" ",
++            "Width=\"227\"/></DRAWINGOBJECT></LINE>",
++            "<AUTONUM Number=\"1\" NumberType=\"Page\"><AUTONUMFORMAT Superscript=\"false\" ",
++            "Type=\"Digit\"/></AUTONUM><CHAR/></TEXT></P></PARALIST></FOOTER>"
++        );
++        let xml = sample.replacen("<CHAR>abc</CHAR>", &format!("<CHAR>abc</CHAR>{footer}"), 1);
++        assert_ne!(xml, sample);
++        let parsed = parse_document_with_metadata(xml.as_bytes()).expect("opens");
++        let footer = parsed.document.sections[0]
++            .paragraphs
++            .iter()
++            .flat_map(|p| p.controls.iter())
++            .find_map(|c| match c {
++                crate::model::control::Control::Footer(f) => Some(f),
++                _ => None,
++            })
++            .expect("the footer is a control");
++        let controls: Vec<_> = footer.paragraphs.iter().flat_map(|p| p.controls.iter()).collect();
++        assert!(controls.iter().any(|c| matches!(
++            c,
++            crate::model::control::Control::Shape(shape)
++                if matches!(**shape, crate::model::shape::ShapeObject::Line(_))
++        )));
++        assert!(controls.iter().any(|c| matches!(
++            c,
++            crate::model::control::Control::AutoNumber(n)
++                if n.number_type == crate::model::control::AutoNumberType::Page
++        )));
++        let skipped = parsed
++            .hml_metadata
++            .expect("metadata")
++            .warnings
++            .iter()
++            .filter(|w| w.code == hml::HmlWarningCode::UnsupportedElement)
++            .filter(|w| w.xml_path.starts_with("/HWPML/BODY/"))
++            .count();
++        assert_eq!(skipped, 0);
++    }
++
+     /// The sample's table SIZE with its width written as 100 % of the column.
+     fn regex_free_relative_table(sample: &str) -> String {
+         let at = sample.find("<TABLE").expect("a table");
+-- 
+2.43.0
+

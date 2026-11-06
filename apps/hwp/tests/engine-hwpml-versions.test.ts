@@ -107,14 +107,122 @@ describe('HWPML versions', () => {
   })
 
   it('counts the objects it skipped, which a save would drop', () => {
-    // a picture is not read from HWPML: the app refuses to save such a document
-    const withPicture = new TextDecoder()
+    // an ellipse is not read from HWPML yet: the app refuses to save such a document
+    const withEllipse = new TextDecoder()
       .decode(hwpml('2.7'))
-      .replace('<CHAR>abc</CHAR>', '<CHAR>abc</CHAR><PICTURE Reverse="false"></PICTURE>')
-    expect(withPicture).toContain('<PICTURE')
-    const doc = new HwpDocument(new TextEncoder().encode(withPicture))
+      .replace('<CHAR>abc</CHAR>', '<CHAR>abc</CHAR><ELLIPSE></ELLIPSE>')
+    expect(withEllipse).toContain('<ELLIPSE')
+    const doc = new HwpDocument(new TextEncoder().encode(withEllipse))
     expect(hmlSkippedObjectCount(doc.getHmlOpenMetadata())).toBe(1)
     expect(hmlSkippedObjectCount(new HwpDocument(hwpml('2.7')).getHmlOpenMetadata())).toBe(0)
+  })
+
+  it('reads a footer with a rule and a page number (patch 0035)', () => {
+    const footer =
+      '<FOOTER ApplyPageType="Both"><PARALIST LineWrap="Break" VertAlign="Bottom">' +
+      '<P ParaShape="0" Style="0"><TEXT CharShape="0">' +
+      '<LINE EndX="100" EndY="100" IsReverseHV="false" StartX="0" StartY="0">' +
+      '<SHAPEOBJECT InstId="1" Lock="false" NumberingType="Figure" ZOrder="0">' +
+      '<SIZE Height="1" HeightRelTo="Absolute" Protect="false" Width="30000" ' +
+      'WidthRelTo="Absolute"/><POSITION AffectLSpacing="false" AllowOverlap="true" ' +
+      'FlowWithText="false" HoldAnchorAndSO="false" HorzAlign="Left" HorzOffset="0" ' +
+      'HorzRelTo="Para" TreatAsChar="true" VertAlign="Top" VertOffset="0" VertRelTo="Para"/>' +
+      '</SHAPEOBJECT><DRAWINGOBJECT><SHAPECOMPONENT CurHeight="1" CurWidth="30000" ' +
+      'GroupLevel="0" OriHeight="100" OriWidth="100" XPos="0" YPos="0"/><LINESHAPE ' +
+      'Alpha="0" Color="0" EndCap="Flat" Style="Solid" Width="227"/></DRAWINGOBJECT></LINE>' +
+      '<AUTONUM Number="1" NumberType="Page"><AUTONUMFORMAT Superscript="false" ' +
+      'Type="Digit"/></AUTONUM><CHAR/></TEXT></P></PARALIST></FOOTER>'
+    const xml = new TextDecoder()
+      .decode(hwpml('2.7'))
+      .replace('<CHAR>abc</CHAR>', `<CHAR>abc</CHAR>${footer}`)
+    const doc = new HwpDocument(new TextEncoder().encode(xml))
+    expect(hmlSkippedObjectCount(doc.getHmlOpenMetadata())).toBe(0)
+    // the rule is drawn in the footer area, below the body text. The page number after it is
+    // not drawn yet: the layout puts it in place by finding two spaces in the run, which the
+    // rule's own run boundary splits (a known limit, README of vendor/rhwp-core)
+    const svg = doc.renderPageSvg(0)
+    const rule = [...svg.matchAll(/<line\b[^>]*\by1="([\d.]+)"[^>]*\bx2="([\d.]+)"/g)].map((m) =>
+      Number(m[1]),
+    )
+    const texts = [...svg.matchAll(/<text[^>]*\by="([\d.]+)"/g)].map((m) => Number(m[1]))
+    expect(Math.max(...rule)).toBeGreaterThan(Math.max(...texts))
+  })
+
+  it('reads its pictures and a group holding one picture (patch 0034)', () => {
+    const PNG =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+    const picture = (shapeObject: boolean, item: number) =>
+      '<PICTURE Reverse="false">' +
+      (shapeObject
+        ? '<SHAPEOBJECT InstId="7" Lock="false" NumberingType="Figure" ZOrder="3">' +
+          '<SIZE Height="2000" HeightRelTo="Absolute" Protect="false" Width="3000" ' +
+          'WidthRelTo="Absolute"/><POSITION AffectLSpacing="false" AllowOverlap="false" ' +
+          'FlowWithText="true" HoldAnchorAndSO="false" HorzAlign="Left" HorzOffset="0" ' +
+          'HorzRelTo="Para" TreatAsChar="true" VertAlign="Top" VertOffset="0" ' +
+          'VertRelTo="Para"/></SHAPEOBJECT>'
+        : '') +
+      '<SHAPECOMPONENT GroupLevel="0" OriHeight="2000" OriWidth="3000" XPos="0" YPos="0"/>' +
+      '<IMAGERECT X0="0" X1="3000" X2="3000" X3="0" Y0="0" Y1="0" Y2="2000" Y3="2000"/>' +
+      '<IMAGECLIP Bottom="2000" Left="0" Right="3000" Top="0"/>' +
+      '<INSIDEMARGIN Bottom="0" Left="0" Right="0" Top="0"/>' +
+      `<IMAGE Alpha="0" BinItem="${item}" Bright="0" Contrast="0" Effect="RealPic"/></PICTURE>`
+    const group =
+      '<CONTAINER><SHAPEOBJECT InstId="8" Lock="false" NumberingType="Figure" ZOrder="4">' +
+      '<SIZE Height="1000" HeightRelTo="Absolute" Protect="false" Width="1500" ' +
+      'WidthRelTo="Absolute"/><POSITION AffectLSpacing="false" AllowOverlap="false" ' +
+      'FlowWithText="true" HoldAnchorAndSO="false" HorzAlign="Left" HorzOffset="0" ' +
+      'HorzRelTo="Para" TreatAsChar="true" VertAlign="Top" VertOffset="0" VertRelTo="Para"/>' +
+      '</SHAPEOBJECT><SHAPECOMPONENT CurHeight="1000" CurWidth="1500" GroupLevel="0" ' +
+      `OriHeight="1000" OriWidth="1500" XPos="0" YPos="0"/>${picture(false, 2)}</CONTAINER>`
+    const xml = new TextDecoder()
+      .decode(hwpml('2.7'))
+      .replace('<CHAR>abc</CHAR>', `<CHAR>abc</CHAR>${picture(true, 1)}`)
+      .replace('<CHAR>456</CHAR>', `<CHAR>456</CHAR>${group}`)
+      .replace(
+        '<MAPPINGTABLE>',
+        '<MAPPINGTABLE><BINDATALIST Count="2"><BINITEM BinData="1" Format="png" ' +
+          'Type="Embedding"/><BINITEM BinData="2" Format="png" Type="Embedding"/></BINDATALIST>',
+      )
+      .replace(
+        '<TAIL>',
+        `<TAIL><BINDATASTORAGE><BINDATA Encoding="Base64" Id="1">${PNG}</BINDATA>` +
+          `<BINDATA Encoding="Base64" Id="2">\n${PNG}\n</BINDATA></BINDATASTORAGE>`,
+      )
+    const doc = new HwpDocument(new TextEncoder().encode(xml))
+    // both pictures are drawn with their image, and nothing was skipped
+    const svg = Array.from({ length: doc.pageCount() }, (_, page) => doc.renderPageSvg(page)).join(
+      '',
+    )
+    expect(svg.match(/<image\b/g)?.length).toBe(2)
+    expect(hmlSkippedObjectCount(doc.getHmlOpenMetadata())).toBe(0)
+    // a document whose objects were all read saves as HWP with its pictures
+    const saved = new HwpDocument(doc.exportHwp())
+    const savedSvg = Array.from({ length: saved.pageCount() }, (_, page) =>
+      saved.renderPageSvg(page),
+    ).join('')
+    expect(savedSvg.match(/<image\b/g)?.length).toBe(2)
+  })
+
+  it('starts two columns where a column definition stands (patch 0037)', () => {
+    const coldef =
+      '<COLDEF Count="2" Layout="Left" SameGap="3000" SameSize="true" Type="Newspaper"/>'
+    const long = '가나다라마바사아자차카타파하'.repeat(6)
+    const plain = new TextDecoder()
+      .decode(hwpml('2.7'))
+      .replace('<CHAR>abc</CHAR>', `<CHAR>${long}</CHAR>`)
+    const twoColumns = plain.replace(`<CHAR>${long}</CHAR>`, `${coldef}<CHAR>${long}</CHAR>`)
+    // the right end of the long line, against the page's middle
+    const rightEnd = (xml: string) => {
+      const doc = new HwpDocument(new TextEncoder().encode(xml))
+      const svg = doc.renderPageSvg(0)
+      const width = Number(svg.match(/viewBox="0 0 ([\d.]+)/)?.[1])
+      const xs = [...svg.matchAll(/<text[^>]*\bx="([\d.]+)"[^>]*>([^<]*)</g)]
+        .filter((m) => '가나다라마바사아자차카타파하'.includes(m[2]))
+        .map((m) => Number(m[1]))
+      return Math.max(...xs) / width
+    }
+    expect(rightEnd(plain)).toBeGreaterThan(0.6)
+    expect(rightEnd(twoColumns)).toBeLessThan(0.5)
   })
 
   it('still refuses a version it does not know', () => {

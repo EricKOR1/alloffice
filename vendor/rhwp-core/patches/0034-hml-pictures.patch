@@ -1,0 +1,728 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 00:00:00 +0900
+Subject: [PATCH 34/34] =?UTF-8?q?feat(hml):=20HWPML=20=EC=9D=98=20?=
+ =?UTF-8?q?=EA=B7=B8=EB=A6=BC=EA=B3=BC=20=EA=B7=B8=EB=A6=BC=20=ED=95=98?=
+ =?UTF-8?q?=EB=82=98=EC=A7=9C=EB=A6=AC=20=EB=AC=B6=EC=9D=8C=20=EA=B0=9C?=
+ =?UTF-8?q?=EC=B2=B4=EB=A5=BC=20=EC=9D=BD=EB=8A=94=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+HML 해석기는 PICTURE 를 지원하지 않는 요소로 건너뛰어, HWPML(2.7 등) 시험지의
+그림 25개가 모두 빠졌다. 그림을 사각형과 같은 칸(SHAPEOBJECT·SIZE·POSITION·
+SHAPECOMPONENT)으로 읽고 IMAGERECT·IMAGECLIP·INSIDEMARGIN·IMAGE(BinItem, 밝기,
+대비, 효과, 투명도)를 더해 그림 컨트롤로 만든다. 그림 자료는 HEAD 의 BINITEM
+순서가 번호이고, 바이트는 HML 다시 쓰기를 위해 원문 그대로 보존되는
+TAIL/BINDATASTORAGE 의 BINDATA(Base64, Compress="true"면 deflate)에서 읽는다.
+
+그림 하나만 묶은 CONTAINER(제목 띠에 흔하다)는 묶음의 크기·자리로 그 그림을
+놓는다. 다른 것을 담은 묶음은 종전처럼 건너뛰고 경고로 남긴다. 표 칸 안 그림의
+INSIDEMARGIN 이 바깥 표의 안쪽 여백을 덮던 것도 고친다. 뒤집힌 개체의 음수
+CurWidth·CurHeight 는 원래 크기를 쓴다(0031 이 같은 비트로 읽은 값을 쓰지 않는다).
+---
+ src/parser/hml/adapter.rs | 161 +++++++++++++++++++
+ src/parser/hml/reader.rs  | 317 ++++++++++++++++++++++++++++++++++++--
+ src/parser/mod.rs         |  89 +++++++++++
+ 3 files changed, 555 insertions(+), 12 deletions(-)
+
+diff --git a/src/parser/hml/adapter.rs b/src/parser/hml/adapter.rs
+index 2f97f1f7..312a96ec 100644
+--- a/src/parser/hml/adapter.rs
++++ b/src/parser/hml/adapter.rs
+@@ -54,6 +54,7 @@ pub(crate) fn into_document(mut source: HmlSource) -> Result<Document, HmlError>
+ 
+ fn move_resources(source: &mut HmlSource, document: &mut Document) {
+     add_default_resources(document);
++    move_bin_data(source, document);
+     if !source.font_faces.is_empty() {
+         document.doc_info.font_faces = std::mem::take(&mut source.font_faces);
+     }
+@@ -131,11 +132,171 @@ fn into_control(source: HmlControl) -> Result<Control, HmlError> {
+     match source {
+         HmlControl::Equation(equation) => Ok(into_equation(equation)),
+         HmlControl::Rectangle(rectangle) => into_rectangle(rectangle),
++        HmlControl::Picture(picture) => Ok(into_picture(picture)),
+         HmlControl::Table(table) => into_table(table),
+         HmlControl::ColumnDef(column_def) => Ok(Control::ColumnDef(column_def)),
+     }
+ }
+ 
++/// [ieum 0034] 그림 자료: `BINITEM` 순서가 그림이 가리키는 번호(1부터)이고, 바이트는
++/// `TAIL/BINDATASTORAGE` 의 `BINDATA`(Base64, `Compress="true"` 면 deflate)에서 온다.
++/// 이 저장소는 HML 다시 쓰기를 위해 원문 그대로 보존되므로 그 원문에서 읽는다.
++fn move_bin_data(source: &HmlSource, document: &mut Document) {
++    use crate::model::bin_data::{BinData, BinDataContent, BinDataType};
++    if source.bin_items.is_empty() {
++        return;
++    }
++    let mut stored = std::collections::HashMap::new();
++    for fragment in &source.preserved_fragments {
++        if fragment.xml_path.ends_with("/BINDATASTORAGE") {
++            for (id, bytes) in bin_data_in_storage(&fragment.raw_xml) {
++                stored.insert(id, bytes);
++            }
++        }
++    }
++    for (index, item) in source.bin_items.iter().enumerate() {
++        let storage_id = (index + 1) as u16;
++        let extension = if item.format.is_empty() {
++            "bmp".to_string()
++        } else {
++            item.format.clone()
++        };
++        document.doc_info.bin_data_list.push(BinData {
++            data_type: if item.embedded {
++                BinDataType::Embedding
++            } else {
++                BinDataType::Link
++            },
++            storage_id,
++            extension: Some(extension.clone()),
++            ..Default::default()
++        });
++        let bytes = stored.remove(&item.bin_data).unwrap_or_default();
++        document.bin_data_content.push(BinDataContent {
++            id: storage_id,
++            data: bytes.into(),
++            extension,
++        });
++    }
++}
++
++/// `<BINDATA Id=".." Encoding="Base64" [Compress="true"]>…</BINDATA>` 들의 (Id, 바이트).
++fn bin_data_in_storage(xml: &str) -> Vec<(u16, Vec<u8>)> {
++    use base64::Engine as _;
++    let mut found = Vec::new();
++    let mut rest = xml;
++    while let Some(open) = rest.find("<BINDATA ") {
++        let after = &rest[open..];
++        let Some(tag_end) = after.find('>') else { break };
++        let tag = &after[..tag_end];
++        let body_start = open + tag_end + 1;
++        if tag.ends_with('/') {
++            rest = &rest[body_start..];
++            continue;
++        }
++        let Some(close) = rest[body_start..].find("</BINDATA>") else { break };
++        let body = &rest[body_start..body_start + close];
++        rest = &rest[body_start + close + "</BINDATA>".len()..];
++        let attr = |name: &str| -> Option<&str> {
++            let key = format!(" {name}=\"");
++            let at = tag.find(&key)? + key.len();
++            let end = tag[at..].find('"')?;
++            Some(&tag[at..at + end])
++        };
++        let Some(id) = attr("Id").and_then(|v| v.trim().parse::<u16>().ok()) else {
++            continue;
++        };
++        if attr("Encoding").is_some_and(|e| !e.eq_ignore_ascii_case("Base64")) {
++            continue;
++        }
++        let clean: String = body.chars().filter(|c| !c.is_whitespace()).collect();
++        let Ok(mut bytes) = base64::engine::general_purpose::STANDARD.decode(clean.as_bytes())
++        else {
++            continue;
++        };
++        if attr("Compress").is_some_and(|v| v.eq_ignore_ascii_case("true")) {
++            if let Some(inflated) = inflate(&bytes) {
++                bytes = inflated;
++            }
++        }
++        found.push((id, bytes));
++    }
++    found
++}
++
++fn inflate(bytes: &[u8]) -> Option<Vec<u8>> {
++    use std::io::Read as _;
++    let limit = crate::model::bin_data::MAX_BIN_DATA_BYTES as u64;
++    let mut out = Vec::new();
++    if flate2::read::DeflateDecoder::new(bytes)
++        .take(limit)
++        .read_to_end(&mut out)
++        .is_ok()
++    {
++        return Some(out);
++    }
++    out.clear();
++    flate2::read::ZlibDecoder::new(bytes)
++        .take(limit)
++        .read_to_end(&mut out)
++        .ok()
++        .map(|_| out)
++}
++
++/// [ieum 0034] HWPML `PICTURE` → 그림 컨트롤. 크기·배치는 사각형과 같이 읽은 값이다.
++fn into_picture(source: HmlRectangle) -> Control {
++    use crate::model::image::{CropInfo, ImageAttr, Picture};
++    let data = source.picture.unwrap_or_default();
++    let mut shape_attr = source.shape_attr;
++    if shape_attr.current_width == 0 {
++        shape_attr.current_width = source.width;
++    }
++    if shape_attr.current_height == 0 {
++        shape_attr.current_height = source.height;
++    }
++    let common = CommonObjAttr {
++        ctrl_id: crate::parser::tags::CTRL_GEN_SHAPE,
++        width: source.width,
++        height: source.height,
++        horizontal_offset: source.horizontal_offset as u32,
++        vertical_offset: source.vertical_offset as u32,
++        treat_as_char: source.treat_as_char,
++        flow_with_text: source.flow_with_text,
++        allow_overlap: source.allow_overlap,
++        vert_rel_to: source.vert_rel_to,
++        vert_align: source.vert_align,
++        horz_rel_to: source.horz_rel_to,
++        horz_align: source.horz_align,
++        text_wrap: source.text_wrap,
++        hwp5_gen_shape_attr_bit26: true,
++        ..Default::default()
++    };
++    let [left, top, right, bottom] = data.crop;
++    Control::Picture(Box::new(Picture {
++        common,
++        shape_attr,
++        border_x: data.border_x,
++        border_y: data.border_y,
++        crop: CropInfo {
++            left,
++            top,
++            right,
++            bottom,
++        },
++        padding: data.padding,
++        image_attr: ImageAttr {
++            brightness: data.brightness,
++            contrast: data.contrast,
++            effect: data.effect,
++            bin_data_id: data.bin_item,
++            transparency: data.alpha.min(100),
++            ..Default::default()
++        },
++        reverse: data.reverse,
++        ..Default::default()
++    }))
++}
++
+ fn into_equation(source: HmlEquation) -> Control {
+     let (width, height) =
+         crate::renderer::equation::intrinsic_size_hwp(&source.script, source.font_size);
+diff --git a/src/parser/hml/reader.rs b/src/parser/hml/reader.rs
+index b73d5e0c..2c925cf5 100755
+--- a/src/parser/hml/reader.rs
++++ b/src/parser/hml/reader.rs
+@@ -79,6 +79,8 @@ pub(crate) struct HmlSource {
+     pub resource_count: usize,
+     pub warnings: Vec<HmlWarning>,
+     pub preserved_fragments: Vec<PreservedFragment>,
++    /// [ieum 0034] 그림 자료 목록(BINITEM), 문서 순서
++    pub bin_items: Vec<HmlBinItem>,
+     pub font_faces: Vec<Vec<Font>>,
+     pub border_fills: Vec<BorderFill>,
+     pub char_shapes: Vec<CharShape>,
+@@ -111,6 +113,8 @@ pub(crate) struct HmlParagraph {
+ pub(crate) enum HmlControl {
+     Equation(HmlEquation),
+     Rectangle(HmlRectangle),
++    /// [ieum 0034] 그림(`picture` 가 채워진 개체)
++    Picture(HmlRectangle),
+     Table(HmlTable),
+     ColumnDef(ColumnDef),
+ }
+@@ -147,6 +151,44 @@ pub(crate) struct HmlRectangle {
+     pub fill: Fill,
+     pub text_margin: Padding,
+     pub text_box: Vec<HmlParagraph>,
++    /// [ieum 0034] `PICTURE` 로 연 개체면 그 그림 정보. 크기·위치·배치는 사각형과 같은
++    /// 칸(SHAPEOBJECT·SIZE·POSITION·SHAPECOMPONENT)에 담는다.
++    pub picture: Option<HmlPicture>,
++    /// [ieum 0034] `CONTAINER`(묶음 개체). 그림 하나만 묶은 것은 그 그림으로 옮기고,
++    /// 그 밖의 묶음은 건너뛰고 경고로 남긴다.
++    pub container: Option<HmlContainer>,
++}
++
++/// [ieum 0034] HWPML `PICTURE` 의 그림 고유 정보.
++#[derive(Debug, Default)]
++pub(crate) struct HmlPicture {
++    pub bin_item: u16,
++    pub border_x: [i32; 4],
++    pub border_y: [i32; 4],
++    pub crop: [i32; 4],
++    pub padding: Padding,
++    pub brightness: i8,
++    pub contrast: i8,
++    pub effect: crate::model::image::ImageEffect,
++    pub alpha: u8,
++    pub reverse: bool,
++}
++
++/// [ieum 0034] 묶음 개체가 담은 것.
++#[derive(Debug, Default)]
++pub(crate) struct HmlContainer {
++    pub xml_path: String,
++    pub pictures: Vec<HmlRectangle>,
++    /// 그림 말고 다른 것(선·사각형·안쪽 묶음 등)도 담았다.
++    pub other_children: bool,
++}
++
++/// [ieum 0034] `HEAD/MAPPINGTABLE/BINDATALIST/BINITEM` 하나.
++#[derive(Debug, Default, Clone)]
++pub(crate) struct HmlBinItem {
++    pub bin_data: u16,
++    pub format: String,
++    pub embedded: bool,
+ }
+ 
+ #[derive(Debug, Default)]
+@@ -451,6 +493,12 @@ impl<'a> ReadState<'a> {
+             }
+             "SCRIPT" => self.start_equation_script(element),
+             "RECTANGLE" => self.start_rectangle(element),
++            "PICTURE" => self.start_picture(element),
++            "CONTAINER" => self.start_container(),
++            "IMAGERECT" => self.capture_image_rect(element),
++            "IMAGECLIP" => self.capture_image_clip(element),
++            "IMAGE" => self.capture_image(element),
++            "BINITEM" => self.capture_bin_item(element),
+             "COLDEF" => self.capture_col_def(element),
+             "SHAPEOBJECT" => self.capture_shape_object(element),
+             "SHAPECOMPONENT" => self.capture_shape_component(element),
+@@ -462,7 +510,7 @@ impl<'a> ReadState<'a> {
+             "PARALIST" => self.capture_paralist(element),
+             "SIZE" => self.capture_object_size(element),
+             "POSITION" => self.capture_object_position(element),
+-            "INSIDEMARGIN" => self.capture_table_padding(element),
++            "INSIDEMARGIN" => self.capture_inside_margin(element),
+             "CELLMARGIN" => self.capture_cell_padding(element),
+             "BINDATA" => {
+                 self.source.resource_count += 1;
+@@ -484,6 +532,8 @@ impl<'a> ReadState<'a> {
+             }
+             "SCRIPT" => self.finish_equation_script(),
+             "RECTANGLE" => self.finish_rectangle()?,
++            "PICTURE" => self.finish_picture()?,
++            "CONTAINER" => self.finish_container()?,
+             "CELL" => self.finish_cell()?,
+             "TABLE" => self.finish_table()?,
+             _ => {}
+@@ -904,7 +954,14 @@ impl<'a> ReadState<'a> {
+     }
+ 
+     fn start_rectangle(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
+-        self.reserve_control_slot()?;
++        // [ieum 0034] the group holds the slot of a rectangle inside it
++        if self
++            .rectangles
++            .last()
++            .is_none_or(|outer| outer.container.is_none())
++        {
++            self.reserve_control_slot()?;
++        }
+         let mut rectangle = HmlRectangle::default();
+         for (index, key) in [b"X0", b"X1", b"X2", b"X3"].iter().enumerate() {
+             rectangle.x_coords[index] = parse_attribute(element, *key)?.unwrap_or(0);
+@@ -1058,11 +1115,16 @@ impl<'a> ReadState<'a> {
+         shape_object
+             .checked_sub(1)
+             .and_then(|owner| self.stack.get(owner))
+-            .is_some_and(|owner| owner == "TABLE" || owner == "RECTANGLE")
++            .is_some_and(|owner| {
++                matches!(owner.as_str(), "TABLE" | "RECTANGLE" | "PICTURE" | "CONTAINER")
++            })
+     }
+ 
+     fn nearest_object_is_table(&self) -> bool {
+-        let rectangle = self.stack.iter().rposition(|name| name == "RECTANGLE");
++        let rectangle = self
++            .stack
++            .iter()
++            .rposition(|name| matches!(name.as_str(), "RECTANGLE" | "PICTURE" | "CONTAINER"));
+         let table = self.stack.iter().rposition(|name| name == "TABLE");
+         table.is_some_and(|table_index| rectangle.is_none_or(|rect_index| table_index > rect_index))
+     }
+@@ -1105,12 +1167,16 @@ impl<'a> ReadState<'a> {
+                 parse_attribute(element, b"OriWidth")?.unwrap_or(0);
+             rectangle.shape_attr.original_height =
+                 parse_attribute(element, b"OriHeight")?.unwrap_or(0);
+-            rectangle.shape_attr.current_width = parse_attribute(element, b"CurWidth")?
+-                .filter(|value| *value > 0)
+-                .unwrap_or(rectangle.shape_attr.original_width);
+-            rectangle.shape_attr.current_height = parse_attribute(element, b"CurHeight")?
+-                .filter(|value| *value > 0)
+-                .unwrap_or(rectangle.shape_attr.original_height);
++            // [ieum 0031] a negative current size (a flipped shape) keeps the original one
++            let current = |key: &[u8]| -> Result<Option<u32>, HmlError> {
++                Ok(parse_attribute::<i64>(element, key)?
++                    .filter(|value| *value > 0)
++                    .and_then(|value| u32::try_from(value).ok()))
++            };
++            rectangle.shape_attr.current_width =
++                current(b"CurWidth")?.unwrap_or(rectangle.shape_attr.original_width);
++            rectangle.shape_attr.current_height =
++                current(b"CurHeight")?.unwrap_or(rectangle.shape_attr.original_height);
+             if rectangle.width == 0 {
+                 rectangle.width = rectangle.shape_attr.original_width;
+             }
+@@ -1238,11 +1304,219 @@ impl<'a> ReadState<'a> {
+         Ok(())
+     }
+ 
++    /// [ieum 0034] `PICTURE`: 본문(TEXT) 직계면 컨트롤 자리를 잡는다. 묶음 안의 그림은
++    /// 묶음이 자리를 잡는다.
++    fn start_picture(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        let in_text = self.stack.iter().rev().nth(1).map(String::as_str) == Some("TEXT");
++        if in_text {
++            self.reserve_control_slot()?;
++        }
++        self.rectangles.push(HmlRectangle {
++            picture: Some(HmlPicture {
++                reverse: parse_bool_attribute(element, b"Reverse")?,
++                ..Default::default()
++            }),
++            ..Default::default()
++        });
++        Ok(())
++    }
++
++    fn start_container(&mut self) -> Result<(), HmlError> {
++        let parent = self.stack.iter().rev().nth(1).map(String::as_str);
++        if parent == Some("TEXT") {
++            self.reserve_control_slot()?;
++        }
++        self.rectangles.push(HmlRectangle {
++            container: Some(HmlContainer {
++                xml_path: format!("/{}", self.stack.join("/")),
++                ..Default::default()
++            }),
++            ..Default::default()
++        });
++        Ok(())
++    }
++
++    fn current_picture(&mut self) -> Option<&mut HmlPicture> {
++        if self.stack.iter().rev().nth(1).map(String::as_str) != Some("PICTURE") {
++            return None;
++        }
++        self.rectangles
++            .last_mut()
++            .and_then(|rectangle| rectangle.picture.as_mut())
++    }
++
++    fn capture_image_rect(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        let mut x = [0i32; 4];
++        let mut y = [0i32; 4];
++        for (index, key) in [b"X0", b"X1", b"X2", b"X3"].iter().enumerate() {
++            x[index] = parse_attribute(element, *key)?.unwrap_or(0);
++        }
++        for (index, key) in [b"Y0", b"Y1", b"Y2", b"Y3"].iter().enumerate() {
++            y[index] = parse_attribute(element, *key)?.unwrap_or(0);
++        }
++        if let Some(picture) = self.current_picture() {
++            picture.border_x = x;
++            picture.border_y = y;
++        }
++        Ok(())
++    }
++
++    fn capture_image_clip(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        let crop = [
++            parse_attribute(element, b"Left")?.unwrap_or(0),
++            parse_attribute(element, b"Top")?.unwrap_or(0),
++            parse_attribute(element, b"Right")?.unwrap_or(0),
++            parse_attribute(element, b"Bottom")?.unwrap_or(0),
++        ];
++        if let Some(picture) = self.current_picture() {
++            picture.crop = crop;
++        }
++        Ok(())
++    }
++
++    fn capture_image(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        use crate::model::image::ImageEffect;
++        let bin_item = parse_attribute(element, b"BinItem")?.unwrap_or(0);
++        let brightness = parse_attribute(element, b"Bright")?.unwrap_or(0);
++        let contrast = parse_attribute(element, b"Contrast")?.unwrap_or(0);
++        let alpha = parse_attribute(element, b"Alpha")?.unwrap_or(0);
++        let effect = match attribute(element, b"Effect")?.as_deref() {
++            Some("GrayScale") => ImageEffect::GrayScale,
++            Some("BlackWhite") => ImageEffect::BlackWhite,
++            Some("Pattern8x8") => ImageEffect::Pattern8x8,
++            _ => ImageEffect::RealPic,
++        };
++        if let Some(picture) = self.current_picture() {
++            picture.bin_item = bin_item;
++            picture.brightness = brightness;
++            picture.contrast = contrast;
++            picture.alpha = alpha;
++            picture.effect = effect;
++        }
++        Ok(())
++    }
++
++    fn capture_bin_item(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        let bin_data = parse_attribute(element, b"BinData")?.unwrap_or(0);
++        let format = attribute(element, b"Format")?
++            .unwrap_or_default()
++            .to_ascii_lowercase();
++        let embedded = attribute(element, b"Type")?.as_deref() != Some("Link");
++        self.source.bin_items.push(HmlBinItem {
++            bin_data,
++            format,
++            embedded,
++        });
++        Ok(())
++    }
++
++    /// `INSIDEMARGIN` 은 표의 안쪽 여백이거나 그림의 안쪽 여백이다. 칸 안 그림의 여백이
++    /// 바깥 표의 여백을 덮지 않도록 바로 위 요소로 가른다.
++    fn capture_inside_margin(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        match self.stack.iter().rev().nth(1).map(String::as_str) {
++            Some("TABLE") => self.capture_table_padding(element),
++            Some("PICTURE") => {
++                let padding = parse_padding(element)?;
++                if let Some(picture) = self.current_picture() {
++                    picture.padding = padding;
++                }
++                Ok(())
++            }
++            _ => Ok(()),
++        }
++    }
++
++    fn finish_picture(&mut self) -> Result<(), HmlError> {
++        let picture = self
++            .rectangles
++            .pop()
++            .ok_or_else(|| HmlError::InvalidXml("unexpected PICTURE end".to_string()))?;
++        if let Some(container) = self
++            .rectangles
++            .last_mut()
++            .and_then(|rectangle| rectangle.container.as_mut())
++        {
++            container.pictures.push(picture);
++            return Ok(());
++        }
++        self.current_paragraph()?
++            .controls
++            .push(HmlControl::Picture(picture));
++        Ok(())
++    }
++
++    /// 그림 하나만 묶은 묶음은 묶음의 크기·자리로 그 그림을 놓는다(제목 띠 그림이 흔히
++    /// 이렇다). 다른 묶음은 담지 못하므로 경고로 남겨, 저장이 그것을 빠뜨리지 않게 한다.
++    fn finish_container(&mut self) -> Result<(), HmlError> {
++        let mut outer = self
++            .rectangles
++            .pop()
++            .ok_or_else(|| HmlError::InvalidXml("unexpected CONTAINER end".to_string()))?;
++        let container = outer.container.take().unwrap_or_default();
++        let nested = self
++            .rectangles
++            .last()
++            .is_some_and(|rectangle| rectangle.container.is_some());
++        let mut pictures = container.pictures;
++        if !nested && !container.other_children && pictures.len() == 1 {
++            let mut picture = pictures.pop().expect("one picture");
++            let inner = picture.shape_attr.clone();
++            picture.width = outer.width;
++            picture.height = outer.height;
++            picture.horizontal_offset = outer.horizontal_offset;
++            picture.vertical_offset = outer.vertical_offset;
++            picture.treat_as_char = outer.treat_as_char;
++            picture.flow_with_text = outer.flow_with_text;
++            picture.allow_overlap = outer.allow_overlap;
++            picture.vert_rel_to = outer.vert_rel_to;
++            picture.vert_align = outer.vert_align;
++            picture.horz_rel_to = outer.horz_rel_to;
++            picture.horz_align = outer.horz_align;
++            picture.text_wrap = outer.text_wrap;
++            picture.shape_attr = ShapeComponentAttr {
++                original_width: inner.original_width,
++                original_height: inner.original_height,
++                current_width: outer.width,
++                current_height: outer.height,
++                ..Default::default()
++            };
++            self.current_paragraph()?
++                .controls
++                .push(HmlControl::Picture(picture));
++            return Ok(());
++        }
++        if nested {
++            if let Some(parent) = self
++                .rectangles
++                .last_mut()
++                .and_then(|rectangle| rectangle.container.as_mut())
++            {
++                parent.other_children = true;
++            }
++            return Ok(());
++        }
++        self.source.warnings.push(HmlWarning::unsupported_element(
++            container.xml_path,
++            "CONTAINER",
++            false,
++        ));
++        Ok(())
++    }
++
+     fn finish_rectangle(&mut self) -> Result<(), HmlError> {
+         let rectangle = self
+             .rectangles
+             .pop()
+             .ok_or_else(|| HmlError::InvalidXml("unexpected RECTANGLE end".to_string()))?;
++        // [ieum 0034] a rectangle inside a group belongs to the group, which is skipped and
++        // warned about as a whole (finish_container); it is not a control of the paragraph
++        if self
++            .rectangles
++            .last()
++            .is_some_and(|outer| outer.container.is_some())
++        {
++            return Ok(());
++        }
+         self.current_paragraph()?
+             .controls
+             .push(HmlControl::Rectangle(rectangle));
+@@ -1368,7 +1642,19 @@ impl<'a> ReadState<'a> {
+         let unsupported_control = self.is_unsupported_inline(name);
+         let unsupported_equation_child = self.stack.iter().any(|item| item == "EQUATION")
+             && !(parent == Some("EQUATION") && name == "SCRIPT");
+-        let explicitly_unsupported = matches!(name, "PICTURE" | "BINDATA");
++        let explicitly_unsupported = name == "BINDATA";
++        // [ieum 0034] 묶음 개체의 직계 자식 가운데 그림이 아닌 개체는 담지 못한다
++        if parent == Some("CONTAINER")
++            && !matches!(name, "SHAPEOBJECT" | "SHAPECOMPONENT" | "PICTURE")
++        {
++            if let Some(container) = self
++                .rectangles
++                .last_mut()
++                .and_then(|rectangle| rectangle.container.as_mut())
++            {
++                container.other_children = true;
++            }
++        }
+         if unknown_document_child
+             || name == "SCRIPTCODE"
+             || unsupported_control
+@@ -1419,7 +1705,14 @@ impl<'a> ReadState<'a> {
+         self.stack.last().map(String::as_str) == Some("TEXT")
+             && !matches!(
+                 name,
+-                "CHAR" | "SECDEF" | "COLDEF" | "EQUATION" | "RECTANGLE" | "TABLE"
++                "CHAR"
++                    | "SECDEF"
++                    | "COLDEF"
++                    | "EQUATION"
++                    | "RECTANGLE"
++                    | "TABLE"
++                    | "PICTURE"
++                    | "CONTAINER"
+             )
+     }
+ 
+diff --git a/src/parser/mod.rs b/src/parser/mod.rs
+index 65d02f25..97d029cd 100644
+--- a/src/parser/mod.rs
++++ b/src/parser/mod.rs
+@@ -3047,6 +3047,95 @@ mod tests {
+         assert_eq!(width(&with_equation), width(sample));
+     }
+ 
++    /// [ieum 0034] The sample with one picture (a 1x1 PNG) after its text "abc", one as the
++    /// only child of a group after "456", and the HEAD/TAIL items they point to.
++    pub(crate) fn hml_with_pictures(sample: &str) -> String {
++        const PNG: &str = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
++        let picture = |shape_object: bool, item: u16| {
++            format!(
++                "<PICTURE Reverse=\"false\">{}<SHAPECOMPONENT GroupLevel=\"0\" OriHeight=\"2000\" \
++                 OriWidth=\"3000\" XPos=\"0\" YPos=\"0\"/><IMAGERECT X0=\"0\" X1=\"3000\" \
++                 X2=\"3000\" X3=\"0\" Y0=\"0\" Y1=\"0\" Y2=\"2000\" Y3=\"2000\"/><IMAGECLIP \
++                 Bottom=\"2000\" Left=\"0\" Right=\"3000\" Top=\"0\"/><INSIDEMARGIN Bottom=\"0\" \
++                 Left=\"0\" Right=\"0\" Top=\"0\"/><IMAGE Alpha=\"0\" BinItem=\"{item}\" \
++                 Bright=\"0\" Contrast=\"0\" Effect=\"RealPic\"/></PICTURE>",
++                if shape_object {
++                    "<SHAPEOBJECT InstId=\"7\" Lock=\"false\" NumberingType=\"Figure\" ZOrder=\"3\">\
++                     <SIZE Height=\"2000\" HeightRelTo=\"Absolute\" Protect=\"false\" Width=\"3000\" \
++                     WidthRelTo=\"Absolute\"/><POSITION AffectLSpacing=\"false\" AllowOverlap=\"false\" \
++                     FlowWithText=\"true\" HoldAnchorAndSO=\"false\" HorzAlign=\"Left\" HorzOffset=\"0\" \
++                     HorzRelTo=\"Para\" TreatAsChar=\"true\" VertAlign=\"Top\" VertOffset=\"0\" \
++                     VertRelTo=\"Para\"/></SHAPEOBJECT>"
++                } else {
++                    ""
++                }
++            )
++        };
++        let group = format!(
++            "<CONTAINER><SHAPEOBJECT InstId=\"8\" Lock=\"false\" NumberingType=\"Figure\" ZOrder=\"4\">\
++             <SIZE Height=\"1000\" HeightRelTo=\"Absolute\" Protect=\"false\" Width=\"1500\" \
++             WidthRelTo=\"Absolute\"/><POSITION AffectLSpacing=\"false\" AllowOverlap=\"false\" \
++             FlowWithText=\"true\" HoldAnchorAndSO=\"false\" HorzAlign=\"Left\" HorzOffset=\"0\" \
++             HorzRelTo=\"Para\" TreatAsChar=\"true\" VertAlign=\"Top\" VertOffset=\"0\" \
++             VertRelTo=\"Para\"/></SHAPEOBJECT><SHAPECOMPONENT CurHeight=\"1000\" CurWidth=\"1500\" \
++             GroupLevel=\"0\" OriHeight=\"1000\" OriWidth=\"1500\" XPos=\"0\" YPos=\"0\"/>{}</CONTAINER>",
++            picture(false, 2)
++        );
++        sample
++            .replacen("<CHAR>abc</CHAR>", &format!("<CHAR>abc</CHAR>{}", picture(true, 1)), 1)
++            .replacen("<CHAR>456</CHAR>", &format!("<CHAR>456</CHAR>{group}"), 1)
++            .replacen(
++                "<MAPPINGTABLE>",
++                "<MAPPINGTABLE><BINDATALIST Count=\"2\"><BINITEM BinData=\"1\" Format=\"png\" \
++                 Type=\"Embedding\"/><BINITEM BinData=\"2\" Format=\"png\" Type=\"Embedding\"/>\
++                 </BINDATALIST>",
++                1,
++            )
++            .replacen(
++                "<TAIL>",
++                &format!(
++                    "<TAIL><BINDATASTORAGE><BINDATA Encoding=\"Base64\" Id=\"1\">{PNG}</BINDATA>\
++                     <BINDATA Encoding=\"Base64\" Id=\"2\">\n{PNG}\n</BINDATA></BINDATASTORAGE>"
++                ),
++                1,
++            )
++    }
++
++    #[test]
++    fn test_hml_pictures_open_with_their_images() {
++        let sample = include_str!("../../samples/hml/formatting_table.hml");
++        let xml = hml_with_pictures(sample);
++        assert!(xml.contains("<BINDATASTORAGE>") && xml.contains("<CONTAINER>"));
++        let doc = parse_document(xml.as_bytes()).expect("opens");
++        let mut pictures = Vec::new();
++        fn walk(paragraphs: &[crate::model::paragraph::Paragraph], out: &mut Vec<(u16, u32, u32)>) {
++            for p in paragraphs {
++                for c in &p.controls {
++                    match c {
++                        crate::model::control::Control::Picture(pic) => out.push((
++                            pic.image_attr.bin_data_id,
++                            pic.common.width,
++                            pic.common.height,
++                        )),
++                        crate::model::control::Control::Table(t) => {
++                            for cell in &t.cells {
++                                walk(&cell.paragraphs, out);
++                            }
++                        }
++                        _ => {}
++                    }
++                }
++            }
++        }
++        walk(&doc.sections[0].paragraphs, &mut pictures);
++        pictures.sort();
++        assert_eq!(pictures, vec![(1, 3000, 2000), (2, 1500, 1000)]);
++        assert_eq!(doc.doc_info.bin_data_list.len(), 2);
++        for content in &doc.bin_data_content {
++            assert!(content.data.load().starts_with(b"\x89PNG"), "picture {} decoded", content.id);
++        }
++    }
++
+     /// The sample's table SIZE with its width written as 100 % of the column.
+     fn regex_free_relative_table(sample: &str) -> String {
+         let at = sample.find("<TABLE").expect("a table");
+-- 
+2.43.0
+

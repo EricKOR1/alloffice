@@ -1,0 +1,504 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 00:00:00 +0900
+Subject: [PATCH 36/36] =?UTF-8?q?feat(hml):=20=EA=B7=B8=EB=A6=BC=C2=B7?=
+ =?UTF-8?q?=EC=82=AC=EA=B0=81=ED=98=95=20=EB=AC=B6=EC=9D=8C=EC=9D=84=20?=
+ =?UTF-8?q?=EB=AC=B6=EC=9D=8C=20=EB=8F=84=ED=98=95=EC=9C=BC=EB=A1=9C=20?=
+ =?UTF-8?q?=EC=9D=BD=EA=B3=A0,=20=EA=B7=B8=EB=A6=BC=EC=9D=B4=20HWP=20?=
+ =?UTF-8?q?=EC=A0=80=EC=9E=A5=20=EB=92=A4=EC=97=90=EB=8F=84=20=EB=82=A8?=
+ =?UTF-8?q?=EA=B2=8C=20=ED=95=9C=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- HWPML CONTAINER 가 그림·사각형만 담았으면 묶음 도형(Group)으로 읽는다. 그림
+  하나짜리 묶음은 종전처럼 그 그림으로 놓는다. 시험지 제목 띠(그림 + 제목 글상자)가
+  통째로 빠지던 것이 그려진다.
+- SHAPECOMPONENT 의 GroupLevel 과 RENDERINGINFO(이동·크기·회전 행렬)를 HWPX
+  해석기와 같은 순서로 합성해 담는다(HWP5 저장용 원본 행렬 포함).
+- IMAGERECT 꼭짓점을 HWPX 와 같은 저장 규약((x,y) 쌍 넷을 앞뒤로 나눈 여덟 칸)으로
+  담는다.
+- HML 출처를 HWP 로 저장할 때 그림 자료 레코드(attr·상태)와 그림 기하를 HWPX 출처와
+  같은 HWP5 계약으로 맞춘다. 고치기 전에는 그림 자료 attr 이 0(연결)으로 나가, 저장본을
+  다시 열면 그림이 모두 사라졌다.
+
+- 행렬은 그림·묶음과 묶음 안 도형에만 담는다. 단독 사각형·선은 HML 다시 쓰기가
+  되돌릴 수 있는 칸만 갖는다(그 사전 검사가 다른 값을 거절한다).
+---
+ src/document_core/converters/hwpx_to_hwp.rs |   8 +-
+ src/parser/hml/adapter.rs                   |  54 ++++++
+ src/parser/hml/reader.rs                    | 173 ++++++++++++++++++--
+ src/parser/mod.rs                           |  81 +++++++++
+ 4 files changed, 304 insertions(+), 12 deletions(-)
+
+diff --git a/src/document_core/converters/hwpx_to_hwp.rs b/src/document_core/converters/hwpx_to_hwp.rs
+index 26bbee53..2a0d5a27 100644
+--- a/src/document_core/converters/hwpx_to_hwp.rs
++++ b/src/document_core/converters/hwpx_to_hwp.rs
+@@ -2544,7 +2544,13 @@ pub fn convert_if_hwpx_source(doc: &mut Document, source_format: FileFormat) ->
+     // 저장 시점 보정이라 IR 과 HWPX 산출(단일 BOTH)은 그대로 둔다 — HWPX 출처와 같은 계약.
+     if matches!(source_format, FileFormat::Hml) {
+         normalize_page_border_fills_for_hwp(doc);
+-        return AdapterReport::new().no_op("Hml: page_border_fill 3개만 보정");
++        // [ieum 0034] HML 그림은 HWPX 그림과 같은 XML 계약(BinItem 번호, imgRect,
++        // 밝기·대비 순서)으로 읽힌다. 그림 자료 레코드의 attr/상태와 그림 기하를 HWPX
++        // 출처와 같이 HWP5 계약으로 맞춰야 저장본을 다시 열었을 때 그림이 남는다.
++        let mut report = AdapterReport::new();
++        normalize_picture_geometry_for_hwp(doc, true);
++        normalize_bin_data_for_hwp(doc, &mut report);
++        return report;
+     }
+     if !matches!(source_format, FileFormat::Hwpx | FileFormat::Hwp3) {
+         return AdapterReport::new().no_op("source_format != Hwpx/Hwp3");
+diff --git a/src/parser/hml/adapter.rs b/src/parser/hml/adapter.rs
+index 26e2cb50..0b1a17d9 100644
+--- a/src/parser/hml/adapter.rs
++++ b/src/parser/hml/adapter.rs
+@@ -136,6 +136,7 @@ fn into_control(source: HmlControl) -> Result<Control, HmlError> {
+         HmlControl::Line(line) => Ok(into_line(line)),
+         HmlControl::HeaderFooter(header_footer) => into_header_footer(header_footer),
+         HmlControl::AutoNumber(number) => Ok(Control::AutoNumber(number)),
++        HmlControl::Group(outer, children) => into_group(outer, children),
+         HmlControl::Table(table) => into_table(table),
+         HmlControl::ColumnDef(column_def) => Ok(Control::ColumnDef(column_def)),
+     }
+@@ -246,6 +247,51 @@ fn inflate(bytes: &[u8]) -> Option<Vec<u8>> {
+         .map(|_| out)
+ }
+ 
++/// [ieum 0036] HWPML 묶음 개체 → 묶음 도형. 바깥 개체가 크기·배치를, 자식이 묶음 안
++/// 좌표(SHAPECOMPONENT 의 위치와 행렬)를 갖는다.
++fn into_group(outer: HmlRectangle, children: Vec<HmlRectangle>) -> Result<Control, HmlError> {
++    use crate::model::shape::GroupShape;
++    let mut shapes = Vec::with_capacity(children.len());
++    for child in children {
++        if child.picture.is_some() {
++            if let Control::Picture(mut picture) = into_picture(child) {
++                picture.shape_attr.flip |= 0x0003_0000;
++                shapes.push(ShapeObject::Picture(picture));
++            }
++        } else if let Control::Shape(shape) = into_rectangle(child)? {
++            shapes.push(*shape);
++        }
++    }
++    let mut shape_attr = outer.shape_attr.clone();
++    shape_attr.local_file_version = 1;
++    if shape_attr.flip == 0 {
++        shape_attr.flip = 0x0009_0000;
++    }
++    let common = CommonObjAttr {
++        ctrl_id: crate::parser::tags::CTRL_GEN_SHAPE,
++        width: outer.width,
++        height: outer.height,
++        horizontal_offset: outer.horizontal_offset as u32,
++        vertical_offset: outer.vertical_offset as u32,
++        treat_as_char: outer.treat_as_char,
++        flow_with_text: outer.flow_with_text,
++        allow_overlap: outer.allow_overlap,
++        vert_rel_to: outer.vert_rel_to,
++        vert_align: outer.vert_align,
++        horz_rel_to: outer.horz_rel_to,
++        horz_align: outer.horz_align,
++        text_wrap: outer.text_wrap,
++        hwp5_gen_shape_attr_bit26: true,
++        ..Default::default()
++    };
++    Ok(Control::Shape(Box::new(ShapeObject::Group(GroupShape {
++        common,
++        shape_attr,
++        children: shapes,
++        caption: None,
++    }))))
++}
++
+ /// [ieum 0034] HWPML `PICTURE` → 그림 컨트롤. 크기·배치는 사각형과 같이 읽은 값이다.
+ fn into_picture(source: HmlRectangle) -> Control {
+     use crate::model::image::{CropInfo, ImageAttr, Picture};
+@@ -257,6 +303,14 @@ fn into_picture(source: HmlRectangle) -> Control {
+     if shape_attr.current_height == 0 {
+         shape_attr.current_height = source.height;
+     }
++    // the SHAPE_COMPONENT storage fields a Hangul-saved picture carries (the HWPX reader
++    // materializes the same: local version 1, the picture flag bit)
++    shape_attr.local_file_version = 1;
++    if shape_attr.flip == 0 {
++        shape_attr.flip = 0x2000_0000
++            | u32::from(shape_attr.horz_flip)
++            | (u32::from(shape_attr.vert_flip) << 1);
++    }
+     let common = CommonObjAttr {
+         ctrl_id: crate::parser::tags::CTRL_GEN_SHAPE,
+         width: source.width,
+diff --git a/src/parser/hml/reader.rs b/src/parser/hml/reader.rs
+index 3347d7ab..dded99af 100755
+--- a/src/parser/hml/reader.rs
++++ b/src/parser/hml/reader.rs
+@@ -121,6 +121,8 @@ pub(crate) enum HmlControl {
+     HeaderFooter(HmlHeaderFooter),
+     /// [ieum 0035] 자동 번호(쪽 번호 등)
+     AutoNumber(crate::model::control::AutoNumber),
++    /// [ieum 0036] 묶음 개체: 바깥 개체(크기·배치)와 담은 그림·사각형
++    Group(HmlRectangle, Vec<HmlRectangle>),
+     Table(HmlTable),
+     ColumnDef(ColumnDef),
+ }
+@@ -165,6 +167,16 @@ pub(crate) struct HmlRectangle {
+     pub container: Option<HmlContainer>,
+     /// [ieum 0035] `LINE`(선)이면 시작·끝점과 뒤집힘.
+     pub line: Option<HmlLine>,
++    /// [ieum 0036] `RENDERINGINFO` 를 읽는 중의 행렬들
++    pub rendering: Option<HmlRendering>,
++}
++
++/// [ieum 0036] `RENDERINGINFO`: 이동 행렬 하나와 (크기, 회전) 행렬 쌍들.
++#[derive(Debug, Clone)]
++pub(crate) struct HmlRendering {
++    pub trans: [f64; 6],
++    pub pairs: Vec<([f64; 6], [f64; 6])>,
++    pub pending_scale: Option<[f64; 6]>,
+ }
+ 
+ /// [ieum 0035] HWPML `LINE` 의 두 끝점.
+@@ -202,7 +214,8 @@ pub(crate) struct HmlPicture {
+ #[derive(Debug, Default)]
+ pub(crate) struct HmlContainer {
+     pub xml_path: String,
+-    pub pictures: Vec<HmlRectangle>,
++    /// 묶음이 담은 그림·사각형, 문서 순서
++    pub children: Vec<HmlRectangle>,
+     /// 그림 말고 다른 것(선·사각형·안쪽 묶음 등)도 담았다.
+     pub other_children: bool,
+ }
+@@ -533,6 +546,8 @@ impl<'a> ReadState<'a> {
+                 self.start_auto_number(element)
+             }
+             "AUTONUMFORMAT" => self.capture_auto_number_format(element),
++            "RENDERINGINFO" => self.start_rendering_info(),
++            "TRANSMATRIX" | "SCAMATRIX" | "ROTMATRIX" => self.capture_matrix(name, element),
+             "CONTAINER" => self.start_container(),
+             "IMAGERECT" => self.capture_image_rect(element),
+             "IMAGECLIP" => self.capture_image_clip(element),
+@@ -572,6 +587,7 @@ impl<'a> ReadState<'a> {
+             "SCRIPT" => self.finish_equation_script(),
+             "RECTANGLE" => self.finish_rectangle()?,
+             "PICTURE" => self.finish_picture()?,
++            "RENDERINGINFO" => self.finish_rendering_info(),
+             "LINE" if self.stack.iter().rev().nth(1).map(String::as_str) == Some("TEXT") => {
+                 self.finish_line()?
+             }
+@@ -1213,6 +1229,7 @@ impl<'a> ReadState<'a> {
+ 
+     fn capture_shape_component(&mut self, element: &BytesStart<'_>) -> Result<(), HmlError> {
+         if let Some(rectangle) = self.rectangles.last_mut() {
++            rectangle.shape_attr.group_level = parse_attribute(element, b"GroupLevel")?.unwrap_or(0);
+             rectangle.shape_attr.offset_x = parse_attribute(element, b"XPos")?.unwrap_or(0);
+             rectangle.shape_attr.offset_y = parse_attribute(element, b"YPos")?.unwrap_or(0);
+             rectangle.shape_attr.original_width =
+@@ -1421,9 +1438,11 @@ impl<'a> ReadState<'a> {
+         for (index, key) in [b"Y0", b"Y1", b"Y2", b"Y3"].iter().enumerate() {
+             y[index] = parse_attribute(element, *key)?.unwrap_or(0);
+         }
++        // HWP keeps the four corners as two halves of eight scalars, (x, y) pairs in order —
++        // the convention the HWPX reader uses for the same `imgRect`
+         if let Some(picture) = self.current_picture() {
+-            picture.border_x = x;
+-            picture.border_y = y;
++            picture.border_x = [x[0], y[0], x[1], y[1]];
++            picture.border_y = [x[2], y[2], x[3], y[3]];
+         }
+         Ok(())
+     }
+@@ -1503,7 +1522,7 @@ impl<'a> ReadState<'a> {
+             .last_mut()
+             .and_then(|rectangle| rectangle.container.as_mut())
+         {
+-            container.pictures.push(picture);
++            container.children.push(picture);
+             return Ok(());
+         }
+         self.current_paragraph()?
+@@ -1524,9 +1543,10 @@ impl<'a> ReadState<'a> {
+             .rectangles
+             .last()
+             .is_some_and(|rectangle| rectangle.container.is_some());
+-        let mut pictures = container.pictures;
+-        if !nested && !container.other_children && pictures.len() == 1 {
+-            let mut picture = pictures.pop().expect("one picture");
++        let mut children = container.children;
++        let single_picture = children.len() == 1 && children[0].picture.is_some();
++        if !nested && !container.other_children && single_picture {
++            let mut picture = children.pop().expect("one picture");
+             let inner = picture.shape_attr.clone();
+             picture.width = outer.width;
+             picture.height = outer.height;
+@@ -1552,6 +1572,13 @@ impl<'a> ReadState<'a> {
+                 .push(HmlControl::Picture(picture));
+             return Ok(());
+         }
++        // [ieum 0036] 그림·사각형만 담은 묶음은 묶음 개체로 놓는다
++        if !nested && !container.other_children && !children.is_empty() {
++            self.current_paragraph()?
++                .controls
++                .push(HmlControl::Group(outer, children));
++            return Ok(());
++        }
+         if nested {
+             if let Some(parent) = self
+                 .rectangles
+@@ -1681,6 +1708,115 @@ impl<'a> ReadState<'a> {
+         Ok(())
+     }
+ 
++    /// [ieum 0036] 행렬이 속한 개체: `RENDERINGINFO` 는 `SHAPECOMPONENT` 안에 있고, 그
++    /// 바로 위(사각형·선은 `DRAWINGOBJECT` 를 건너) 개체가 도형이어야 한다.
++    fn rendering_owner_is_drawing(&self) -> bool {
++        let Some(info) = self.stack.iter().rposition(|name| name == "RENDERINGINFO") else {
++            return false;
++        };
++        let mut at = info;
++        if at == 0 || self.stack[at - 1] != "SHAPECOMPONENT" {
++            return false;
++        }
++        at -= 1;
++        if at > 0 && self.stack[at - 1] == "DRAWINGOBJECT" {
++            at -= 1;
++        }
++        // a picture or a group, or a shape inside a group: a stand-alone rectangle or line keeps
++        // the fields the HML writer can write back (its round-trip preflight refuses others)
++        at > 0
++            && match self.stack[at - 1].as_str() {
++                "PICTURE" | "CONTAINER" => true,
++                "RECTANGLE" | "LINE" => self.stack[..at - 1].iter().any(|name| name == "CONTAINER"),
++                _ => false,
++            }
++    }
++
++    fn start_rendering_info(&mut self) -> Result<(), HmlError> {
++        if self.rendering_owner_is_drawing() {
++            if let Some(object) = self.rectangles.last_mut() {
++                object.rendering = Some(HmlRendering {
++                    trans: IDENTITY_MATRIX,
++                    pairs: Vec::new(),
++                    pending_scale: None,
++                });
++            }
++        }
++        Ok(())
++    }
++
++    fn capture_matrix(&mut self, name: &str, element: &BytesStart<'_>) -> Result<(), HmlError> {
++        if self.stack.iter().rev().nth(1).map(String::as_str) != Some("RENDERINGINFO")
++            || !self.rendering_owner_is_drawing()
++        {
++            return Ok(());
++        }
++        let mut matrix = [0.0f64; 6];
++        for (index, key) in [b"E1", b"E2", b"E3", b"E4", b"E5", b"E6"].iter().enumerate() {
++            let value: f64 = parse_attribute(element, *key)?.unwrap_or(0.0);
++            // HWP5 keeps the matrix in f32 precision unless it is a whole number
++            matrix[index] = if value.fract() == 0.0 {
++                value
++            } else {
++                f64::from(value as f32)
++            };
++        }
++        let Some(rendering) = self
++            .rectangles
++            .last_mut()
++            .and_then(|object| object.rendering.as_mut())
++        else {
++            return Ok(());
++        };
++        match name {
++            "TRANSMATRIX" => rendering.trans = matrix,
++            "SCAMATRIX" => rendering.pending_scale = Some(matrix),
++            _ => {
++                let scale = rendering.pending_scale.take().unwrap_or(IDENTITY_MATRIX);
++                rendering.pairs.push((scale, matrix));
++            }
++        }
++        Ok(())
++    }
++
++    /// 행렬을 HWP 와 같이 합성한다: 이동 × (회전 × 크기)…, 그리고 HWP5 저장용 원본 행렬.
++    fn finish_rendering_info(&mut self) {
++        let Some(object) = self.rectangles.last_mut() else {
++            return;
++        };
++        let Some(mut rendering) = object.rendering.take() else {
++            return;
++        };
++        if let Some(scale) = rendering.pending_scale.take() {
++            rendering.pairs.push((scale, IDENTITY_MATRIX));
++        }
++        let mut result = rendering.trans;
++        for (scale, rotation) in &rendering.pairs {
++            result = compose_matrix(&result, rotation);
++            result = compose_matrix(&result, scale);
++        }
++        let attr = &mut object.shape_attr;
++        attr.render_sx = result[0];
++        attr.render_b = result[1];
++        attr.render_tx = result[2];
++        attr.render_c = result[3];
++        attr.render_sy = result[4];
++        attr.render_ty = result[5];
++        let mut raw = Vec::with_capacity(2 + 48 + rendering.pairs.len() * 96);
++        raw.extend_from_slice(&(rendering.pairs.len() as u16).to_le_bytes());
++        let mut push = |matrix: &[f64; 6]| {
++            for value in matrix {
++                raw.extend_from_slice(&value.to_le_bytes());
++            }
++        };
++        push(&rendering.trans);
++        for (scale, rotation) in &rendering.pairs {
++            push(scale);
++            push(rotation);
++        }
++        attr.raw_rendering = raw;
++    }
++
+     fn finish_rectangle(&mut self) -> Result<(), HmlError> {
+         let rectangle = self
+             .rectangles
+@@ -1688,11 +1824,12 @@ impl<'a> ReadState<'a> {
+             .ok_or_else(|| HmlError::InvalidXml("unexpected RECTANGLE end".to_string()))?;
+         // [ieum 0034] a rectangle inside a group belongs to the group, which is skipped and
+         // warned about as a whole (finish_container); it is not a control of the paragraph
+-        if self
++        if let Some(container) = self
+             .rectangles
+-            .last()
+-            .is_some_and(|outer| outer.container.is_some())
++            .last_mut()
++            .and_then(|outer| outer.container.as_mut())
+         {
++            container.children.push(rectangle);
+             return Ok(());
+         }
+         self.current_paragraph()?
+@@ -1823,7 +1960,7 @@ impl<'a> ReadState<'a> {
+         let explicitly_unsupported = name == "BINDATA";
+         // [ieum 0034] 묶음 개체의 직계 자식 가운데 그림이 아닌 개체는 담지 못한다
+         if parent == Some("CONTAINER")
+-            && !matches!(name, "SHAPEOBJECT" | "SHAPECOMPONENT" | "PICTURE")
++            && !matches!(name, "SHAPEOBJECT" | "SHAPECOMPONENT" | "PICTURE" | "RECTANGLE")
+         {
+             if let Some(container) = self
+                 .rectangles
+@@ -2270,6 +2407,20 @@ fn resolve_relative_table_size(table: &mut HmlTable) {
+     }
+ }
+ 
++const IDENTITY_MATRIX: [f64; 6] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0];
++
++/// 아핀 행렬 합성 A × B (HWPX 해석기와 같은 순서)
++fn compose_matrix(a: &[f64; 6], b: &[f64; 6]) -> [f64; 6] {
++    [
++        a[0] * b[0] + a[1] * b[3],
++        a[0] * b[1] + a[1] * b[4],
++        a[0] * b[2] + a[1] * b[5] + a[2],
++        a[3] * b[0] + a[4] * b[3],
++        a[3] * b[1] + a[4] * b[4],
++        a[3] * b[2] + a[4] * b[5] + a[5],
++    ]
++}
++
+ fn parse_border_width(element: &BytesStart<'_>) -> Result<u8, HmlError> {
+     let Some(value) = attribute(element, b"Width")? else {
+         return Ok(border_width_index(0.1));
+diff --git a/src/parser/mod.rs b/src/parser/mod.rs
+index b767603b..7bf57c43 100644
+--- a/src/parser/mod.rs
++++ b/src/parser/mod.rs
+@@ -3136,6 +3136,87 @@ mod tests {
+         }
+     }
+ 
++    #[test]
++    fn test_hml_group_of_a_picture_and_a_text_box_is_a_group() {
++        // [ieum 0036] a title band: one picture and one rectangle grouped together
++        let sample = include_str!("../../samples/hml/formatting_table.hml");
++        let with_picture = hml_with_pictures(sample);
++        let rectangle = concat!(
++            "<RECTANGLE Ratio=\"0\" X0=\"0\" X1=\"1500\" X2=\"1500\" X3=\"0\" Y0=\"0\" ",
++            "Y1=\"0\" Y2=\"1000\" Y3=\"1000\"><SHAPECOMPONENT GroupLevel=\"1\" ",
++            "OriHeight=\"1000\" OriWidth=\"1500\" XPos=\"0\" YPos=\"0\"><RENDERINGINFO>",
++            "<TRANSMATRIX E1=\"1.00000\" E2=\"0.00000\" E3=\"0.00000\" E4=\"0.00000\" ",
++            "E5=\"1.00000\" E6=\"0.00000\"/><SCAMATRIX E1=\"0.50000\" E2=\"0.00000\" ",
++            "E3=\"0.00000\" E4=\"0.00000\" E5=\"0.50000\" E6=\"0.00000\"/><ROTMATRIX ",
++            "E1=\"1.00000\" E2=\"0.00000\" E3=\"0.00000\" E4=\"0.00000\" E5=\"1.00000\" ",
++            "E6=\"0.00000\"/></RENDERINGINFO></SHAPECOMPONENT></RECTANGLE>"
++        );
++        let xml = with_picture.replacen("</PICTURE></CONTAINER>", &format!("</PICTURE>{rectangle}</CONTAINER>"), 1);
++        assert_ne!(xml, with_picture);
++        let parsed = parse_document_with_metadata(xml.as_bytes()).expect("opens");
++        let group = parsed.document.sections[0]
++            .paragraphs
++            .iter()
++            .flat_map(|p| p.controls.iter())
++            .find_map(|c| match c {
++                crate::model::control::Control::Shape(shape) => match &**shape {
++                    crate::model::shape::ShapeObject::Group(g) => Some(g),
++                    _ => None,
++                },
++                _ => None,
++            })
++            .expect("the group is a control");
++        assert_eq!(group.children.len(), 2);
++        assert!(matches!(group.children[0], crate::model::shape::ShapeObject::Picture(_)));
++        assert!(matches!(group.children[1], crate::model::shape::ShapeObject::Rectangle(_)));
++        let rect_attr = group.children[1].shape_attr();
++        assert!((rect_attr.render_sx - 0.5).abs() < 1e-9 && (rect_attr.render_sy - 0.5).abs() < 1e-9);
++        let skipped = parsed
++            .hml_metadata
++            .expect("metadata")
++            .warnings
++            .iter()
++            .filter(|w| w.code == hml::HmlWarningCode::UnsupportedElement)
++            .filter(|w| w.xml_path.starts_with("/HWPML/BODY/"))
++            .count();
++        assert_eq!(skipped, 0);
++    }
++
++    #[test]
++    fn test_hml_pictures_survive_saving_as_hwp() {
++        // [ieum 0034] a document read from HWPML saves as HWP with its pictures
++        let sample = include_str!("../../samples/hml/formatting_table.hml");
++        let xml = hml_with_pictures(sample);
++        let core = crate::document_core::DocumentCore::from_bytes(xml.as_bytes()).expect("opens");
++        let bytes = core.export_hwp_with_adapter_snapshot().expect("saves");
++        let saved = parse_document(&bytes).expect("reopens");
++        let mut ids = Vec::new();
++        fn walk(paragraphs: &[crate::model::paragraph::Paragraph], out: &mut Vec<u16>) {
++            for p in paragraphs {
++                for c in &p.controls {
++                    match c {
++                        crate::model::control::Control::Picture(pic) => {
++                            out.push(pic.image_attr.bin_data_id)
++                        }
++                        crate::model::control::Control::Table(t) => {
++                            for cell in &t.cells {
++                                walk(&cell.paragraphs, out);
++                            }
++                        }
++                        _ => {}
++                    }
++                }
++            }
++        }
++        walk(&saved.sections[0].paragraphs, &mut ids);
++        ids.sort();
++        assert_eq!(ids, vec![1, 2]);
++        assert_eq!(saved.bin_data_content.len(), 2);
++        for content in &saved.bin_data_content {
++            assert!(content.data.load().starts_with(b"\x89PNG"), "picture {} kept", content.id);
++        }
++    }
++
+     #[test]
+     fn test_hml_footer_with_line_and_page_number_is_read() {
+         // [ieum 0035] the footer of an HWPML 2.7 test paper: a rule and the page number
+-- 
+2.43.0
+
