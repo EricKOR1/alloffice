@@ -22,7 +22,8 @@
  * lines on page 1; page 2 opens with a heading that has space before it, then
  * a filler line and a two-line paragraph whose text ends with a top-and-bottom
  * table placed 1100 HWPUNIT below the paragraph's last line) and saved by
- * Hangul 2024.
+ * Hangul 2024. The two-column-body-wide-title-table case is a two-column
+ * school exam form saved by Hangul, its school name and motto replaced.
  */
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
@@ -338,5 +339,26 @@ describe('vendored rhwp engine', () => {
       // the band's declared height is 1500, in HWPUNIT
       expect(band!.y).toBeCloseTo(root.bbox!.h - px(4000) - px(1500), 0)
     }
+  })
+
+  it('draws a two-column title table at the body top, over the blank lines before it', () => {
+    // A body-wide top-and-bottom table anchored to the fourth paragraph of a
+    // two-column exam form; the three paragraphs before it are blank. Hangul
+    // stores the anchor's line right below the table (vpos = table height):
+    // the table starts at the body top and the blank lines lie behind it.
+    const doc = open('two-column-body-wide-title-table.hwpx')
+    const root = JSON.parse(doc.getPageRenderTree(0)) as Node
+    const body = area(root, 'Body')!.bbox!
+    const page = boxes(doc, 0)
+    const table = page.find((b) => b.type === 'Table' && b.pi === 3)!
+    expect(table.top).toBeCloseTo(body.y, 0)
+    // the table's declared height is 6396, in HWPUNIT
+    expect(table.bottom).toBeCloseTo(body.y + px(6396), 0)
+    const after = page.filter((b) => b.type === 'TextLine' && b.pi > 3)
+    expect(after.length).toBeGreaterThan(0)
+    const nextTop = Math.min(...after.map((b) => b.top))
+    expect(nextTop).toBeGreaterThanOrEqual(table.bottom - 0.5)
+    // no blank band between the table and the questions
+    expect(nextTop).toBeLessThan(table.bottom + px(1300))
   })
 })

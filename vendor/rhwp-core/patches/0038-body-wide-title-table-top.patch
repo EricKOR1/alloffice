@@ -1,13 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Sat, 7 Nov 2026 00:00:00 +0900
+Subject: [PATCH 38/38] =?UTF-8?q?fix(layout):=20=EB=8B=A4=EB=8B=A8=20?=
+ =?UTF-8?q?=EA=B5=AC=EC=97=AD=EC=9D=98=20=EB=B3=B8=EB=AC=B8=20=ED=8F=AD=20?=
+ =?UTF-8?q?=EC=A0=9C=EB=AA=A9=20=ED=91=9C=EB=A5=BC=20=EB=B3=B8=EB=AC=B8=20?=
+ =?UTF-8?q?=EB=A7=A8=20=EC=9C=84=EC=97=90=20=EA=B7=B8=EB=A6=B0=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+다단 구역에서 빈 문단 뒤에 앵커가 있는 본문 폭 위/아래 표는 단 맨 위에
+자리를 예약하면서 표는 앵커 문단의 흐름 위치에 그려, 표 위에 빈 띠가
+생겼다. 한글처럼 표를 본문 맨 위에 그리고 앞선 빈 문단은 표 뒤에 겹치며,
+흐름은 표 아래 끝에서 이어진다.
+---
+ src/renderer/layout.rs | 98 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 97 insertions(+), 1 deletion(-)
+
 diff --git a/src/renderer/layout.rs b/src/renderer/layout.rs
-index ffc0031e..2a3efc4a 100644
+index ffc0031e..ab134e3f 100644
 --- a/src/renderer/layout.rs
 +++ b/src/renderer/layout.rs
-@@ -1906,6 +1906,51 @@ fn painted_flow_text_bottom(node: &RenderNode) -> Option<f64> {
+@@ -1906,6 +1906,59 @@ fn painted_flow_text_bottom(node: &RenderNode) -> Option<f64> {
  /// 빈 host 문단에 Para-relative Square 표 두 개가 함께 저장된 경우는 세로 block
  /// 두 개가 아니라 동일한 HWP 페이지 좌표의 가로 lane이다. 이 형상은 HWP5의
  /// `LINE_SEG`가 두 표의 공통 상단을 보존하므로, 일반 Square 본문-wrap과 분리한다.
-+/// 다단 구역의 본문 폭 위/아래 표 가운데 문단 기준으로 단 맨 위에 자리를 예약한 표인가.
-+fn para_index_is_body_wide_para_table(
++/// 다단 구역의 본문 폭 위/아래 표 가운데 문단 기준으로 단 맨 위에 자리를 예약한 표면
++/// 그 예약 띠의 아래 끝을 돌려준다.
++fn body_wide_para_table_bottom(
 +    engine: &LayoutEngine,
 +    paragraphs: &[Paragraph],
 +    page_content: &PageContent,
@@ -15,23 +35,26 @@ index ffc0031e..2a3efc4a 100644
 +    para: &Paragraph,
 +    para_index: usize,
 +    control_index: usize,
-+) -> bool {
++) -> Option<f64> {
 +    let Some(Control::Table(table)) = para.controls.get(control_index) else {
-+        return false;
++        return None;
 +    };
-+    if table.common.treat_as_char
++    if page_content.column_contents.len() < 2
++        || table.common.treat_as_char
 +        || !matches!(table.common.text_wrap, TextWrap::TopAndBottom)
 +        || !matches!(table.common.vert_rel_to, VertRelTo::Para)
++        || !page_content
++            .column_contents
++            .iter()
++            .any(|col| body_wide_anchor_follows_blank_paras(paragraphs, &col.items, para_index))
 +    {
-+        return false;
++        return None;
 +    }
 +    engine
 +        .calculate_body_wide_shape_reserved(paragraphs, &page_content.column_contents, body_area)
-+        .iter()
-+        .any(|(pi, _)| *pi == para_index)
-+        && page_content.column_contents.iter().any(|col| {
-+            body_wide_anchor_follows_blank_paras(paragraphs, &col.items, para_index)
-+        })
++        .into_iter()
++        .find(|(pi, _)| *pi == para_index)
++        .map(|(_, bottom)| bottom)
 +}
 +
 +/// 단 안에서 앵커 문단이 첫 항목보다 뒤에 있고, 그 앞 문단이 모두 보이는 글자가 없는가.
@@ -48,13 +71,17 @@ index ffc0031e..2a3efc4a 100644
 +        && items
 +            .iter()
 +            .any(|item| page_item_para_index(item) == Some(anchor))
-+        && (first..anchor).all(|pi| paragraphs.get(pi).is_some_and(|p| !para_has_visible_text(p)))
++        && (first..anchor).all(|pi| {
++            paragraphs
++                .get(pi)
++                .is_some_and(|p| !para_has_visible_text(p))
++        })
 +}
 +
  fn para_is_empty_square_sibling_table_anchor(para: &Paragraph) -> bool {
      !para_has_visible_text(para)
          && para
-@@ -8160,6 +8205,12 @@ impl LayoutEngine {
+@@ -8160,6 +8213,12 @@ impl LayoutEngine {
          );
          // body_area 전체에 걸치는 개체의 예약 높이 병합 (현재 단에도 반영)
          for &(pi, bottom_y) in body_wide_reserved {
@@ -67,7 +94,7 @@ index ffc0031e..2a3efc4a 100644
              if let Some(existing) = shape_reserved.iter_mut().find(|(p, _)| *p == pi) {
                  if bottom_y > existing.1 {
                      existing.1 = bottom_y;
-@@ -8189,7 +8240,12 @@ impl LayoutEngine {
+@@ -8189,7 +8248,12 @@ impl LayoutEngine {
          // (구역끝 미주)는 이미 new_y 이상이라 max 로 불변.
          let mut endnote_sep_body_floor: Option<f64> = None;
          // body_area 전체에 걸치는 개체: 단 시작 y_offset을 개체 하단 아래로 초기화
@@ -81,7 +108,29 @@ index ffc0031e..2a3efc4a 100644
              if bottom_y > y_offset {
                  y_offset = bottom_y;
              }
-@@ -14100,6 +14156,23 @@ impl LayoutEngine {
+@@ -11927,6 +11991,21 @@ impl LayoutEngine {
+                     y_offset,
+                 );
+                 self.table_push_floor.set(None);
++                // 단 맨 위에 그린 본문 폭 표는 앞선 빈 문단과 겹친다. 흐름은 그 문단 끝에
++                // 표 높이를 더하지 않고 표 아래 끝에서 이어진다(한글 저장 vpos 와 같다).
++                if let Some(bottom) = paragraphs.get(*para_index).and_then(|para| {
++                    body_wide_para_table_bottom(
++                        self,
++                        paragraphs,
++                        page_content,
++                        &layout.body_area,
++                        para,
++                        *para_index,
++                        *control_index,
++                    )
++                }) {
++                    return (y_offset.max(bottom), out.1);
++                }
+                 return out;
+             }
+             PageItem::PartialTable {
+@@ -14100,6 +14179,23 @@ impl LayoutEngine {
                      para_y_for_table += anchor_offset;
                  }
              }
@@ -89,19 +138,22 @@ index ffc0031e..2a3efc4a 100644
 +            // 예약한다(`calculate_body_wide_shape_reserved`). 한글도 그 자리, 곧 본문 위에서
 +            // 세로 오프셋만큼 내려 그리고 앞선 빈 문단은 표 뒤에 겹친다. 앵커 문단의 흐름
 +            // 위치에 그리면 예약한 띠와 표 사이에 빈칸이 생긴다.
-+            if page_content.column_contents.len() > 1
-+                && para_index_is_body_wide_para_table(
-+                    self,
-+                    paragraphs,
-+                    page_content,
-+                    &layout.body_area,
-+                    para,
-+                    para_index,
-+                    control_index,
-+                )
++            if body_wide_para_table_bottom(
++                self,
++                paragraphs,
++                page_content,
++                &layout.body_area,
++                para,
++                para_index,
++                control_index,
++            )
++            .is_some()
 +            {
 +                para_y_for_table = layout.body_area.y;
 +            }
              let is_current_visible_para_float = para
                  .controls
                  .get(control_index)
+-- 
+2.43.0
+

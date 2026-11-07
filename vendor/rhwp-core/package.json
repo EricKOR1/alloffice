@@ -1,6 +1,6 @@
 {
   "name": "@rhwp/core",
-  "version": "0.8.7-ieum.26",
+  "version": "0.8.7-ieum.27",
   "description": "rhwp v0.8.7 HWP/HWPX engine (WebAssembly) rebuilt with the patches in ./patches",
   "private": true,
   "type": "module",
@@ -55,7 +55,8 @@
       "0034-hml-pictures.patch",
       "0035-hml-header-footer-line-autonum.patch",
       "0036-hml-groups-and-hwp-save.patch",
-      "0037-hml-multi-column-and-page-number.patch"
+      "0037-hml-multi-column-and-page-number.patch",
+      "0038-body-wide-title-table-top.patch"
     ],
     "wasmPack": "0.15.0",
     "wasmSha256": "db00c6c6ddbeeeece166b8fd5fa994afbcabd5090d49de912880a347fba9ce5f"
