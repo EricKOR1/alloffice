@@ -2,7 +2,7 @@
  * Rebuilds vendor/rhwp-core: the rhwp engine (`@rhwp/core`) at the pinned tag
  * with the layout patches in vendor/rhwp-core/patches (decision 0050).
  *
- *   node tools/build-rhwp-core.mjs [--keep]
+ *   node tools/build-rhwp-core.mjs [--keep] [--fresh]
  *
  * Fetches the tag into node_modules/.cache/rhwp-core (without the multi-GB
  * sample documents), checks the commit, applies the patches in order, builds
@@ -41,28 +41,47 @@ function git(args, cwd) {
     .trim()
 }
 
-// A fresh checkout every time: patches apply to the pristine tag only.
-rmSync(work, { recursive: true, force: true })
-mkdirSync(dirname(work), { recursive: true })
+// Patches apply to the pristine tag only. A checkout kept from an earlier build (--keep) at the
+// pinned commit is reset to it instead of cloned again; --fresh always clones.
+const reusable =
+  !process.argv.includes('--fresh') &&
+  existsSync(join(work, '.git')) &&
+  (() => {
+    try {
+      return git(['rev-parse', 'HEAD'], work) === commit
+    } catch {
+      return false
+    }
+  })()
+if (reusable) {
+  git(['reset', '--quiet', '--hard', commit], work)
+  git(['clean', '--quiet', '-fdx'], work)
+} else {
+  rmSync(work, { recursive: true, force: true })
+  mkdirSync(dirname(work), { recursive: true })
+}
 // LF checkout so the patches (and rustfmt-formatted sources) apply verbatim on Windows.
-run(
-  'git',
-  [
-    '-c',
-    'core.autocrlf=false',
-    'clone',
-    '--filter=blob:none',
-    '--no-checkout',
-    '--branch',
-    tag,
-    REPO,
-    work,
-  ],
-  dirname(work),
-)
-git(['config', 'core.autocrlf', 'false'], work)
-git(['sparse-checkout', 'set', '--no-cone', '/*', '!/samples/'], work)
-git(['checkout', '--quiet', tag], work)
+if (!reusable)
+  run(
+    'git',
+    [
+      '-c',
+      'core.autocrlf=false',
+      'clone',
+      '--filter=blob:none',
+      '--no-checkout',
+      '--branch',
+      tag,
+      REPO,
+      work,
+    ],
+    dirname(work),
+  )
+if (!reusable) {
+  git(['config', 'core.autocrlf', 'false'], work)
+  git(['sparse-checkout', 'set', '--no-cone', '/*', '!/samples/'], work)
+  git(['checkout', '--quiet', tag], work)
+}
 const head = git(['rev-parse', 'HEAD'], work)
 if (head !== commit) {
   throw new Error(`rhwp ${tag} resolved to ${head}, expected ${commit}`)
@@ -76,6 +95,9 @@ for (const patch of patches) {
 const cargoHome = process.env.CARGO_HOME ?? join(homedir(), '.cargo')
 const env = {
   ...process.env,
+  // compiled dependencies live outside the checkout, so a later build (even after --fresh)
+  // compiles only the engine crate again; the output is the same as a clean build
+  CARGO_TARGET_DIR: process.env.CARGO_TARGET_DIR ?? join(dirname(work), 'target'),
   RUSTFLAGS: [
     process.env.RUSTFLAGS ?? '',
     `--remap-path-prefix=${cargoHome}=/cargo`,
@@ -89,7 +111,7 @@ run('wasm-pack', ['build', '--target', 'web', '--release'], work, env)
 for (const file of PACKAGE_FILES) copyFileSync(join(work, 'pkg', file), join(VENDOR, file))
 for (const file of LICENSE_FILES) copyFileSync(join(work, file), join(VENDOR, file))
 const wasm = readFileSync(join(VENDOR, 'rhwp_bg.wasm'))
-for (const leak of [homedir(), work]) {
+for (const leak of [homedir(), work, join(dirname(work), 'target')]) {
   if (wasm.includes(Buffer.from(leak))) {
     throw new Error(`rhwp_bg.wasm still contains the local path ${leak}`)
   }
@@ -98,6 +120,7 @@ manifest.rhwp.wasmSha256 = createHash('sha256').update(wasm).digest('hex')
 writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`)
 console.log(`vendor/rhwp-core: built ${tag} + ${patches.length} patches (${wasm.length} bytes)`)
 
-if (!process.argv.includes('--keep') && existsSync(work)) {
+// the checkout is kept by default so the next build only resets it; --fresh clones anew
+if (process.argv.includes('--fresh') && !process.argv.includes('--keep') && existsSync(work)) {
   rmSync(work, { recursive: true, force: true })
 }
