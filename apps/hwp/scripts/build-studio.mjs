@@ -101,6 +101,7 @@ function stampValue() {
     'build-studio.mjs',
     'rhwp-patches.mjs',
     'rhwp-patch-logical-caret.mjs',
+    'rhwp-patch-equation-slots.mjs',
     'hanja-dict.mjs',
   ]) {
     hash.update(readFileSync(join(SCRIPTS, file)))

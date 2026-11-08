@@ -703,6 +703,7 @@ describe('the studio source the build fetched', () => {
     'src/engine/input-handler-text.ts',
     'src/engine/input-handler-table.ts',
     'src/engine/command.ts',
+    'src/ui/equation-editor-dialog.ts',
     'src/command/commands/edit.ts',
     'src/command/commands/format.ts',
     'src/command/commands/insert.ts',
@@ -1119,5 +1120,28 @@ describe('rhwp logical-caret patch', () => {
 
   it('fails loudly on a bridge that lacks the calls it turns', () => {
     expect(() => applyPatch('studio-logical-caret', bridge)).toThrow(/studio-logical-caret/)
+  })
+})
+
+describe('rhwp equation-slots patch', () => {
+  it('is one of the studio patches and is written against the equation editor', () => {
+    expect(STUDIO_PATCHES).toContain('studio-equation-slots')
+    expect(
+      patchTargets('studio-equation-slots', '/x/rhwp-studio/src/ui/equation-editor-dialog.ts'),
+    ).toBe(true)
+  })
+
+  it('opens a group on ^ and _ and lets Tab leave it', () => {
+    const source = [
+      "    this.scriptArea.addEventListener('keydown', (e) => this.onScriptKeydown(e));",
+      '  private onScriptKeydown(e: KeyboardEvent): void {',
+      '    if (!this.acVisible) return;',
+      '  }',
+      '  // ── 기호 검색 ─────────────────────────────────',
+    ].join('\n')
+    const patched = applyPatch('studio-equation-slots', source)
+    expect(patched).toContain("addEventListener('beforeinput'")
+    expect(patched).toContain("e.data !== '^' && e.data !== '_'")
+    expect(patched).toContain('this.moveScriptSlot(e.shiftKey)')
   })
 })

@@ -143,9 +143,14 @@
  * studio-logical-caret
  *   The caret counts an inline object (an equation) as one place and the text calls do
  *   not; the bridge turns one into the other (rhwp-patch-logical-caret.mjs).
+ *
+ * studio-equation-slots
+ *   ^ and _ in the equation script box open a group with the caret inside, and Tab
+ *   leaves it, as Hancom's editor does with its boxes (rhwp-patch-equation-slots.mjs).
  */
 
 import { LOGICAL_CARET_PATCH } from './rhwp-patch-logical-caret.mjs'
+import { EQUATION_SLOTS_PATCH } from './rhwp-patch-equation-slots.mjs'
 import { CLIPBOARD_HTML_MODULE } from '../studio-plugin/clipboard-html.mjs'
 import { HANCOM_KEYS_MODULE, studioCommandIds } from '../studio-plugin/hancom-keys.mjs'
 import { PC_FONTS_MODULE } from '../studio-plugin/pc-fonts.mjs'
@@ -173,6 +178,7 @@ export { PC_FONTS_MODULE }
 
 const PATCHES = {
   'studio-logical-caret': LOGICAL_CARET_PATCH,
+  'studio-equation-slots': EQUATION_SLOTS_PATCH,
   'sdk-scheme': {
     file: /[\\/]@rhwp[\\/]editor[\\/]transport\.js$/,
     find: "if (targetUrl.protocol !== 'http:' && targetUrl.protocol !== 'https:') {",
@@ -1221,6 +1227,7 @@ export const STUDIO_PATCHES = /** @type {const} */ ([
   'studio-cell-block-paste',
   'studio-pc-fonts',
   'studio-logical-caret',
+  'studio-equation-slots',
 ])
 
 /** Whether a patch is written against this file. */
