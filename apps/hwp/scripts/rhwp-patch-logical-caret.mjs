@@ -16,6 +16,9 @@
  *   out, and reports paragraph lengths in the caret's count. A letter typed
  *   right after an object in body text goes after it (`insertTextLogical`);
  *   the character place alone cannot tell "after the object" from "before it".
+ *   A place after the objects that end a paragraph goes in as it is: the text
+ *   calls read a place past the characters as "after the objects", so Enter at
+ *   the end of "text [box]" keeps the box in its paragraph.
  *   Cells have no such call yet: a letter typed right after an object in a cell
  *   still lands before it. The app's plugins call the engine directly, in
  *   characters, and are not affected.
@@ -37,7 +40,10 @@ const HELPERS = [
   '  /** Caret place (an inline object counts as one) → character place in a body paragraph. */',
   '  private bodyTextOffset(sec: number, para: number, offset: number): number {',
   '    try {',
-  '      return this.doc!.logicalToTextOffset(sec, para, offset);',
+  '      const at = this.doc!.logicalToTextOffset(sec, para, offset);',
+  '      // after the objects that end a paragraph: the text calls read a place past the',
+  '      // characters as "after them" (the character place alone would put it before them)',
+  '      return offset > at && at >= this.doc!.getParagraphLength(sec, para) ? offset : at;',
   '    } catch {',
   '      return offset;',
   '    }',
@@ -96,7 +102,8 @@ const HELPERS = [
   '    const d = this.doc as unknown as { cellLogicalToTextOffsetByPath?: (s: number, p: number, j: string, o: number) => number };',
   "    if (typeof d?.cellLogicalToTextOffsetByPath !== 'function') return offset;",
   '    try {',
-  '      return d.cellLogicalToTextOffsetByPath(sec, parentPara, pathJson, offset);',
+  '      const at = d.cellLogicalToTextOffsetByPath(sec, parentPara, pathJson, offset);',
+  '      return offset > at && at >= this.doc!.getCellParagraphLengthByPath(sec, parentPara, pathJson) ? offset : at;',
   '    } catch {',
   '      return offset;',
   '    }',
