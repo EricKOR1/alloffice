@@ -1,0 +1,102 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Sun, 8 Nov 2026 00:00:00 +0900
+Subject: [PATCH 40/40] =?UTF-8?q?fix(layout):=20=EC=9D=B8=EB=9D=BC?=
+ =?UTF-8?q?=EC=9D=B8=20=EA=B0=9C=EC=B2=B4=20=EB=92=A4=20run=20=EC=9D=98=20?=
+ =?UTF-8?q?=EC=BB=A4=EC=84=9C=20=EC=9E=90=EB=A6=AC=EB=A5=BC=20=EB=85=BC?=
+ =?UTF-8?q?=EB=A6=AC=20=EC=98=A4=ED=94=84=EC=85=8B=EC=9C=BC=EB=A1=9C=20?=
+ =?UTF-8?q?=EB=A7=9E=EC=B6=98=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+렌더 트리 TextRun 의 char_start 는 클릭(hitTest)·커서 상자가 쓰는 자리다.
+글자처럼 취급 개체를 품은 run 은 개체 뒤 조각을 한 칸 밀어 논리 오프셋을
+썼지만, 다음 run 은 글자 위치로 돌아갔다. 수식 뒤에서 글꼴이 바뀌는 줄(시험지
+'(가) 밀도가 [d] g/mL인 …')에서는 클릭 자리가 한 칸씩 어긋나고 줄 끝 클릭이
+논리 길이보다 하나 작았다. run 시작도 앞선 인라인 개체(글자처럼 취급 개체·
+각주·미주) 수만큼 밀고, 각주 표시도 한 칸으로 센다.
+---
+ src/renderer/layout/paragraph_layout.rs | 31 ++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
+
+diff --git a/src/renderer/layout/paragraph_layout.rs b/src/renderer/layout/paragraph_layout.rs
+index c585b32a..815101bb 100755
+--- a/src/renderer/layout/paragraph_layout.rs
++++ b/src/renderer/layout/paragraph_layout.rs
+@@ -39,6 +39,28 @@ const CAPTION_CELL_SENTINEL: usize = 65534;
+ 
+ /// [#6699] 그림 뒤 문자열의 마지막 자간은 다음 글자가 없는 정렬 폭에 넣지 않는다.
+ /// 글자 전진 폭과 그림 뒤 원본 공백은 유지하고, 가운데/오른쪽 정렬의 점유 폭만 줄인다.
++
++/// 글자 위치 `text_pos` 앞에 놓인 인라인 개체(글자처럼 취급 개체·각주·미주) 수.
++///
++/// 렌더 트리의 `char_start` 는 커서·클릭과 같은 **논리 오프셋**(인라인 개체를 한 칸으로
++/// 셈)이다. 개체를 품은 run 은 개체마다 한 칸씩 밀어 왔지만, 다음 run 은 글자 위치로
++/// 되돌아가 수식 뒤에서 글꼴이 바뀌면 커서·클릭 위치가 한 칸씩 어긋났다. run 시작도
++/// 앞선 개체 수만큼 밀어 문단 전체가 같은 셈을 쓰게 한다.
++fn logical_controls_before(para: Option<&Paragraph>, text_pos: usize) -> usize {
++    let Some(para) = para else {
++        return 0;
++    };
++    if !para.controls.iter().any(Control::is_logical_inline) {
++        return 0;
++    }
++    let positions = para.control_text_positions();
++    para.controls
++        .iter()
++        .zip(positions.iter())
++        .filter(|(ctrl, pos)| ctrl.is_logical_inline() && **pos < text_pos)
++        .count()
++}
++
+ fn terminal_tracking_after_inline_picture(
+     line: &ComposedLine,
+     para: Option<&Paragraph>,
+@@ -8059,6 +8081,7 @@ impl LayoutEngine {
+                     if run_fn_markers.is_empty() {
+                         // 각주 없음: 기존 방식으로 전체 TextRun 생성
+                         let run_x = x;
++                        let caret_char_start = char_offset + logical_controls_before(para, char_offset);
+                         let run_id = reserved_shaping_run_id.unwrap_or_else(|| tree.next_id());
+                         let run_node = RenderNode::new(
+                             run_id,
+@@ -8070,7 +8093,7 @@ impl LayoutEngine {
+                                 para_shape_id: Some(composed.para_style_id),
+                                 section_index: Some(section_index),
+                                 para_index: Some(para_index),
+-                                char_start: Some(char_offset),
++                                char_start: Some(caret_char_start),
+                                 cell_context: cell_ctx.clone(),
+                                 is_para_end: is_last_run,
+                                 is_line_break_end: is_line_break,
+@@ -8090,7 +8113,7 @@ impl LayoutEngine {
+                         let run_chars: Vec<char> = run.text.chars().collect();
+                         let mut seg_start = 0usize; // run 내 상대 문자 인덱스
+                         let mut sub_x = x;
+-                        let mut sub_char_offset = char_offset;
++                        let mut sub_char_offset = char_offset + logical_controls_before(para, char_offset);
+                         emitted_text_width = 0.0;
+ 
+                         for &(rel_pos, fnum, fni, ctrl_idx) in &run_fn_markers {
+@@ -8175,6 +8198,8 @@ impl LayoutEngine {
+                             line_node.children.push(fn_node);
+                             sub_x += sup_w;
+                             fn_split_extra += sup_w;
++                            // 각주도 커서 자리 하나를 차지한다 (`Control::is_logical_inline`)
++                            sub_char_offset += 1;
+                             seg_start = rel_pos;
+                         }
+                         // 마지막 세그먼트 (각주 뒤 나머지 텍스트)
+@@ -8257,7 +8282,7 @@ impl LayoutEngine {
+                 // tac 있음: 분기점마다 하위 텍스트 런 생성 (이미지는 layout.rs에서 별도 렌더링)
+                 let run_chars: Vec<char> = run.text.chars().collect();
+                 let mut seg_start = 0usize;
+-                let mut sub_char_offset = char_offset;
++                let mut sub_char_offset = char_offset + logical_controls_before(para, char_offset);
+ 
+                 // [Task #455] 외부 문단 본문 텍스트는 글상자 유무와 무관하게 항상 렌더한다.
+                 // 글상자(TextBox) 자체와 그 내부 텍스트("개화" 같은)는
+-- 
+2.43.0
+

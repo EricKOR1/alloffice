@@ -1,0 +1,85 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Sun, 8 Nov 2026 00:00:00 +0900
+Subject: [PATCH 39/39] =?UTF-8?q?feat(wasm):=20=EC=85=80=20=EB=AC=B8?=
+ =?UTF-8?q?=EB=8B=A8=EC=9D=98=20=EB=85=BC=EB=A6=AC=20=EC=98=A4=ED=94=84?=
+ =?UTF-8?q?=EC=85=8B=20=EB=B3=80=ED=99=98=EA=B3=BC=20=EB=85=BC=EB=A6=AC=20?=
+ =?UTF-8?q?=EA=B8=B8=EC=9D=B4=EB=A5=BC=20=EB=82=B4=EB=B3=B4=EB=82=B8?=
+ =?UTF-8?q?=EB=8B=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+커서·클릭 위치는 인라인 개체(수식·그림·표)를 한 칸으로 세는 논리 오프셋을
+쓰고, 글자 편집 호출은 개체를 세지 않는 글자 오프셋을 쓴다. 본문에는 두 셈을
+잇는 getLogicalLength·logicalToTextOffset·textToLogicalOffset 이 있지만 셀
+문단에는 없어, 편집 화면이 셀 안 수식 뒤에서 위치를 맞출 수 없었다. 중첩 경로로
+셀 문단을 찾는 세 호출을 더한다. 기존 호출의 동작은 바꾸지 않는다.
+---
+ src/wasm_api.rs | 50 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+
+diff --git a/src/wasm_api.rs b/src/wasm_api.rs
+index f806fa22..6d13830e 100644
+--- a/src/wasm_api.rs
++++ b/src/wasm_api.rs
+@@ -2837,6 +2837,56 @@ impl HwpDocument {
+         Ok(para.text.chars().count() as u32)
+     }
+ 
++    /// 셀 문단(중첩 경로)의 논리적 길이 (텍스트 문자 + 인라인 컨트롤 수).
++    /// 본문의 `getLogicalLength` 와 같은 셈이다. 커서·클릭 위치가 이 셈을 쓴다.
++    #[wasm_bindgen(js_name = getCellLogicalLengthByPath)]
++    pub fn get_cell_logical_length_by_path(
++        &self,
++        section_idx: u32,
++        parent_para_idx: u32,
++        path_json: &str,
++    ) -> Result<u32, JsValue> {
++        let path = DocumentCore::parse_cell_path(path_json)?;
++        let para = self
++            .resolve_paragraph_by_path(section_idx as usize, parent_para_idx as usize, &path)
++            .map_err(|e| -> JsValue { e.into() })?;
++        Ok(crate::document_core::helpers::logical_paragraph_length(para) as u32)
++    }
++
++    /// 셀 문단(중첩 경로)의 논리적 오프셋 → 텍스트 오프셋 변환.
++    #[wasm_bindgen(js_name = cellLogicalToTextOffsetByPath)]
++    pub fn cell_logical_to_text_offset_by_path(
++        &self,
++        section_idx: u32,
++        parent_para_idx: u32,
++        path_json: &str,
++        logical_offset: u32,
++    ) -> Result<u32, JsValue> {
++        let path = DocumentCore::parse_cell_path(path_json)?;
++        let para = self
++            .resolve_paragraph_by_path(section_idx as usize, parent_para_idx as usize, &path)
++            .map_err(|e| -> JsValue { e.into() })?;
++        let (text_offset, _) =
++            crate::document_core::helpers::logical_to_text_offset(para, logical_offset as usize);
++        Ok(text_offset as u32)
++    }
++
++    /// 셀 문단(중첩 경로)의 텍스트 오프셋 → 논리적 오프셋 변환.
++    #[wasm_bindgen(js_name = cellTextToLogicalOffsetByPath)]
++    pub fn cell_text_to_logical_offset_by_path(
++        &self,
++        section_idx: u32,
++        parent_para_idx: u32,
++        path_json: &str,
++        text_offset: u32,
++    ) -> Result<u32, JsValue> {
++        let path = DocumentCore::parse_cell_path(path_json)?;
++        let para = self
++            .resolve_paragraph_by_path(section_idx as usize, parent_para_idx as usize, &path)
++            .map_err(|e| -> JsValue { e.into() })?;
++        Ok(crate::document_core::helpers::text_to_logical_offset(para, text_offset as usize) as u32)
++    }
++
+     /// 표 셀의 텍스트 방향을 반환한다 (0=가로, 1=세로/영문눕힘, 2=세로/영문세움).
+     #[wasm_bindgen(js_name = getCellTextDirection)]
+     pub fn get_cell_text_direction(
+-- 
+2.43.0
+

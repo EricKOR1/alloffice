@@ -1100,3 +1100,24 @@ describe("Hangul's plain drag of a horizontal table border", () => {
     expect(STUDIO_PATCHES).toContain('studio-hancom-row-drag')
   })
 })
+
+describe('rhwp logical-caret patch', () => {
+  const bridge = [
+    '  insertText(sec: number, para: number, charOffset: number, text: string): string {',
+    "    if (!this.doc) throw new Error('문서가 로드되지 않았습니다');",
+    '    return this.doc.insertText(sec, para, charOffset, text);',
+    '  }',
+  ].join('\n')
+
+  it('is one of the studio patches and is written against the bridge', () => {
+    expect(STUDIO_PATCHES).toContain('studio-logical-caret')
+    expect(patchTargets('studio-logical-caret', '/x/rhwp-studio/src/core/wasm-bridge.ts')).toBe(
+      true,
+    )
+    expect(patchTargets('studio-logical-caret', '/x/rhwp-studio/src/main.ts')).toBe(false)
+  })
+
+  it('fails loudly on a bridge that lacks the calls it turns', () => {
+    expect(() => applyPatch('studio-logical-caret', bridge)).toThrow(/studio-logical-caret/)
+  })
+})

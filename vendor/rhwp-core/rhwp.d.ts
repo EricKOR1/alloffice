@@ -170,6 +170,14 @@ export class HwpDocument {
      */
     captureSectionRaw(section_idx: number): number;
     /**
+     * 셀 문단(중첩 경로)의 논리적 오프셋 → 텍스트 오프셋 변환.
+     */
+    cellLogicalToTextOffsetByPath(section_idx: number, parent_para_idx: number, path_json: string, logical_offset: number): number;
+    /**
+     * 셀 문단(중첩 경로)의 텍스트 오프셋 → 논리적 오프셋 변환.
+     */
+    cellTextToLogicalOffsetByPath(section_idx: number, parent_para_idx: number, path_json: string, text_offset: number): number;
+    /**
      * Shape z-order 변경
      * operation: "front" | "back" | "forward" | "backward"
      * 반환: `{"ok":true,"zOrder":N,"moves":[{"ppi","ci","before","after"}...]}`
@@ -665,6 +673,11 @@ export class HwpDocument {
      * 반환: JSON `{"row":N,"col":N,"rowSpan":N,"colSpan":N}`
      */
     getCellInfoByPath(section_idx: number, parent_para_idx: number, path_json: string): string;
+    /**
+     * 셀 문단(중첩 경로)의 논리적 길이 (텍스트 문자 + 인라인 컨트롤 수).
+     * 본문의 `getLogicalLength` 와 같은 셈이다. 커서·클릭 위치가 이 셈을 쓴다.
+     */
+    getCellLogicalLengthByPath(section_idx: number, parent_para_idx: number, path_json: string): number;
     /**
      * 셀 고유 속성을 조회한다.
      *
@@ -2632,6 +2645,8 @@ export interface InitOutput {
     readonly hwpdocument_captureDeleteRange: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly hwpdocument_capturePictureTransform: (a: number, b: number, c: number) => [number, number, number];
     readonly hwpdocument_captureSectionRaw: (a: number, b: number) => [number, number, number];
+    readonly hwpdocument_cellLogicalToTextOffsetByPath: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly hwpdocument_cellTextToLogicalOffsetByPath: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly hwpdocument_changeShapeZOrder: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_clearActiveField: (a: number) => void;
     readonly hwpdocument_clearClipboard: (a: number) => void;
@@ -2726,6 +2741,7 @@ export interface InitOutput {
     readonly hwpdocument_getCellCharPropertiesAtByPath: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_getCellInfo: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly hwpdocument_getCellInfoByPath: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+    readonly hwpdocument_getCellLogicalLengthByPath: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly hwpdocument_getCellOwnProperties: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly hwpdocument_getCellParaPropertiesAt: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_getCellParagraphCount: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];

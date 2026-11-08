@@ -97,7 +97,12 @@ function git(args, cwd) {
 function stampValue() {
   const hash = createHash('sha256')
   hash.update(TAG)
-  for (const file of ['build-studio.mjs', 'rhwp-patches.mjs', 'hanja-dict.mjs']) {
+  for (const file of [
+    'build-studio.mjs',
+    'rhwp-patches.mjs',
+    'rhwp-patch-logical-caret.mjs',
+    'hanja-dict.mjs',
+  ]) {
     hash.update(readFileSync(join(SCRIPTS, file)))
   }
   // the app's own plugin and the Hangul keys are compiled into the studio

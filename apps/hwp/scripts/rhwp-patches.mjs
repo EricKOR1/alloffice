@@ -139,8 +139,13 @@
  *   so its font lists held the base fonts and the document's own until then. At start-up
  *   it now asks the PC for its font list and detects anew when that differs from the
  *   kept one (studio-plugin/pc-fonts.mjs), then tells the font lists as the button does.
+ *
+ * studio-logical-caret
+ *   The caret counts an inline object (an equation) as one place and the text calls do
+ *   not; the bridge turns one into the other (rhwp-patch-logical-caret.mjs).
  */
 
+import { LOGICAL_CARET_PATCH } from './rhwp-patch-logical-caret.mjs'
 import { CLIPBOARD_HTML_MODULE } from '../studio-plugin/clipboard-html.mjs'
 import { HANCOM_KEYS_MODULE, studioCommandIds } from '../studio-plugin/hancom-keys.mjs'
 import { PC_FONTS_MODULE } from '../studio-plugin/pc-fonts.mjs'
@@ -167,6 +172,7 @@ export { CLIPBOARD_HTML_MODULE }
 export { PC_FONTS_MODULE }
 
 const PATCHES = {
+  'studio-logical-caret': LOGICAL_CARET_PATCH,
   'sdk-scheme': {
     file: /[\\/]@rhwp[\\/]editor[\\/]transport\.js$/,
     find: "if (targetUrl.protocol !== 'http:' && targetUrl.protocol !== 'https:') {",
@@ -1214,6 +1220,7 @@ export const STUDIO_PATCHES = /** @type {const} */ ([
   'studio-font-memo-use',
   'studio-cell-block-paste',
   'studio-pc-fonts',
+  'studio-logical-caret',
 ])
 
 /** Whether a patch is written against this file. */

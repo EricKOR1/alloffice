@@ -79,7 +79,21 @@ if (!reusable)
   )
 if (!reusable) {
   git(['config', 'core.autocrlf', 'false'], work)
-  git(['sparse-checkout', 'set', '--no-cone', '/*', '!/samples/'], work)
+  // sample documents, PDF test corpora and design notes are gigabytes the build never reads
+  // (mydocs/manual is compiled into the MCP server)
+  git(
+    [
+      'sparse-checkout',
+      'set',
+      '--no-cone',
+      '/*',
+      '!/samples/',
+      '!/pdf/',
+      '!/mydocs/',
+      '/mydocs/manual/',
+    ],
+    work,
+  )
   git(['checkout', '--quiet', tag], work)
 }
 const head = git(['rev-parse', 'HEAD'], work)

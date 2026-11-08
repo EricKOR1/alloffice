@@ -37,6 +37,8 @@ export const hwpdocument_canvasMetricsActive: (a: number) => number;
 export const hwpdocument_captureDeleteRange: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const hwpdocument_capturePictureTransform: (a: number, b: number, c: number) => [number, number, number];
 export const hwpdocument_captureSectionRaw: (a: number, b: number) => [number, number, number];
+export const hwpdocument_cellLogicalToTextOffsetByPath: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+export const hwpdocument_cellTextToLogicalOffsetByPath: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
 export const hwpdocument_changeShapeZOrder: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_clearActiveField: (a: number) => void;
 export const hwpdocument_clearClipboard: (a: number) => void;
@@ -131,6 +133,7 @@ export const hwpdocument_getCellCharPropertiesAt: (a: number, b: number, c: numb
 export const hwpdocument_getCellCharPropertiesAtByPath: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_getCellInfo: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
 export const hwpdocument_getCellInfoByPath: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
+export const hwpdocument_getCellLogicalLengthByPath: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
 export const hwpdocument_getCellOwnProperties: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
 export const hwpdocument_getCellParaPropertiesAt: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_getCellParagraphCount: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];

@@ -836,6 +836,40 @@ export class HwpDocument {
         return ret[0] >>> 0;
     }
     /**
+     * 셀 문단(중첩 경로)의 논리적 오프셋 → 텍스트 오프셋 변환.
+     * @param {number} section_idx
+     * @param {number} parent_para_idx
+     * @param {string} path_json
+     * @param {number} logical_offset
+     * @returns {number}
+     */
+    cellLogicalToTextOffsetByPath(section_idx, parent_para_idx, path_json, logical_offset) {
+        const ptr0 = passStringToWasm0(path_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.hwpdocument_cellLogicalToTextOffsetByPath(this.__wbg_ptr, section_idx, parent_para_idx, ptr0, len0, logical_offset);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return ret[0] >>> 0;
+    }
+    /**
+     * 셀 문단(중첩 경로)의 텍스트 오프셋 → 논리적 오프셋 변환.
+     * @param {number} section_idx
+     * @param {number} parent_para_idx
+     * @param {string} path_json
+     * @param {number} text_offset
+     * @returns {number}
+     */
+    cellTextToLogicalOffsetByPath(section_idx, parent_para_idx, path_json, text_offset) {
+        const ptr0 = passStringToWasm0(path_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.hwpdocument_cellTextToLogicalOffsetByPath(this.__wbg_ptr, section_idx, parent_para_idx, ptr0, len0, text_offset);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return ret[0] >>> 0;
+    }
+    /**
      * Shape z-order 변경
      * operation: "front" | "back" | "forward" | "backward"
      * 반환: `{"ok":true,"zOrder":N,"moves":[{"ppi","ci","before","after"}...]}`
@@ -3009,6 +3043,23 @@ export class HwpDocument {
         } finally {
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
+    }
+    /**
+     * 셀 문단(중첩 경로)의 논리적 길이 (텍스트 문자 + 인라인 컨트롤 수).
+     * 본문의 `getLogicalLength` 와 같은 셈이다. 커서·클릭 위치가 이 셈을 쓴다.
+     * @param {number} section_idx
+     * @param {number} parent_para_idx
+     * @param {string} path_json
+     * @returns {number}
+     */
+    getCellLogicalLengthByPath(section_idx, parent_para_idx, path_json) {
+        const ptr0 = passStringToWasm0(path_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.hwpdocument_getCellLogicalLengthByPath(this.__wbg_ptr, section_idx, parent_para_idx, ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return ret[0] >>> 0;
     }
     /**
      * 셀 고유 속성을 조회한다.
