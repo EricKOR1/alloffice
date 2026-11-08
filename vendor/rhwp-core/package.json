@@ -1,6 +1,6 @@
 {
   "name": "@rhwp/core",
-  "version": "0.8.7-ieum.29",
+  "version": "0.8.7-ieum.30",
   "description": "rhwp v0.8.7 HWP/HWPX engine (WebAssembly) rebuilt with the patches in ./patches",
   "private": true,
   "type": "module",
@@ -58,9 +58,10 @@
       "0037-hml-multi-column-and-page-number.patch",
       "0038-body-wide-title-table-top.patch",
       "0039-cell-logical-offsets.patch",
-      "0040-caret-offsets-after-inline-objects.patch"
+      "0040-caret-offsets-after-inline-objects.patch",
+      "0041-equation-spaces-font-runs-scripts.patch"
     ],
     "wasmPack": "0.15.0",
-    "wasmSha256": "b9f06bfcf485803bfd698aab30b02bf3c539fea19e908a52c576b5da079f3a8b"
+    "wasmSha256": "b2f0109198612d254409a5d946cdf471bccfdc013004fa8d7d485ee76a0605ba"
   }
 }

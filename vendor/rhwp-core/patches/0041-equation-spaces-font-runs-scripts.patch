@@ -1,0 +1,202 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: EricKOR1 <EricKOR1@users.noreply.github.com>
+Date: Sun, 8 Nov 2026 00:00:00 +0900
+Subject: [PATCH 41/41] =?UTF-8?q?fix(equation):=20=EA=B8=80=EA=BC=B4=20?=
+ =?UTF-8?q?=EB=AA=85=EB=A0=B9=20=EB=92=A4=20=EA=B3=B5=EB=B0=B1=20=EA=B8=B0?=
+ =?UTF-8?q?=ED=98=B8,=20rm=C2=B7it=20=EB=B2=94=EC=9C=84,=20=EA=B2=B9?=
+ =?UTF-8?q?=EC=B9=9C=20=EC=9C=84=C2=B7=EC=95=84=EB=9E=98=20=EC=B2=A8?=
+ =?UTF-8?q?=EC=9E=90?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- rm·it 바로 뒤의 ` 와 ~ 를 본문 글자로 먹어 그대로 그리던 것을 띄어쓰기로
+  읽는다(시험지 화학식 'it ``+``c' 에 ` 가 찍혔다). 한 토큰 인자 자리의
+  공백 기호도 띄어쓰기다.
+- 한글 수식의 rm·it 는 다음 글꼴 명령까지 이어진다('rm H _{2} O' 의 O 도
+  바로 선다). LaTeX \mathrm{} 은 인자 하나 그대로다.
+- 아래·위첨자가 함께 붙어 겹치면(NO _{3}^{-} 의 − 가 3 위에 얹힘) 겹친 만큼
+  위첨자를 올리고 아래첨자를 내린다.
+---
+ src/renderer/equation/layout.rs | 34 ++++++--------
+ src/renderer/equation/parser.rs | 78 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 91 insertions(+), 21 deletions(-)
+
+diff --git a/src/renderer/equation/layout.rs b/src/renderer/equation/layout.rs
+index 29f1a607..b4538cb1 100644
+--- a/src/renderer/equation/layout.rs
++++ b/src/renderer/equation/layout.rs
+@@ -669,24 +669,17 @@ impl EqLayout {
+         let sup_shift = b.baseline - sp.height * 0.7;
+         let sub_shift = b.baseline * 0.4;
+ 
+-        let ascent = if sup_shift < 0.0 {
+-            sp.height - sup_shift.abs()
+-        } else {
+-            sp.height.max(0.0)
+-        };
+-        let top = sup_shift.min(0.0).abs();
+-        let total_h = (top + b.height)
+-            .max(top + sub_shift + sb.height)
+-            .max(ascent + b.height);
+-
+-        let base_y = top.max(
+-            if sup_shift > 0.0 {
+-                0.0
+-            } else {
+-                sp.height - sup_shift.abs() - b.baseline
+-            }
+-            .max(0.0),
+-        );
++        // 위·아래 첨자의 base 상단 기준 자리. 위첨자는 base 상단에 맞추고(키가 크면 그만큼
++        // 위로), 아래첨자는 기준선 쪽으로 내린다. 둘이 겹치면(`NO _{3}^{-}` 의 −가 3 위에
++        // 얹힘) 겹친 만큼 위첨자를 올리고 아래첨자를 내려 한글처럼 위아래로 나눈다.
++        let mut sup_rel = sup_shift.min(0.0);
++        let mut sub_rel = sub_shift;
++        let clash = (sup_rel + sp.height * 0.9) - sub_rel;
++        if clash > 0.0 {
++            sup_rel -= clash * 0.6;
++            sub_rel += clash * 0.4;
++        }
++        let base_y = (-sup_rel).max(0.0);
+ 
+         let mut base_box = b;
+         base_box.x = 0.0;
+@@ -694,11 +687,12 @@ impl EqLayout {
+ 
+         let mut sup_box = sp;
+         sup_box.x = base_box.width;
+-        sup_box.y = 0.0;
++        sup_box.y = base_y + sup_rel;
+ 
+         let mut sub_box = sb;
+         sub_box.x = base_box.width;
+-        sub_box.y = base_y + sub_shift;
++        sub_box.y = base_y + sub_rel;
++        let total_h = (base_box.y + base_box.height).max(sup_box.y + sup_box.height);
+ 
+         let script_w = sup_box.width.max(sub_box.width);
+         let total_w = base_box.width + script_w;
+diff --git a/src/renderer/equation/parser.rs b/src/renderer/equation/parser.rs
+index fd0e0a69..00d934c1 100644
+--- a/src/renderer/equation/parser.rs
++++ b/src/renderer/equation/parser.rs
+@@ -486,6 +486,19 @@ impl EqParser {
+             .get(cmd)
+             .or_else(|| FONT_STYLES.get(cmd_lower.as_str()))
+         {
++            // 글꼴 명령 바로 뒤의 공백 기호(`~`, `` ` ``)는 띄어쓰기다. 본문으로 먹으면
++            // 기호가 글자로 그려진다(`it ``+``c` → "`+`"). 공백을 앞에 두고 그 뒤를 본문으로 읽는다.
++            let mut leading_spaces = Vec::new();
++            while self.current_type() == TokenType::Whitespace
++                && matches!(self.current_value(), "~" | "`")
++            {
++                leading_spaces.push(if self.current_value() == "~" {
++                    EqNode::Space(SpaceKind::Normal)
++                } else {
++                    EqNode::Space(SpaceKind::Thin)
++                });
++                self.pos += 1;
++            }
+             // 다음 토큰이 구조 명령어(LEFT, RIGHT 등)이면 body 없이 반환
+             // rm P it LEFT(...) 에서 it이 LEFT를 body로 먹지 않도록
+             let body = if self.current_type() == TokenType::Command
+@@ -495,10 +508,30 @@ impl EqParser {
+             } else {
+                 self.parse_single_or_group()
+             };
+-            return EqNode::FontStyle {
++            // 한글 수식의 `rm`·`it` 는 다음 글꼴 명령이 나올 때까지 이어진다
++            // (`rm H _{2} O` 의 O 도 바로 선다). LaTeX `\mathrm{..}` 은 인자 하나다.
++            let body = if matches!(cmd_lower.as_str(), "rm" | "it") && body != EqNode::Empty {
++                let mut run = vec![body];
++                while !self.at_end() && !self.ends_font_scope() {
++                    run.push(self.parse_element());
++                }
++                if run.len() == 1 {
++                    run.pop().unwrap_or(EqNode::Empty)
++                } else {
++                    EqNode::Row(run)
++                }
++            } else {
++                body
++            };
++            let styled = EqNode::FontStyle {
+                 style,
+                 body: Box::new(body),
+             };
++            if leading_spaces.is_empty() {
++                return styled;
++            }
++            leading_spaces.push(styled);
++            return EqNode::Row(leading_spaces);
+         }
+ 
+         // Unicode 기호 매핑 — 함수보다 우선 (hwpeq inf=∞ vs LaTeX \inf=infimum 충돌 방지)
+@@ -527,6 +560,21 @@ impl EqParser {
+         self.try_parse_scripts(node)
+     }
+ 
++    /// 한글 수식 글꼴 명령(`rm`·`it`)이 이어지는 범위의 끝인가: 그룹·줄·칸의 끝,
++    /// 분수 연산자, 다음 글꼴 명령. 끝 토큰은 소비하지 않는다.
++    fn ends_font_scope(&self) -> bool {
++        match self.current_type() {
++            TokenType::RBrace => true,
++            TokenType::Whitespace => matches!(self.current_value(), "#" | "&"),
++            TokenType::Command => {
++                let cmd = self.current_value().to_ascii_lowercase();
++                matches!(cmd.as_str(), "right" | "over" | "atop" | "rm" | "it" | "bold")
++                    || FONT_STYLES.contains_key(cmd.as_str())
++            }
++            _ => false,
++        }
++    }
++
+     /// 중괄호 그룹 파싱: {...} (깊이 가드).
+     /// 그룹 내의 OVER는 parse_expression의 중위 연산자 처리로 자동 처리된다.
+     fn parse_group(&mut self) -> EqNode {
+@@ -715,6 +763,13 @@ impl EqParser {
+             TokenType::Text => EqNode::Text(val),
+             TokenType::Quoted => EqNode::Quoted(val),
+             TokenType::Symbol => EqNode::Symbol(val),
++            // 공백 기호는 한 토큰짜리 인자 자리에 와도 띄어쓰기다 (글자로 그리지 않는다).
++            TokenType::Whitespace => match val.as_str() {
++                "~" => EqNode::Space(SpaceKind::Normal),
++                "`" => EqNode::Space(SpaceKind::Thin),
++                "&" => EqNode::Space(SpaceKind::Tab),
++                _ => EqNode::Empty,
++            },
+             _ => EqNode::Text(val),
+         }
+     }
+@@ -1681,6 +1736,27 @@ mod tests {
+     /// [PR #1226] LEFT-RIGHT 구분기호 그룹 뒤 첨자(^/_)가 그룹 전체에 결합돼야 한다.
+     /// 기존엔 LEFT 분기가 try_parse_scripts 를 안 거쳐 `|x|^3` 의 ^3 가 base 없는
+     /// orphan Superscript{base:Empty} 가 됐다(3 이 superscript 높이로 안 올라감).
++    #[test]
++    fn font_style_followed_by_space_symbols_keeps_them_as_spaces() {
++        // 시험지 화학식: `it ``+``c` 의 백틱이 글자로 그려지면 안 된다.
++        let ast = parse("a` rm Cu``+`` it b` rm NO _{3}^{-} it ``+``c ~ rm H");
++        let dump = format!("{ast:?}");
++        assert!(!dump.contains("Text(\"`\")"), "backtick leaked as text: {dump}");
++        assert!(!dump.contains("Text(\"~\")"), "tilde leaked as text: {dump}");
++        assert!(dump.contains("Space(Thin)"), "{dump}");
++    }
++
++    #[test]
++    fn hwp_roman_runs_until_the_next_font_command() {
++        // `rm H _{2} O it x`: H₂O 전체가 바로 서고, x 는 기울임이다.
++        let ast = parse("rm H _{2} O it x");
++        let dump = format!("{ast:?}");
++        let roman = dump.find("Roman").expect(&dump);
++        let italic = dump.find("Italic").expect(&dump);
++        let o = dump.find("Text(\"O\")").expect(&dump);
++        assert!(roman < o && o < italic, "O must sit in the roman run: {dump}");
++    }
++
+     #[test]
+     fn left_right_group_binds_trailing_script() {
+         // |x|^3 → Superscript{ base: Paren, sup: 3 } (orphan 아님)
+-- 
+2.43.0
+
