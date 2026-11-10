@@ -2034,6 +2034,16 @@ describe('the skill as the model sees it', () => {
   it('names the product, not the upstream project', () => {
     expect(setup().skill.systemPrompt).not.toContain('GenOffice')
   })
+
+  it('asks for work it cannot see, reads attachments to the end and checks the amount asked', () => {
+    // a lesson-plan request drew on the user's work in another Claude chat, which the
+    // panel cannot see; the model wrote general lessons and stopped at 4 of 5
+    const prompt = setup().skill.systemPrompt
+    expect(prompt).toContain('do not make it up')
+    expect(prompt).toContain('ask the user to attach or paste that material')
+    expect(prompt).toContain('list every part it asks for')
+    expect(prompt).toContain('check each part on that list')
+  })
 })
 
 describe('pictures', () => {
