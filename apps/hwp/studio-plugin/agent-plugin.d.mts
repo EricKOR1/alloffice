@@ -75,6 +75,19 @@ export type AgentDeleteResult =
     }
   | AgentPlaceRefusal
 
+export type AgentCopyPartResult =
+  | {
+      ok: true
+      /** paragraphs in the part that was copied */
+      paragraphs: number
+      copies: number
+      /** paragraphs the copies added */
+      added: number
+      /** the first paragraph after the part, where the first copy starts */
+      place: AgentPlace
+    }
+  | AgentPlaceRefusal
+
 export type AgentTableResult =
   | { ok: true; rows: number; cols: number; inTable: boolean; place: AgentPlace }
   | AgentPlaceRefusal
@@ -809,6 +822,14 @@ export interface AgentPluginSurface {
     occurrence: number | null,
     options?: AgentChangeOptions,
   ): AgentDeleteResult
+  copyPart(
+    from: string,
+    fromOccurrence: number | null,
+    until: string | null,
+    untilOccurrence: number | null,
+    times: number,
+    options?: AgentChangeOptions,
+  ): AgentCopyPartResult
   insertTable(
     anchor: string,
     occurrence: number | null,

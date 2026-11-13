@@ -89,6 +89,13 @@ function setup(
       emptied: false,
       inTable: false,
     })),
+    copyPart: vi.fn(async () => ({
+      ok: true as const,
+      paragraphs: 10,
+      copies: 2,
+      added: 20,
+      place: PLACE,
+    })),
     insertTable: vi.fn(async () => ({ ok: true as const, rows: 2, cols: 3, inTable: false })),
     insertPicture: vi.fn(async () => ({ ok: true as const, inTable: false, place: PLACE })),
     formatText: vi.fn(async () => ({ ok: true as const, count: 1 })),
@@ -1983,6 +1990,20 @@ describe('memo anchor removal', () => {
 })
 
 describe('the skill as the model sees it', () => {
+  it('copies a part of the document and tells the model to read the tables again', async () => {
+    const { bridge, call } = setup()
+    const result = await call('copy_part', {
+      from: '1. 수업 기본 정보',
+      until: '2. 활용 설계',
+      until_occurrence: 2,
+      times: 2,
+    })
+    expect(result.isError).toBeFalsy()
+    expect(bridge.copyPart).toHaveBeenCalledWith('1. 수업 기본 정보', null, '2. 활용 설계', 2, 2)
+    expect(result.output).toContain('list the tables again')
+    expect((await call('copy_part', { from: '1.', times: 12 })).isError).toBe(true)
+  })
+
   it('offers exactly the tools it can execute', async () => {
     const { skill, call } = setup()
     expect(skill.tools.map((tool) => tool.name)).toEqual([
@@ -1996,6 +2017,7 @@ describe('the skill as the model sees it', () => {
       'replace_all',
       'insert_paragraphs',
       'delete_paragraph',
+      'copy_part',
       'insert_table',
       'image_search',
       'insert_image',

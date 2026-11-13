@@ -147,6 +147,8 @@ export const MEMO_NOT_COPIED_EVENT = 'ieum:memo-not-copied'
 /** The commands this plugin registers with the editor for the memo panel. */
 const MEMO_LIST_COMMAND = 'ext:ieum-memo-list'
 const MEMO_SELECTION_COMMAND = 'ext:ieum-memo-selection'
+/** most copies one copyPart call makes */
+const MAX_PART_COPIES = 9
 const MEMO_INSERT_COMMAND = 'ext:ieum-memo-insert'
 const MEMO_SET_COMMAND = 'ext:ieum-memo-set'
 const MEMO_REMOVE_COMMAND = 'ext:ieum-memo-remove'
@@ -4774,6 +4776,66 @@ export const agentPlugin = {
             },
             options,
           ),
+        )
+      }),
+
+      /**
+       * Copy a part of the body (its paragraphs with their tables, pictures and formatting)
+       * `times` times, right after the part: from the paragraph holding `from` up to the one
+       * holding `until` (not included), or to the end of the section. A form that gives one
+       * sample lesson or item to repeat is filled this way: copy, then fill each copy. The
+       * copy goes through the editor's own copy and paste, so it leaves the editor's clipboard
+       * holding the part.
+       */
+      copyPart: guarded((from, fromOccurrence, until, untilOccurrence, times, options) => {
+        if (!Number.isInteger(times) || times < 1 || times > MAX_PART_COPIES) {
+          throw fail('BAD_ARGUMENT', `times must be a whole number from 1 to ${MAX_PART_COPIES}`)
+        }
+        const span = (doc) => {
+          const start = locate(doc, from, fromOccurrence, 'after')
+          if (!start.box) return { refusal: start.refusal }
+          if (start.box.inTable)
+            return { refusal: { ok: false, reason: 'unsupported_place', count: 1 } }
+          const first = start.box.index
+          const sec = start.box.place(first, 0).sec
+          let end = doc.getParagraphCount(sec)
+          if (typeof until === 'string' && until !== '') {
+            const stop = locate(doc, until, untilOccurrence, 'after')
+            if (!stop.box) return { refusal: stop.refusal }
+            const stopPlace = stop.box.place(stop.box.index, 0)
+            if (stop.box.inTable || stopPlace.sec !== sec || stop.box.index <= first) {
+              return { refusal: { ok: false, reason: 'unsupported_place', count: 1 } }
+            }
+            end = stop.box.index
+          }
+          return { sec, first, end }
+        }
+        const refusal = host.read((doc) => span(doc).refusal ?? null)
+        if (refusal) return refusal
+        return change(
+          'copy-part',
+          (doc) => {
+            const part = span(doc)
+            if (part.refusal) throw fail('CHANGED', 'the document changed mid-call')
+            const { sec, first, end } = part
+            const before = doc.getParagraphCount(sec)
+            // at the end of the section there is no paragraph to paste in front of: add one
+            const atEnd = end >= before
+            if (atEnd) expectOk(doc.insertParagraph(sec, before), 'add a paragraph')
+            for (let n = 0; n < times; n++) {
+              expectOk(doc.copySelection(sec, first, 0, end, 0), 'copy the part')
+              expectOk(doc.pasteInternal(sec, end, 0), 'paste the part')
+            }
+            const added = doc.getParagraphCount(sec) - before - (atEnd ? 1 : 0)
+            return {
+              ok: true,
+              paragraphs: end - first,
+              copies: times,
+              added,
+              place: { sec, para: end, offset: 0, length: 0 },
+            }
+          },
+          options,
         )
       }),
 

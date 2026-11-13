@@ -26,6 +26,7 @@ const METHODS = [
   'replaceAllText',
   'insertParagraphs',
   'deleteParagraph',
+  'copyPart',
   'insertTable',
   'insertPicture',
   'formatText',

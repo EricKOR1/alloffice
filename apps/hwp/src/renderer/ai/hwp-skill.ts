@@ -140,6 +140,7 @@ const SYSTEM_PROMPT = [
   '- Replace a piece of text with another (replace_text, replace_all). The new text takes the formatting of the text it replaces.',
   '- Add new paragraphs next to an existing one, in the body or inside a table cell, or at the end of the document (insert_paragraphs). Remove a paragraph (delete_paragraph).',
   '- Add a table of plain-text cells, with a header row when the first row names the columns (insert_table).',
+  '- Copy a part of the document, its tables and formatting included, one or more times (copy_part): the way to make more lesson plans, items or worksheets from the one a form gives.',
   '- Add a picture in a new paragraph after or before an anchor paragraph, or at the end: a real picture found on the web (image_search, then insert_image with its address) or an illustration the app draws (generate_image). A picture is saved inside the document, so it travels with the file. Only insert pictures the user asked for.',
   '- Work on the tables that are already there: list them (list_tables), read one cell by cell (read_table), write text into its cells, many at once (fill_cells), tick the choice boxes of a form (check_boxes), add or remove rows and columns (add_to_table, remove_from_table), and remove a whole table (delete_table).',
   '- Change formatting: bold, italic, underline, strikethrough, font, font size, text colour, highlight and the character style of a piece of text (format_text); alignment, line spacing, first-line indent, margins, space above and below and the paragraph style of a paragraph, and the character formatting of a whole paragraph (format_paragraph); the background colour of table cells (format_cells).',
@@ -250,6 +251,7 @@ const SYSTEM_PROMPT = [
   '- You see only the open document, the user\'s attachments and the pages you read. You do not see the user\'s other conversations, chat history or memory, their files, or the programs they made. When the request draws on such work ("my work in Claude", "what I made", "my activities", "내가 작업한 내용", "나의 활동") and the attachments do not hold it, do not make it up and do not write general content in its place: before changing the document, ask the user to attach or paste that material, naming what you need (for example the programs\' descriptions and screenshots). Write general content only when the user says to go ahead without it.',
   '- Before writing, read every attachment the request draws on to its end (all pages, until the reported total), and read the whole sample or template in the document.',
   '- When the request names an amount (5 lessons, 5차시, one plan and one worksheet per lesson, 3 pages), list every part it asks for and plan them all before the first edit. Write all of them; do not stop after some parts.',
+  '- When the document gives a sample block for each part (a lesson plan and its worksheet), fill those blocks. When it holds fewer blocks than the parts asked for, make more with copy_part from one block, then fill every copy; remove blocks left over only when the user asks.',
   '- Before you finish, read the document again and check each part on that list against it. Write what is missing; then say in the reply what was made, with the count (for example 5 of 5 lesson plans).',
   '',
   '## Conversation',
@@ -462,6 +464,28 @@ const TOOLS: AgentToolDef[] = [
         occurrence: { type: 'integer', minimum: 1 },
       },
       required: ['find'],
+    },
+  },
+  {
+    name: 'copy_part',
+    description:
+      'Copy a part of the body text, with its tables, pictures and formatting, one or more times right after the part: from the paragraph holding `from` up to the paragraph holding `until` (that one not included), or to the end of the document when until is left out. Use it when a form or sample gives one block to repeat (one lesson plan, one item, one worksheet) and the request needs more of them; then fill each copy. Tables and paragraphs after the part move down: read and list tables again before filling.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        from: {
+          type: 'string',
+          description: 'exact text found in the first paragraph of the part',
+        },
+        from_occurrence: { type: 'integer', minimum: 1 },
+        until: {
+          type: 'string',
+          description: 'exact text found in the first paragraph after the part (not copied)',
+        },
+        until_occurrence: { type: 'integer', minimum: 1 },
+        times: { type: 'integer', minimum: 1, maximum: 9, description: 'how many copies to add' },
+      },
+      required: ['from', 'times'],
     },
   },
   {
@@ -1827,6 +1851,38 @@ export function createHwpSkill(deps: HwpSkillDeps): HwpSkill {
             : 'Removed the paragraph.',
           mutated: true,
           summary: label('aiToolDelete', { text: quote(result.text) }),
+        }
+      }
+      case 'copy_part': {
+        const from = textArg(call, 'from')
+        if (!from) return bad(call, 'from must be a non-empty string')
+        const until = textArg(call, 'until')
+        const times = call.input.times
+        if (typeof times !== 'number' || !Number.isInteger(times) || times < 1 || times > 9) {
+          return bad(call, 'times must be a whole number from 1 to 9')
+        }
+        if (hasLineBreak(from) || (until && hasLineBreak(until))) return bad(call, ONE_LINE_HELP)
+        const occurrence = (key: string) =>
+          typeof call.input[key] === 'number' ? (call.input[key] as number) : null
+        const result = await bridge.copyPart(
+          from,
+          occurrence('from_occurrence'),
+          until || null,
+          occurrence('until_occurrence'),
+          times,
+        )
+        if (!result.ok) return bad(call, placeRefusal(result))
+        deps.onChange({
+          kind: 'insert',
+          from: '',
+          to: changeText(`${from} … ×${times}`),
+          count: 1,
+          place: result.place,
+        })
+        return {
+          output: `Copied a part of ${result.paragraphs} paragraph(s) ${result.copies} time(s); ${result.added} paragraph(s) were added after it. Read the document and list the tables again before filling the copies.`,
+          mutated: true,
+          summary: label('aiToolInsert', { count: result.added }),
         }
       }
       case 'insert_table': {

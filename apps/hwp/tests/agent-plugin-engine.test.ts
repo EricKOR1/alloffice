@@ -712,3 +712,45 @@ describe('adding a picture', () => {
     expect(editor.steps()).toBe(steps)
   })
 })
+
+describe('copying a part of the document', () => {
+  // the part: from 둘째 문단 (paragraph 2) through the table paragraph (3), up to 끝 문단
+  it('copies the paragraphs and their table right after the part', () => {
+    const editor = openEditor()
+    expect(editor.plugin.copyPart('둘째 문단', null, '끝 문단', null, 2)).toMatchObject({
+      ok: true,
+      paragraphs: 2,
+      copies: 2,
+      added: 4,
+    })
+    expect(editor.tables()).toBe(3)
+    expect(editor.lines()).toEqual([
+      '제목',
+      '첫째 문단입니다.',
+      ...['둘째 문단입니다.', '구분', '내용', '대상', '업체'],
+      ...['둘째 문단입니다.', '구분', '내용', '대상', '업체'],
+      ...['둘째 문단입니다.', '구분', '내용', '대상', '업체'],
+      '끝 문단입니다.',
+    ])
+    expect(editor.reopened().filter((line) => line === '업체')).toHaveLength(3)
+  })
+
+  it('copies to the end of the document without an until, and is taken back as one step', () => {
+    const editor = openEditor()
+    const before = editor.plugin.foreignChanges()
+    expect(editor.plugin.copyPart('끝 문단', null, null, null, 1)).toMatchObject({ ok: true })
+    expect(editor.lines().filter((line) => line === '끝 문단입니다.')).toHaveLength(2)
+    editor.plugin.undo(1, before)
+    expect(editor.lines()).toEqual(ORIGINAL)
+  })
+
+  it('refuses a part that ends before it starts, and a bad count', () => {
+    const editor = openEditor()
+    expect(editor.plugin.copyPart('끝 문단', null, '첫째 문단', null, 1)).toMatchObject({
+      ok: false,
+      reason: 'unsupported_place',
+    })
+    expect(() => editor.plugin.copyPart('첫째 문단', null, null, null, 0)).toThrow()
+    expect(editor.lines()).toEqual(ORIGINAL)
+  })
+})
