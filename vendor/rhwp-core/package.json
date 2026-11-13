@@ -67,6 +67,6 @@
       "0046-equation-plus-minus.patch"
     ],
     "wasmPack": "0.15.0",
-    "wasmSha256": "b2f0109198612d254409a5d946cdf471bccfdc013004fa8d7d485ee76a0605ba"
+    "wasmSha256": "ca986f23f517bd11149256677a8ec0828852c3e6cd7f7420859e0d1aaa373db6"
   }
 }

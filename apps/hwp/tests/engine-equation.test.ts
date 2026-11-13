@@ -35,4 +35,11 @@ describe('equation spacing symbols', () => {
     expect(text).not.toContain('`')
     expect(doc.renderEquationPreview('rm A ~ B ~~ C', 1100, 0)).not.toMatch(/>~</)
   })
+
+  it('reads +- and -+ as ± and ∓, and all-caps Greek names as capital letters', () => {
+    const doc = HwpDocument.createEmpty()
+    doc.createBlankDocument()
+    expect(glyphs(doc.renderEquationPreview('a +- b -+ c', 1100, 0))).toContain('a±b∓c')
+    expect(glyphs(doc.renderEquationPreview('ALPHA BETA', 1100, 0))).toContain('ΑΒ')
+  })
 })
