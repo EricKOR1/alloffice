@@ -1,7 +1,7 @@
 {
   "name": "@genoffice/shell",
   "productName": "AllOffice",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "license": "Apache-2.0",
   "homepage": "https://github.com/EricKOR1/alloffice",
   "private": true,
