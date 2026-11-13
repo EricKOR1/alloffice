@@ -1,0 +1,91 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jaeook Ryu <jaeook.ryu@gmail.com>
+Date: Sat, 17 Oct 2026 21:35:05 +0900
+Subject: [PATCH 45/46] =?UTF-8?q?fix(equation):=20=EC=A0=84=EB=B6=80=20?=
+ =?UTF-8?q?=EB=8C=80=EB=AC=B8=EC=9E=90=EB=A1=9C=20=EC=93=B4=20=EA=B7=B8?=
+ =?UTF-8?q?=EB=A6=AC=EC=8A=A4=20=EB=AC=B8=EC=9E=90=20=EC=9D=B4=EB=A6=84?=
+ =?UTF-8?q?=EC=9D=84=20=EB=8C=80=EB=AC=B8=EC=9E=90=20=EA=B7=B8=EB=A6=AC?=
+ =?UTF-8?q?=EC=8A=A4=20=EB=AC=B8=EC=9E=90=EB=A1=9C=20=EC=9D=BD=EB=8A=94?=
+ =?UTF-8?q?=EB=8B=A4=20(#7390)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`lookup_symbol` 의 대문자 그리스 문자 표는 `Sigma` 처럼 첫 글자만 대문자인 키만 가져,
+한/글 수식 편집기가 쓰는 `SIGMA`·`DELTA`·`PI` 가 표에 없는 식별자로 떨어져 글자 그대로
+찍혔다(1790387 보고서 31쪽 `SIGMA _{k} y _{ik}` → 「SIGMA」). 한/글 2020 Print 실측에서
+전부 대문자 이름은 모두 대문자 그리스 문자(Σ·Δ·Ω·Π·Α·Γ·Θ·Λ·Φ·Ψ·Ξ)이고 `sigma`/`Sigma` 와
+구별되므로, 대문자 식별자는 첫 글자만 대문자로 바꿔 그 표를 한 번 더 찾는다.
+
+(cherry picked from commit fe5d9ebd5260eca29c23e913d8b81cc1c209ccac)
+(cherry picked from commit 49b7fa1c1cab771ea4b9c33a17ccd381a6d8b379)
+---
+ .../fixtures/m09_expand/over_greek.golden     | 20 +++++++++----------
+ src/renderer/equation/symbols.rs              | 14 +++++++++++++
+ 2 files changed, 24 insertions(+), 10 deletions(-)
+
+diff --git a/src/renderer/equation/fixtures/m09_expand/over_greek.golden b/src/renderer/equation/fixtures/m09_expand/over_greek.golden
+index 10b7776cd..292e5fab7 100644
+--- a/src/renderer/equation/fixtures/m09_expand/over_greek.golden
++++ b/src/renderer/equation/fixtures/m09_expand/over_greek.golden
+@@ -5,22 +5,22 @@ honesty: implemented-variant
+ 
+ === ast ===
+ Fraction {
+-    numer: Text(
+-        "ALPHA",
++    numer: MathSymbol(
++        "Α",
+     ),
+-    denom: Text(
+-        "BETA",
++    denom: MathSymbol(
++        "Β",
+     ),
+ }
+ 
+ === layout ===
+-Fraction x=0.0000 y=0.0000 w=76.2500 h=48.8000 bl=29.4000
++Fraction x=0.0000 y=0.0000 w=21.0000 h=48.8000 bl=29.4000
+   numer:
+-    Text("ALPHA") x=4.0000 y=4.0000 w=68.2500 h=20.0000 bl=16.0000
++    MathSymbol("Α") x=4.0000 y=4.0000 w=13.0000 h=20.0000 bl=16.0000
+   denom:
+-    Text("BETA") x=10.8250 y=24.8000 w=54.6000 h=20.0000 bl=16.0000
++    MathSymbol("Β") x=4.0000 y=24.8000 w=13.0000 h=20.0000 bl=16.0000
+ 
+ === svg ===
+-<text x="4.00" y="20.00" font-size="20.00" fill="#000000" font-style="italic" font-family="'Latin Modern Math', 'STIX Two Text', 'STIX Two Math', 'Times New Roman', 'Times', serif">ALPHA</text>
+-<line x1="1.00" y1="24.40" x2="75.25" y2="24.40" stroke="#000000" stroke-width="0.80"/>
+-<text x="10.82" y="40.80" font-size="20.00" fill="#000000" font-style="italic" font-family="'Latin Modern Math', 'STIX Two Text', 'STIX Two Math', 'Times New Roman', 'Times', serif">BETA</text>
++<text x="4.00" y="20.00" font-size="20.00" fill="#000000" font-family="'Latin Modern Math', 'STIX Two Text', 'STIX Two Math', 'Times New Roman', 'Times', serif">Α</text>
++<line x1="1.00" y1="24.40" x2="20.00" y2="24.40" stroke="#000000" stroke-width="0.80"/>
++<text x="4.00" y="40.80" font-size="20.00" fill="#000000" font-family="'Latin Modern Math', 'STIX Two Text', 'STIX Two Math', 'Times New Roman', 'Times', serif">Β</text>
+diff --git a/src/renderer/equation/symbols.rs b/src/renderer/equation/symbols.rs
+index 595ea2a5a..d2991db59 100644
+--- a/src/renderer/equation/symbols.rs
++++ b/src/renderer/equation/symbols.rs
+@@ -605,6 +605,20 @@ pub fn lookup_symbol(cmd: &str) -> Option<&'static str> {
+         }
+     }
+ 
++    // 3차: [#7390] 전부 대문자로 쓴 그리스 문자 이름은 대문자 그리스 문자다.
++    // 한/글 2020 Print 실측(`pdf/issue7390/eq-uppercase-greek-2020.pdf`): `SIGMA` → Σ,
++    // `DELTA` → Δ, `OMEGA` → Ω, `PI` → Π, `ALPHA`·`GAMMA`·`THETA`·`LAMBDA`·`PHI`·`PSI`·`XI`
++    // 모두 대문자 그리스 문자이고 `sigma`/`Sigma` 와 구별된다. 종전에는 표에 없어
++    // 글자 그대로 「SIGMA」로 찍혔다(1790387 31쪽 `SIGMA _{k} y _{ik}`).
++    if cmd.len() >= 2 && cmd == upper && cmd.bytes().all(|b| b.is_ascii_uppercase()) {
++        let mut capitalized = String::with_capacity(cmd.len());
++        capitalized.push_str(&cmd[..1]);
++        capitalized.push_str(&cmd[1..].to_ascii_lowercase());
++        if let Some(s) = GREEK_UPPER.get(capitalized.as_str()) {
++            return Some(s);
++        }
++    }
++
+     None
+ }
+ 
+-- 
+2.43.0
+
