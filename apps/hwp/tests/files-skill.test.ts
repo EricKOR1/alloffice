@@ -96,9 +96,12 @@ describe('the files skill of the HWP panel', () => {
     expect(failed.output).toBe('password-protected')
   })
 
-  it('tells the model that an attached image cannot be put into the document', () => {
+  it('tells the model that an attached image goes into the document through insert_image', () => {
+    // the HWP panel inserts attached pictures (insert_image with attachment); the line
+    // that said it could not kept screenshots the user attached out of lesson plans
     const prompt = createFilesSkill(() => []).systemPrompt
-    expect(prompt).toContain('cannot be placed into the document')
+    expect(prompt).toContain('insert_image (attachment: its file name)')
+    expect(prompt).not.toContain('cannot be placed into the document')
     expect(prompt).not.toContain('attachment://')
   })
 })
